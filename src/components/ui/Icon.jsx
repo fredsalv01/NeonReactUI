@@ -1,0 +1,51 @@
+/**
+ * Atom: Icon
+ * Biblioteca de iconos SVG inline para GeoStock.
+ */
+const PATHS = {
+  box:     'M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z M9 22V12h6v10',
+  chart:   'M3 3v18h18 M7 16l4-4 4 4 4-6',
+  qr:      'M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h3v3h-3z M17 17h3v3h-3z M14 20h3',
+  users:   'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2 M23 21v-2a4 4 0 00-3-3.87 M16 3.13a4 4 0 010 7.75',
+  logout:  'M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4 M16 17l5-5-5-5 M21 12H9',
+  plus:    'M12 5v14 M5 12h14',
+  edit:    'M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7 M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z',
+  trash:   'M3 6h18 M8 6V4h8v2 M19 6l-1 14H6L5 6',
+  search:  'M21 21l-4.35-4.35 M17 11A6 6 0 115 11a6 6 0 0112 0z',
+  download:'M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4 M7 10l5 5 5-5 M12 15V3',
+  eye:     'M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z M12 12a3 3 0 100-6 3 3 0 000 6z',
+  eyeOff:  'M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94 M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19 M1 1l22 22',
+  alert:   'M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z M12 9v4 M12 17h.01',
+  check:   'M20 6L9 17l-5-5',
+  bell:    'M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9 M13.73 21a2 2 0 01-3.46 0',
+  compass: 'M12 2a10 10 0 100 20A10 10 0 0012 2z M16.24 7.76l-2.12 6.36-6.36 2.12 2.12-6.36 6.36-2.12z',
+  trophy:  'M8 21h8 M12 17v4 M7 4v6a5 5 0 0010 0V4 M4 4h3 M17 4h3',
+  tag:     'M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z M7 7h.01',
+  menu:    'M3 12h18 M3 6h18 M3 18h18',
+  image:   'M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2z M8.5 10a1.5 1.5 0 100-3 1.5 1.5 0 000 3z M21 15l-5-5L5 21',
+  filter:  'M22 3H2l8 9.46V19l4 2v-8.54L22 3z',
+  close:   'M18 6L6 18 M6 6l12 12',
+  lock:    'M19 11H5a2 2 0 00-2 2v7a2 2 0 002 2h14a2 2 0 002-2v-7a2 2 0 00-2-2z M7 11V7a5 5 0 0110 0v4',
+  key:     'M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4',
+}
+
+/**
+ * @param {{ name: string, size?: number, color?: string, className?: string }} props
+ */
+const Icon = ({ name, size = 16, color = 'currentColor', className = '' }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={color}
+    strokeWidth="1.8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d={PATHS[name] ?? PATHS.box} />
+  </svg>
+)
+
+export default Icon

@@ -1,0 +1,114 @@
+/** NeonReactUI — Global Styles. Requires Tailwind + Syne + DM Mono fonts. */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    @apply bg-gs-bg text-gs-text font-syne;
+    margin: 0;
+    padding: 0;
+  }
+  ::-webkit-scrollbar {
+    width: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-gs-bg;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gs-border rounded;
+  }
+  input,
+  select {
+    @apply bg-gs-bg text-gs-text border border-gs-border rounded-lg px-3.5 py-2.5
+           font-syne text-sm w-full outline-none
+           transition-all duration-200
+           focus:border-gs-accent focus:ring-2 focus:ring-gs-accent/20;
+  }
+  input.field-error,
+  select.field-error {
+    @apply border-gs-danger ring-2 ring-gs-danger/20;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-gs-accent text-gs-bg font-bold rounded-lg px-5 py-2.5 text-sm
+           transition-all duration-200 cursor-pointer border-none
+           hover:brightness-110 hover:-translate-y-px hover:shadow-lg hover:shadow-gs-accent/20
+           active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed;
+  }
+  .btn-ghost {
+    @apply bg-transparent text-gs-soft font-semibold rounded-lg px-4 py-2.5 text-sm
+           border border-gs-border transition-all duration-200 cursor-pointer
+           hover:border-gs-accent hover:text-gs-accent;
+  }
+  .btn-danger {
+    @apply bg-gs-danger/10 text-gs-danger font-semibold rounded-lg px-4 py-2
+           border border-gs-danger/25 text-sm transition-all duration-200 cursor-pointer
+           hover:bg-gs-danger/20;
+  }
+  .badge {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px]
+           font-mono font-medium;
+  }
+  .badge-ok {
+    @apply bg-gs-accent/10 text-gs-accent border border-gs-accent/25;
+  }
+  .badge-warn {
+    @apply bg-gs-warn/10 text-gs-warn border border-gs-warn/25;
+  }
+  .badge-err {
+    @apply bg-gs-danger/10 text-gs-danger border border-gs-danger/25;
+  }
+  .badge-muted {
+    @apply bg-white/5 text-gs-muted border border-gs-border;
+  }
+  .qtag {
+    @apply inline-block px-2 py-0.5 rounded text-[11px] font-mono
+           bg-gs-accent/10 text-gs-accent;
+  }
+  .card {
+    @apply bg-gs-card border border-gs-border rounded-xl;
+  }
+  .modal-overlay {
+    @apply fixed inset-0 bg-black/60 backdrop-blur-sm z-50 animate-fade-in
+           flex items-center justify-center p-4;
+  }
+  .modal-box {
+    @apply bg-gs-card border border-gs-border animate-fade-in
+           rounded-2xl p-5 sm:p-6
+           w-full max-w-[540px] overflow-y-auto
+           mx-auto;
+    max-height: calc(100vh - 2rem);
+  }
+  .nav-item {
+    @apply w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl mb-1
+           text-sm font-normal text-gs-soft border border-transparent
+           transition-all duration-200 cursor-pointer text-left;
+  }
+  .nav-item.active {
+    @apply bg-gs-accent/10 text-gs-accent border-gs-accent/25 font-bold;
+  }
+  .nav-item:not(.active):hover {
+    @apply bg-white/5 text-gs-text;
+  }
+  .pgbtn {
+    @apply px-3 py-1 rounded-md text-xs font-semibold border border-gs-border
+           bg-transparent text-gs-soft transition-all duration-200 cursor-pointer font-syne
+           hover:border-gs-accent hover:text-gs-accent
+           disabled:opacity-35 disabled:cursor-not-allowed;
+  }
+  .pgbtn-active {
+    @apply bg-gs-accent text-gs-bg border-gs-accent hover:text-gs-bg;
+  }
+  .trow:hover td {
+    @apply bg-gs-surface;
+  }
+  td {
+    @apply transition-colors duration-100;
+  }
+}
