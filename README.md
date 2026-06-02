@@ -882,13 +882,17 @@ src/
 │   │   ├── Button.jsx
 │   │   ├── Charts.jsx          ← ChartPanel (Recharts + Nivo)
 │   │   ├── DataTable.jsx
-│   │   ├── DragDrop.jsx        ← DropZone + SortableList
+│   │   ├── DatePicker.jsx      ← single date + range mode, min/max constraints
 │   │   ├── Drawer.jsx          ← slide-in panel, enter/exit animation
+│   │   ├── DragDrop.jsx        ← DropZone + SortableList
+│   │   ├── EmptyState.jsx      ← 4 presets, custom icon + CTA
 │   │   ├── Icon.jsx
 │   │   ├── InputField.jsx
 │   │   ├── Modal.jsx
+│   │   ├── NumberInput.jsx     ← +/− controls, hold-to-repeat, prefix/suffix
 │   │   ├── Pagination.jsx
 │   │   ├── PasswordStrength.jsx
+│   │   ├── Progress.jsx        ← bar / circular / steps, indeterminate mode
 │   │   ├── QRCode.jsx
 │   │   ├── QueryLoader.jsx
 │   │   ├── SearchBar.jsx
@@ -896,6 +900,7 @@ src/
 │   │   ├── Skeleton.jsx
 │   │   ├── Spinner.jsx         ← 5 variants
 │   │   ├── StatCard.jsx
+│   │   ├── Stepper.jsx         ← horizontal / vertical, step override
 │   │   ├── Switch.jsx          ← sliding toggle, 3 sizes
 │   │   ├── Tabs.jsx            ← sliding neon underline indicator
 │   │   ├── Toast.jsx
@@ -904,7 +909,7 @@ src/
 │   │   └── index.js            ← barrel export
 │   └── ComponentShowcase.jsx
 ├── App.jsx
-├── index.css                   ← global styles + :root CSS vars
+├── index.css                   ← global styles + :root CSS vars + @keyframes spin
 └── main.jsx
 tailwind.config.js              ← design tokens + keyframes
 ```
@@ -912,6 +917,30 @@ tailwind.config.js              ← design tokens + keyframes
 ---
 
 ## Changelog
+
+### v1.0.4 — 2026-06-02
+
+**New components**
+- `DatePicker` — single-date and date-range picker; pure JS `Date`, no library; range mode shows connected bar with live hover preview; min/max date constraints
+- `Progress` — three variants (`bar` / `circular` / `steps`); indeterminate mode with shimmer sweep (bar) or spinning arc (circular); all sizes support neon glow
+- `NumberInput` — quantity field with `+` / `−` buttons; hold-to-repeat fires immediately then 80ms intervals after 380ms; keyboard `↑` / `↓` navigation; prefix/suffix slots
+- `EmptyState` — four built-in presets (`no-results` / `no-data` / `no-connection` / `empty`); custom icon, color, and CTA; three sizes with proportional scaling
+- `Stepper` — horizontal and vertical step indicator; auto-derives step status from `current` index or via explicit `status` override (error states); connector bars fill with accent gradient when complete; `onClick` navigation optional
+
+**Icon additions**
+- `minus`, `calendar`, `arrowL`, `arrowR`, `inbox`, `wifi` — 6 new icons added to the Icon library
+
+**Keyframe additions**
+- `@keyframes spin` — explicit declaration in `index.css` so inline `animation: 'spin ...'` always resolves, fixing Spinner and Toast loading animation (Toast was statically defined in inline style but keyframe was only emitted when `animate-spin` class was used)
+- `@keyframes shimmer` — added to Tailwind config for Progress indeterminate mode
+
+**Bug fixes**
+- Toast loading spinner now animates correctly (was silent due to missing `@keyframes spin`)
+
+**Showcase**
+- Full interactive demos of all 5 new components with real-world examples (equipment registration wizard, file upload with progress, quantity ordering, empty states, multi-step forms)
+
+---
 
 ### v1.0.3 — 2026-06-02
 
@@ -979,6 +1008,11 @@ Core component set: `Button`, `Badge`, `Icon`, `InputField`, `SearchBar`, `Passw
 
 | Component | Version |
 |---|---|
+| `DatePicker` — single date + range mode, min/max constraints, live preview | v1.0.4 |
+| `Progress` — bar / circular / steps variants, indeterminate shimmer mode | v1.0.4 |
+| `NumberInput` — hold-to-repeat +/− buttons, keyboard nav, prefix/suffix | v1.0.4 |
+| `EmptyState` — 4 presets, custom icon + CTA, 3 sizes | v1.0.4 |
+| `Stepper` — horizontal/vertical, auto-status from current, explicit override | v1.0.4 |
 | `Tooltip` — portal tooltip, 4 placements, viewport clamp | v1.0.3 |
 | `Switch` — sliding toggle, 3 sizes, any color | v1.0.3 |
 | `Alert` — inline banner, 4 variants, dismissible | v1.0.3 |
@@ -996,11 +1030,12 @@ Core component set: `Button`, `Badge`, `Icon`, `InputField`, `SearchBar`, `Passw
 
 | Component | Why |
 |---|---|
-| **DatePicker** | Date inputs for scheduling, filtering by range, expiry tracking |
-| **Progress / ProgressBar** | Upload progress, onboarding steps, capacity indicators |
-| **NumberInput** | Quantity fields with increment/decrement controls |
-| **EmptyState** | Polished "nothing here" state with icon, title, description, and a CTA |
-| **Stepper** | Multi-step forms for registration or onboarding workflows |
+| **Command Palette** (`⌘K`) | Power-user navigation — search items, actions, and pages from anywhere |
+| **Timeline** | Activity log / history view for any record type |
+| **Avatar / AvatarGroup** | User display — initials fallback, stacked group, status dot |
+| **Virtual scroll in DataTable** | Handle 1 000+ rows without rendering them all |
+| **`prefers-reduced-motion`** | Accessibility pass — wrap all animations in a motion check |
+| **Grouped options in Select** | `{ group: 'Category', options: [...] }` support |
 
 ### Nice to have
 
