@@ -3,7 +3,7 @@
 > A reusable dark-neon React component library built with **Vite 5**, **React 18**, and **Tailwind CSS 3**.  
 > Drop it into any project — not tied to any specific product or domain.
 
-**Version:** 1.0.3 · **Updated:** 2026-06-02
+**Version:** 1.0.4 · **Updated:** 2026-06-02
 
 ---
 
@@ -668,6 +668,206 @@ const TABS = [
 | `children` | `ReactNode` | — |
 
 The `badge` accepts any `number` or `string`; it renders as a small pill that turns accent-colored when the tab is active.
+
+---
+
+### DatePicker
+
+Single-date and date-range calendar picker. Pure JS `Date` — no external library. The calendar grid is always 42 cells (6 × 7), Monday-aligned. Range mode shows a connected bar between start and end dates with a live hover preview.
+
+```jsx
+import { DatePicker } from './components/ui'
+
+// Single date
+<DatePicker
+  value={date}
+  onChange={setDate}
+  label="Calibration date"
+  minDate={new Date()}
+/>
+
+// Date range
+<DatePicker
+  mode="range"
+  value={range}              // { from: Date | null, to: Date | null }
+  onChange={setRange}
+  label="Maintenance window"
+  placeholder="Select date range…"
+/>
+```
+
+| Prop | Type | Default |
+|---|---|---|
+| `value` | `Date \| null` / `{ from, to }` | — |
+| `onChange` | `(val) => void` | — |
+| `mode` | `'single' \| 'range'` | `'single'` |
+| `placeholder` | `string` | auto |
+| `label` | `string` | — |
+| `minDate` | `Date` | — |
+| `maxDate` | `Date` | — |
+| `clearable` | `boolean` | `true` |
+| `disabled` | `boolean` | `false` |
+| `error` | `string` | — |
+
+**Range UX:** first click sets `from`; second click sets `to` and auto-corrects order if needed. Hovering days during selection shows a live preview of the range bar.
+
+---
+
+### Progress
+
+Three variants behind one API: linear bar, circular SVG, and segmented steps. Supports indeterminate (shimmer sweep) mode.
+
+```jsx
+import { Progress } from './components/ui'
+
+// Bar — determinate
+<Progress value={75} showValue label="Upload progress" />
+
+// Bar — indeterminate
+<Progress indeterminate label="Processing…" />
+
+// Circular
+<Progress variant="circular" value={78} showValue size="lg" color="var(--gs-teal)" />
+
+// Steps (segmented)
+<Progress variant="steps" value={60} segments={4} label="Phase 3 of 4" />
+```
+
+| Prop | Type | Default |
+|---|---|---|
+| `value` | `number` (0–100) | `0` |
+| `variant` | `'bar' \| 'circular' \| 'steps'` | `'bar'` |
+| `size` | `'xs' \| 'sm' \| 'md' \| 'lg'` | `'md'` |
+| `color` | `string` | `'var(--gs-accent)'` |
+| `label` | `string` | — |
+| `showValue` | `boolean` | `false` |
+| `indeterminate` | `boolean` | `false` |
+| `segments` | `number` | `5` (steps only) |
+
+**Bar heights:** `xs` 4px · `sm` 6px · `md` 8px · `lg` 12px  
+**Circular diameters:** `sm` 48px · `md` 64px · `lg` 96px  
+**Indeterminate:** bar uses an `animate-shimmer` sweep; circular spins a 270° arc via `stroke-dashoffset`.
+
+---
+
+### NumberInput
+
+Quantity field with `+` / `−` controls. Hold a button to auto-repeat (fires immediately, then repeats at 80ms after a 380ms hold). Keyboard `↑` / `↓` also increment/decrement.
+
+```jsx
+import { NumberInput } from './components/ui'
+
+<NumberInput
+  value={qty}
+  onChange={setQty}
+  label="Quantity"
+  min={0}
+  max={999}
+  step={1}
+  suffix="units"
+/>
+
+<NumberInput
+  value={price}
+  onChange={setPrice}
+  label="Unit price"
+  min={0}
+  step={50}
+  prefix="$"
+/>
+```
+
+| Prop | Type | Default |
+|---|---|---|
+| `value` | `number` | — |
+| `onChange` | `(val: number) => void` | — |
+| `min` | `number` | — |
+| `max` | `number` | — |
+| `step` | `number` | `1` |
+| `label` | `string` | — |
+| `prefix` | `string` | — |
+| `suffix` | `string` | — |
+| `disabled` | `boolean` | `false` |
+| `error` | `string` | — |
+
+---
+
+### EmptyState
+
+Polished "nothing here" placeholder with icon, title, description, and optional CTA. Four built-in presets cover the most common scenarios.
+
+```jsx
+import { EmptyState, Button } from './components/ui'
+
+// Preset
+<EmptyState
+  preset="no-results"
+  action={<Button variant="ghost" onClick={clearFilters}>Clear filters</Button>}
+/>
+
+// Custom
+<EmptyState
+  icon="trophy"
+  title="All caught up!"
+  description="No pending tasks for today."
+  color="var(--gs-warn)"
+  size="md"
+/>
+```
+
+| Prop | Type | Default |
+|---|---|---|
+| `preset` | `'no-results' \| 'no-data' \| 'no-connection' \| 'empty'` | — |
+| `icon` | `string` | preset value / `'box'` |
+| `title` | `string` | preset value |
+| `description` | `string` | preset value |
+| `action` | `ReactNode` | — |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` |
+| `color` | `string` | `'var(--gs-accent)'` |
+
+**Presets:** `no-results` (search icon) · `no-data` (inbox icon) · `no-connection` (wifi icon, danger color) · `empty` (box icon)
+
+---
+
+### Stepper
+
+Multi-step wizard indicator. Derives step status automatically from `current` (`complete` → `active` → `upcoming`), or each step can override with an explicit `status` prop for error states.
+
+```jsx
+import { Stepper, Button } from './components/ui'
+
+const STEPS = [
+  { label: 'Details',    description: 'Basic info' },
+  { label: 'Documents',  description: 'Upload files' },
+  { label: 'Assignment', description: 'Assign to project' },
+  { label: 'Review',     description: 'Confirm & submit' },
+]
+
+// Horizontal (default)
+<Stepper steps={STEPS} current={step} onChange={setStep} />
+
+// Vertical
+<Stepper steps={STEPS} current={step} orientation="vertical" />
+
+// With step error override
+const stepsWithError = [
+  ...STEPS.slice(0, 1),
+  { label: 'Documents', status: 'error' },
+  ...STEPS.slice(2),
+]
+<Stepper steps={stepsWithError} current={1} />
+```
+
+| Prop | Type | Default |
+|---|---|---|
+| `steps` | `{ label, description?, status? }[]` | — |
+| `current` | `number` | — |
+| `onChange` | `(index: number) => void` | — (no click nav) |
+| `orientation` | `'horizontal' \| 'vertical'` | `'horizontal'` |
+| `children` | `ReactNode` | — |
+
+**Step statuses:** `complete` (filled accent + checkmark) · `active` (accent border + step number) · `upcoming` (muted border) · `error` (danger border + ✕)  
+**Connector:** fills with a left-to-right (or top-to-bottom) accent gradient when the preceding step is complete.
 
 ---
 

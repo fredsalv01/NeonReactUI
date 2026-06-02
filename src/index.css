@@ -3,6 +3,13 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Explicit keyframe declaration so inline animation: 'spin ...' always resolves,
+   regardless of whether Tailwind's animate-spin class is used in the content. */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
 :root {
   --gs-bg:      #0D0F14;
   --gs-surface: #13161E;

@@ -8,6 +8,11 @@ import {
   Tooltip,
   Switch,
   Alert,
+  DatePicker,
+  Progress,
+  NumberInput,
+  EmptyState,
+  Stepper,
   ChartPanel,
   DataTable,
   Select,
@@ -40,6 +45,13 @@ export function ComponentShowcase() {
   const [drawerOpen,     setDrawerOpen]     = useState(false);
   const [activeTab,      setActiveTab]      = useState('overview');
   const [switches, setSwitches] = useState({ active: true, maintenance: false, notifications: true, darkMode: true });
+  const [pickerDate,  setPickerDate]  = useState(null);
+  const [pickerRange, setPickerRange] = useState({ from: null, to: null });
+  const [progressVal, setProgressVal] = useState(65);
+  const [stepperStep, setStepperStep] = useState(1);
+  const [numQty,      setNumQty]      = useState(12);
+  const [numPct,      setNumPct]      = useState(75);
+  const [numPrice,    setNumPrice]    = useState(1499);
   const { toast } = useToast();
 
   const handleShowToast = (type) => {
@@ -494,6 +506,185 @@ export function ComponentShowcase() {
           <p className="text-[var(--gs-soft)] text-xs font-['DM_Mono'] mb-6">Switch library and chart type with the selectors below</p>
           <ChartPanel />
         </section>
+
+        {/* DatePicker */}
+        <section className="card p-6 rounded-2xl bg-[var(--gs-surface)] border border-[var(--gs-border)]">
+          <h2 className="text-xl font-bold mb-1">DatePicker</h2>
+          <p className="text-[var(--gs-soft)] text-xs font-['DM_Mono'] mb-6">Single date · Date range · min/max constraints · today highlight</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <DatePicker
+              value={pickerDate}
+              onChange={setPickerDate}
+              label="Calibration date"
+              placeholder="Select date…"
+              minDate={new Date(2020,0,1)}
+            />
+            <DatePicker
+              value={pickerRange}
+              onChange={setPickerRange}
+              mode="range"
+              label="Maintenance window"
+              placeholder="Select date range…"
+            />
+          </div>
+          {(pickerDate || pickerRange.from) && (
+            <div className="mt-4 flex flex-wrap gap-3">
+              {pickerDate && (
+                <span className="text-[11px] font-['DM_Mono'] px-3 py-1.5 rounded-lg bg-[var(--gs-card)] border border-[var(--gs-border)] text-[var(--gs-soft)]">
+                  Selected: <span className="text-[var(--gs-accent)]">{pickerDate.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</span>
+                </span>
+              )}
+              {pickerRange.from && (
+                <span className="text-[11px] font-['DM_Mono'] px-3 py-1.5 rounded-lg bg-[var(--gs-card)] border border-[var(--gs-border)] text-[var(--gs-soft)]">
+                  Range: <span className="text-[var(--gs-teal)]">
+                    {pickerRange.from?.toLocaleDateString('en-US',{month:'short',day:'numeric'})}
+                    {pickerRange.to ? ` → ${pickerRange.to.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}` : ' → …'}
+                  </span>
+                </span>
+              )}
+            </div>
+          )}
+        </section>
+
+        {/* Progress */}
+        <section className="card p-6 rounded-2xl bg-[var(--gs-surface)] border border-[var(--gs-border)]">
+          <h2 className="text-xl font-bold mb-1">Progress</h2>
+          <p className="text-[var(--gs-soft)] text-xs font-['DM_Mono'] mb-6">Bar · Circular · Steps · Indeterminate · neon glow</p>
+          <div className="space-y-8">
+            {/* Interactive bar */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-4">
+                <Progress value={progressVal} showValue label="Upload progress" className="flex-1" />
+                <input type="range" min={0} max={100} value={progressVal} onChange={e => setProgressVal(+e.target.value)}
+                  className="w-24 accent-[#00C9A7]" />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Progress value={40}  color="var(--gs-teal)"   label="In use"        showValue size="sm" />
+                <Progress value={85}  color="var(--gs-warn)"   label="Capacity"      showValue size="md" />
+                <Progress value={100} color="var(--gs-accent)"  label="Completed"     showValue size="xs" />
+                <Progress value={25}  color="var(--gs-danger)"  label="Maintenance"   showValue size="lg" />
+              </div>
+            </div>
+            {/* Indeterminate */}
+            <div className="space-y-2">
+              <p className="text-[10px] text-[var(--gs-muted)] font-['DM_Mono'] uppercase tracking-widest">Indeterminate</p>
+              <Progress indeterminate label="Syncing records…" />
+              <Progress indeterminate color="var(--gs-teal)" size="sm" />
+            </div>
+            {/* Circular */}
+            <div>
+              <p className="text-[10px] text-[var(--gs-muted)] font-['DM_Mono'] uppercase tracking-widest mb-4">Circular</p>
+              <div className="flex flex-wrap gap-6 items-center">
+                <Progress variant="circular" value={progressVal} showValue size="sm" />
+                <Progress variant="circular" value={progressVal} showValue size="md" color="var(--gs-teal)" />
+                <Progress variant="circular" value={progressVal} showValue size="lg" color="var(--gs-warn)" />
+                <Progress variant="circular" indeterminate size="md" color="var(--gs-danger)" />
+              </div>
+            </div>
+            {/* Steps */}
+            <div>
+              <p className="text-[10px] text-[var(--gs-muted)] font-['DM_Mono'] uppercase tracking-widest mb-4">Steps</p>
+              <div className="space-y-3">
+                <Progress variant="steps" value={progressVal} segments={5} label={`Step ${Math.ceil(progressVal/20)} of 5`} />
+                <Progress variant="steps" value={60} segments={4} color="var(--gs-teal)" label="Phase 3 of 4" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* NumberInput */}
+        <section className="card p-6 rounded-2xl bg-[var(--gs-surface)] border border-[var(--gs-border)]">
+          <h2 className="text-xl font-bold mb-1">NumberInput</h2>
+          <p className="text-[var(--gs-soft)] text-xs font-['DM_Mono'] mb-6">Hold to auto-repeat · min/max/step · prefix/suffix · keyboard arrows</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <NumberInput label="Quantity" value={numQty}   onChange={setNumQty}   min={0}   max={999} step={1}  suffix="units" />
+            <NumberInput label="Threshold" value={numPct}  onChange={setNumPct}   min={0}   max={100} step={5}  suffix="%" />
+            <NumberInput label="Unit price" value={numPrice} onChange={setNumPrice} min={0} max={99999} step={50} prefix="$" />
+            <NumberInput label="Step 0.1" value={1.5} onChange={() => {}} min={0} max={10} step={0.1} />
+            <NumberInput label="Disabled" value={42} onChange={() => {}} disabled suffix="kg" />
+            <NumberInput label="With error" value={-5} onChange={() => {}} min={0} error="Value must be ≥ 0" />
+          </div>
+        </section>
+
+        {/* EmptyState */}
+        <section className="card p-6 rounded-2xl bg-[var(--gs-surface)] border border-[var(--gs-border)]">
+          <h2 className="text-xl font-bold mb-1">EmptyState</h2>
+          <p className="text-[var(--gs-soft)] text-xs font-['DM_Mono'] mb-6">4 built-in presets · 3 sizes · custom icon + CTA</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-[var(--gs-card)] border border-[var(--gs-border)] rounded-2xl">
+              <EmptyState preset="no-results" size="sm"
+                action={<Button variant="ghost" onClick={() => toast.info('Filters cleared')}>Clear filters</Button>} />
+            </div>
+            <div className="bg-[var(--gs-card)] border border-[var(--gs-border)] rounded-2xl">
+              <EmptyState preset="no-data" size="sm"
+                action={<Button variant="primary" onClick={() => toast.success('Opening form…')}>Add first item</Button>} />
+            </div>
+            <div className="bg-[var(--gs-card)] border border-[var(--gs-border)] rounded-2xl">
+              <EmptyState preset="no-connection" size="sm" color="var(--gs-danger)"
+                action={<Button variant="ghost" onClick={() => toast.loading('Retrying…')}>Retry</Button>} />
+            </div>
+            <div className="bg-[var(--gs-card)] border border-[var(--gs-border)] rounded-2xl">
+              <EmptyState
+                icon="trophy"
+                title="All caught up!"
+                description="No pending calibrations for this week."
+                size="sm"
+                color="var(--gs-warn)"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* Stepper */}
+        {(() => {
+          const STEPS = [
+            { label: 'Equipment details', description: 'Model, serial, category' },
+            { label: 'Documentation',     description: 'Upload certificates' },
+            { label: 'Assignment',        description: 'Assign to project' },
+            { label: 'Review & submit',   description: 'Confirm record' },
+          ];
+          const CONTENT = [
+            <div className="space-y-3 text-sm text-[var(--gs-soft)]">
+              <p>Fill in the basic equipment information: brand, model, serial number, and category.</p>
+              <div className="grid grid-cols-2 gap-3">
+                <NumberInput label="Purchase year" value={2024} onChange={() => {}} min={2000} max={2030} />
+                <NumberInput label="Units purchased" value={1} onChange={() => {}} min={1} max={99} />
+              </div>
+            </div>,
+            <div className="text-sm text-[var(--gs-soft)]"><p>Upload calibration certificates, user manuals, and inspection reports.</p><DropZone accept=".pdf,.jpg,.png" className="mt-3" maxSizeMB={10} /></div>,
+            <div className="space-y-3 text-sm text-[var(--gs-soft)]">
+              <p>Assign this equipment to an active project and a responsible technician.</p>
+              <Select options={[{value:'proj-a',label:'Project Alpha'},{value:'proj-b',label:'Project Beta'},{value:'proj-c',label:'Project Gamma'}]} value={null} onChange={() => {}} placeholder="Select project…" label="Project" />
+            </div>,
+            <div className="space-y-3 text-sm">
+              <Alert variant="success" title="Ready to submit">All required fields are complete.</Alert>
+              <p className="text-[var(--gs-soft)]">Review the information and click Submit to register this equipment in the system.</p>
+            </div>,
+          ];
+          return (
+            <section className="card p-6 rounded-2xl bg-[var(--gs-surface)] border border-[var(--gs-border)]">
+              <h2 className="text-xl font-bold mb-1">Stepper</h2>
+              <p className="text-[var(--gs-soft)] text-xs font-['DM_Mono'] mb-6">Horizontal · Vertical · complete / active / upcoming states</p>
+              <div className="space-y-8">
+                <Stepper steps={STEPS} current={stepperStep} onChange={setStepperStep} />
+                <div className="bg-[var(--gs-card)] border border-[var(--gs-border)] rounded-2xl p-5">
+                  {CONTENT[stepperStep]}
+                  <div className="flex justify-between mt-6 pt-4 border-t border-[var(--gs-border)]">
+                    <Button variant="ghost" disabled={stepperStep === 0} onClick={() => setStepperStep(s => s - 1)}>← Previous</Button>
+                    {stepperStep < STEPS.length - 1
+                      ? <Button variant="primary" onClick={() => setStepperStep(s => s + 1)}>Next →</Button>
+                      : <Button variant="primary" onClick={() => { setStepperStep(0); toast.success('Equipment registered!'); }}>Submit</Button>
+                    }
+                  </div>
+                </div>
+                <div>
+                  <p className="text-[10px] text-[var(--gs-muted)] font-['DM_Mono'] uppercase tracking-widest mb-4">Vertical orientation</p>
+                  <Stepper steps={STEPS.slice(0,3)} current={stepperStep < 3 ? stepperStep : 2} orientation="vertical" />
+                </div>
+              </div>
+            </section>
+          );
+        })()}
 
         {/* Spinner */}
         <section className="card p-6 rounded-2xl bg-[var(--gs-surface)] border border-[var(--gs-border)]">

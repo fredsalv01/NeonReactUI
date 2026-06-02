@@ -33,6 +33,8 @@ export default {
         'dots-b':      'dotsB 1.2s ease-in-out infinite both',
         'bars-w':      'barsW 1.1s ease-in-out infinite both',
         'ring-e':      'ringE 1.4s ease-out infinite both',
+        // Progress indeterminate
+        'shimmer':     'shimmer 1.6s ease-in-out infinite',
       },
       keyframes: {
         fadeIn:  { from: { opacity: '0', transform: 'translateY(10px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
@@ -51,6 +53,10 @@ export default {
         ringE: {
           '0%':   { transform: 'scale(0.7)', opacity: '0.8' },
           '100%': { transform: 'scale(2.2)', opacity: '0'   },
+        },
+        shimmer: {
+          '0%':   { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(500%)' },
         },
       },
     },
