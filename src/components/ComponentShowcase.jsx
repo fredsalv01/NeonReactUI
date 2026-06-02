@@ -3,6 +3,11 @@ import {
   Button,
   Badge,
   Modal,
+  Drawer,
+  Tabs,
+  Tooltip,
+  Switch,
+  Alert,
   ChartPanel,
   DataTable,
   Select,
@@ -32,6 +37,9 @@ export function ComponentShowcase() {
   const [filterCategory, setFilterCategory] = useState(null);
   const [filterStatus,   setFilterStatus]   = useState(null);
   const [filterLocation, setFilterLocation] = useState(null);
+  const [drawerOpen,     setDrawerOpen]     = useState(false);
+  const [activeTab,      setActiveTab]      = useState('overview');
+  const [switches, setSwitches] = useState({ active: true, maintenance: false, notifications: true, darkMode: true });
   const { toast } = useToast();
 
   const handleShowToast = (type) => {
@@ -52,22 +60,195 @@ export function ComponentShowcase() {
           <p className="text-[var(--gs-soft)] font-['DM_Mono']">Complete component library adaptation</p>
         </div>
 
-        {/* Buttons Section */}
+        {/* Buttons & Icons */}
         <section className="card p-6 rounded-2xl bg-[var(--gs-surface)] border border-[var(--gs-border)]">
-          <h2 className="text-xl font-bold mb-6">Buttons & Icons</h2>
+          <h2 className="text-xl font-bold mb-6">Buttons, Icons & Tooltips</h2>
           <div className="flex gap-4 flex-wrap items-center">
-            <Button variant="primary">Primary Button</Button>
-            <Button variant="ghost">Ghost Button</Button>
-            <Button variant="danger">Danger Button</Button>
-            <Button disabled>Disabled Button</Button>
-            
+            <Tooltip content="Creates a new record"><Button variant="primary">Primary</Button></Tooltip>
+            <Tooltip content="Cancel current action" placement="top"><Button variant="ghost">Ghost</Button></Tooltip>
+            <Tooltip content="Permanently remove" placement="bottom"><Button variant="danger">Danger</Button></Tooltip>
+            <Tooltip content="Not available right now" placement="right"><Button disabled>Disabled</Button></Tooltip>
+
             <div className="flex gap-4 ml-8">
-              <Icon name="box" size={24} color="var(--gs-accent)" />
-              <Icon name="users" size={24} color="var(--gs-teal)" />
-              <Icon name="chart" size={24} color="var(--gs-warn)" />
+              <Tooltip content="Inventory" placement="top"><Icon name="box" size={24} color="var(--gs-accent)" /></Tooltip>
+              <Tooltip content="Users" placement="top"><Icon name="users" size={24} color="var(--gs-teal)" /></Tooltip>
+              <Tooltip content="Analytics" placement="top"><Icon name="chart" size={24} color="var(--gs-warn)" /></Tooltip>
+            </div>
+          </div>
+          <p className="text-[11px] text-[var(--gs-muted)] font-['DM_Mono'] mt-5">Hover any element ↑ to see the tooltip</p>
+        </section>
+
+        {/* Switch */}
+        <section className="card p-6 rounded-2xl bg-[var(--gs-surface)] border border-[var(--gs-border)]">
+          <h2 className="text-xl font-bold mb-1">Switch</h2>
+          <p className="text-[var(--gs-soft)] text-xs font-['DM_Mono'] mb-6">Three sizes · custom color · disabled state</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="space-y-5">
+              <Switch checked={switches.active}        onChange={v => setSwitches(s => ({...s, active: v}))}        label="Equipment active"       description="Mark this unit as available for deployment" />
+              <Switch checked={switches.maintenance}   onChange={v => setSwitches(s => ({...s, maintenance: v}))}   label="Maintenance mode"       description="Locks the unit from being assigned to projects" color="var(--gs-warn)" />
+              <Switch checked={switches.notifications} onChange={v => setSwitches(s => ({...s, notifications: v}))} label="Calibration alerts"     description="Receive reminders before calibration expires" />
+              <Switch checked={switches.darkMode}      onChange={v => setSwitches(s => ({...s, darkMode: v}))}      label="Dark mode" disabled />
+            </div>
+            <div className="flex flex-col gap-5">
+              <div>
+                <p className="text-[10px] text-[var(--gs-muted)] font-['DM_Mono'] uppercase tracking-widest mb-3">Sizes</p>
+                <div className="flex items-center gap-6">
+                  <Switch size="sm" checked={true}  onChange={() => {}} label="sm" />
+                  <Switch size="md" checked={true}  onChange={() => {}} label="md" />
+                  <Switch size="lg" checked={false} onChange={() => {}} label="lg" />
+                </div>
+              </div>
+              <div>
+                <p className="text-[10px] text-[var(--gs-muted)] font-['DM_Mono'] uppercase tracking-widest mb-3">Colors</p>
+                <div className="flex flex-col gap-3">
+                  <Switch size="md" checked={true} onChange={() => {}} color="var(--gs-accent)" label="Accent (default)" />
+                  <Switch size="md" checked={true} onChange={() => {}} color="var(--gs-teal)"   label="Teal" />
+                  <Switch size="md" checked={true} onChange={() => {}} color="var(--gs-danger)"  label="Danger" />
+                </div>
+              </div>
             </div>
           </div>
         </section>
+
+        {/* Alert / Banner */}
+        <section className="card p-6 rounded-2xl bg-[var(--gs-surface)] border border-[var(--gs-border)]">
+          <h2 className="text-xl font-bold mb-1">Alert</h2>
+          <p className="text-[var(--gs-soft)] text-xs font-['DM_Mono'] mb-6">Inline persistent feedback · 4 variants · dismissible</p>
+          <div className="space-y-3">
+            <Alert variant="info" title="Firmware update available">
+              Version 4.2.1 is ready for Leica TS16 units. Schedule the update during off-hours to avoid disruption.
+            </Alert>
+            <Alert variant="success" title="Sync completed">
+              142 equipment records were successfully synced with the field database.
+            </Alert>
+            <Alert variant="warning" title="Calibration overdue" onDismiss={() => toast.info('Alert dismissed')}>
+              3 instruments require recalibration before field deployment. Click to review.
+            </Alert>
+            <Alert variant="danger" title="Connection lost" onDismiss={() => toast.error('Acknowledged')}>
+              Unable to reach the remote inventory server. Data shown may be stale.
+            </Alert>
+            <Alert variant="info">No title — just a short informational message with no action needed.</Alert>
+          </div>
+        </section>
+
+        {/* Tabs */}
+        <section className="card p-6 rounded-2xl bg-[var(--gs-surface)] border border-[var(--gs-border)]">
+          <h2 className="text-xl font-bold mb-1">Tabs</h2>
+          <p className="text-[var(--gs-soft)] text-xs font-['DM_Mono'] mb-6">Sliding neon underline indicator · icon + badge support</p>
+          <Tabs
+            value={activeTab}
+            onChange={setActiveTab}
+            tabs={[
+              { value: 'overview',   label: 'Overview',   icon: 'box',    badge: null },
+              { value: 'history',    label: 'History',    icon: 'chart',  badge: 14 },
+              { value: 'documents',  label: 'Documents',  icon: 'file',   badge: 3 },
+              { value: 'calibration',label: 'Calibration',icon: 'check',  badge: null },
+            ]}
+          >
+            {activeTab === 'overview' && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+                {[['Serial No.','GS-00142'],['Brand','Leica'],['Model','TS16'],['Category','Total Station'],['Location','Warehouse A'],['Status','Disponible']].map(([k,v]) => (
+                  <div key={k} className="p-3 rounded-xl bg-[var(--gs-surface)] border border-[var(--gs-border)]">
+                    <p className="text-[10px] font-['DM_Mono'] text-[var(--gs-muted)] uppercase tracking-wider mb-0.5">{k}</p>
+                    <p className="text-[var(--gs-text)] font-semibold text-sm">{v}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+            {activeTab === 'history' && (
+              <div className="space-y-2">
+                {[['2026-04-01','Returned from Site C — no damage reported'],['2026-03-12','Annual calibration completed at workshop'],['2026-01-08','Assigned to Project Delta · Trimble R10']].map(([date,ev]) => (
+                  <div key={date} className="flex gap-3 p-3 rounded-xl bg-[var(--gs-surface)] border border-[var(--gs-border)]">
+                    <span className="text-[11px] font-['DM_Mono'] text-[var(--gs-muted)] shrink-0 mt-0.5 w-24">{date}</span>
+                    <span className="text-sm text-[var(--gs-soft)]">{ev}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {activeTab === 'documents' && (
+              <div className="space-y-2">
+                {[['Calibration Certificate.pdf','PDF','2026-03-12'],['User Manual TS16.pdf','PDF','2024-08-01'],['Inspection Report Q1.xlsx','XLSX','2026-04-01']].map(([name,ext,date]) => (
+                  <div key={name} className="flex items-center gap-3 p-3 rounded-xl bg-[var(--gs-surface)] border border-[var(--gs-border)]">
+                    <span className="text-[9px] font-['DM_Mono'] font-bold px-1.5 py-0.5 rounded bg-[var(--gs-accent)]/10 text-[var(--gs-accent)] border border-[var(--gs-accent)]/20">{ext}</span>
+                    <span className="flex-1 text-sm text-[var(--gs-text)] truncate">{name}</span>
+                    <span className="text-[11px] font-['DM_Mono'] text-[var(--gs-muted)] shrink-0">{date}</span>
+                    <Button variant="ghost" onClick={() => toast.success(`Downloading ${name}`)}>
+                      <Icon name="download" size={13} />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {activeTab === 'calibration' && (
+              <div className="space-y-3">
+                <Alert variant="success" title="In compliance">Next calibration due September 2026 — 90 days remaining.</Alert>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  {[['Last calibration','2026-03-12'],['Next due','2026-09-12'],['Calibrated by','Tech. J. Flores'],['Certificate','CAL-2026-0312']].map(([k,v]) => (
+                    <div key={k} className="p-3 rounded-xl bg-[var(--gs-surface)] border border-[var(--gs-border)]">
+                      <p className="text-[10px] font-['DM_Mono'] text-[var(--gs-muted)] uppercase tracking-wider mb-0.5">{k}</p>
+                      <p className="text-[var(--gs-text)] font-semibold text-sm">{v}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </Tabs>
+        </section>
+
+        {/* Drawer */}
+        <section className="card p-6 rounded-2xl bg-[var(--gs-surface)] border border-[var(--gs-border)]">
+          <h2 className="text-xl font-bold mb-1">Drawer</h2>
+          <p className="text-[var(--gs-soft)] text-xs font-['DM_Mono'] mb-6">Slide-in panel · smooth enter/exit · focus trap · Escape to close</p>
+          <div className="flex gap-3 flex-wrap">
+            <Button variant="primary" onClick={() => setDrawerOpen(true)}>Open equipment detail</Button>
+            <Button variant="ghost" onClick={() => setDrawerOpen(true)}>Right drawer (default)</Button>
+          </div>
+        </section>
+
+        <Drawer
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          title="Leica TS16"
+          subtitle="GS-00142 · Total Station"
+          size="md"
+          footer={
+            <>
+              <Button variant="ghost" onClick={() => setDrawerOpen(false)}>Close</Button>
+              <Button variant="primary" onClick={() => { setDrawerOpen(false); toast.success('Changes saved'); }}>Save changes</Button>
+            </>
+          }
+        >
+          <div className="space-y-5">
+            <Alert variant="success" title="In compliance">Calibration valid until September 2026.</Alert>
+            <Tabs
+              value={activeTab}
+              onChange={setActiveTab}
+              tabs={[
+                { value: 'overview',   label: 'Overview',   icon: 'box' },
+                { value: 'history',    label: 'History',    icon: 'chart', badge: 14 },
+                { value: 'calibration',label: 'Calibration',icon: 'check' },
+              ]}
+            >
+              {activeTab === 'overview' && (
+                <div className="grid grid-cols-2 gap-3">
+                  {[['Brand','Leica'],['Model','TS16'],['Location','Warehouse A'],['Assigned to','—']].map(([k,v]) => (
+                    <div key={k} className="p-3 rounded-xl bg-[var(--gs-surface)] border border-[var(--gs-border)]">
+                      <p className="text-[10px] font-['DM_Mono'] text-[var(--gs-muted)] uppercase tracking-wider mb-0.5">{k}</p>
+                      <p className="text-[var(--gs-text)] font-semibold text-sm">{v}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {activeTab === 'history' && <p className="text-sm text-[var(--gs-soft)] pt-1">Last 14 activity records available in the full view.</p>}
+              {activeTab === 'calibration' && <p className="text-sm text-[var(--gs-soft)] pt-1">Next calibration: September 12, 2026.</p>}
+            </Tabs>
+            <div className="space-y-3 pt-1">
+              <p className="text-[11px] text-[var(--gs-muted)] font-['DM_Mono'] uppercase tracking-widest">Settings</p>
+              <Switch checked={switches.active}      onChange={v => setSwitches(s => ({...s, active: v}))}      label="Mark as available"  description="Allow this unit to be assigned to new projects" />
+              <Switch checked={switches.maintenance} onChange={v => setSwitches(s => ({...s, maintenance: v}))} label="Maintenance lock"    description="Prevent assignment until maintenance is complete" color="var(--gs-warn)" />
+            </div>
+          </div>
+        </Drawer>
 
         {/* Inputs & Search */}
         <section className="card p-6 rounded-2xl bg-[var(--gs-surface)] border border-[var(--gs-border)]">

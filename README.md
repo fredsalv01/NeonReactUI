@@ -1,9 +1,9 @@
-# NeonReactUI — GeoStock Component Library
+# NeonReactUI
 
-> Dark-neon React component library built with **Vite 5**, **React 18**, and **Tailwind CSS 3**.  
-> Designed for the GeoStock Industrial Inventory Management System.
+> A reusable dark-neon React component library built with **Vite 5**, **React 18**, and **Tailwind CSS 3**.  
+> Drop it into any project — not tied to any specific product or domain.
 
-**Version:** 1.0.2 · **Updated:** 2026-06-02
+**Version:** 1.0.3 · **Updated:** 2026-06-02
 
 ---
 
@@ -508,17 +508,182 @@ const [items, setItems] = useState(myList)
 
 ---
 
+### Tooltip
+
+Portal-rendered hover/focus tooltip. Never clipped by `overflow:hidden` parents. Positions itself after mount (`useLayoutEffect`) and clamps to the viewport.
+
+```jsx
+import { Tooltip, Button, Icon } from './components/ui'
+
+// Wrap any element — string or ReactNode content
+<Tooltip content="Delete this record" placement="top">
+  <Button variant="danger"><Icon name="trash" size={13} /></Button>
+</Tooltip>
+
+<Tooltip content="Syncing with remote server…" placement="right" delay={0}>
+  <Icon name="bell" size={18} />
+</Tooltip>
+```
+
+| Prop | Type | Default |
+|---|---|---|
+| `content` | `ReactNode` | — |
+| `placement` | `'top' \| 'bottom' \| 'left' \| 'right'` | `'top'` |
+| `delay` | `number` (ms) | `130` |
+| `disabled` | `boolean` | `false` |
+
+---
+
+### Switch
+
+Accessible sliding toggle for binary settings. Sizes scale proportionally; accepts any CSS color.
+
+```jsx
+import { Switch } from './components/ui'
+
+<Switch
+  checked={isActive}
+  onChange={setIsActive}
+  label="Equipment active"
+  description="Allow this unit to be assigned to projects"
+/>
+
+// Danger color for a destructive toggle
+<Switch
+  checked={locked}
+  onChange={setLocked}
+  label="Maintenance lock"
+  color="var(--gs-danger)"
+  size="sm"
+/>
+```
+
+| Prop | Type | Default |
+|---|---|---|
+| `checked` | `boolean` | — |
+| `onChange` | `(val: boolean) => void` | — |
+| `label` | `string` | — |
+| `description` | `string` | — |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` |
+| `color` | `string` | `'var(--gs-accent)'` |
+| `disabled` | `boolean` | `false` |
+
+---
+
+### Alert
+
+Inline persistent contextual banner — distinct from `Toast`. Sits in the document flow; dismissible via `onDismiss`.
+
+```jsx
+import { Alert } from './components/ui'
+
+<Alert variant="warning" title="Calibration overdue" onDismiss={handleDismiss}>
+  3 instruments require recalibration before field deployment.
+</Alert>
+
+<Alert variant="success" title="Sync completed">
+  All records are up to date.
+</Alert>
+
+// No title — message only
+<Alert variant="info">New firmware available for download.</Alert>
+```
+
+| Prop | Type | Default |
+|---|---|---|
+| `variant` | `'info' \| 'success' \| 'warning' \| 'danger'` | `'info'` |
+| `title` | `string` | — |
+| `children` | `ReactNode` | — |
+| `onDismiss` | `() => void` | — (no dismiss button) |
+
+---
+
+### Drawer
+
+Slide-in panel from the right (or left). Portal-rendered with a blurred backdrop, focus trap, and smooth CSS enter/exit transition — no animation library needed.
+
+```jsx
+import { Drawer, Button, Tabs, Switch } from './components/ui'
+
+<Button onClick={() => setOpen(true)}>Open details</Button>
+
+<Drawer
+  open={open}
+  onClose={() => setOpen(false)}
+  title="Item Details"
+  subtitle="ID-00142 · Category A"
+  size="md"
+  footer={
+    <>
+      <Button variant="ghost"   onClick={() => setOpen(false)}>Close</Button>
+      <Button variant="primary" onClick={handleSave}>Save changes</Button>
+    </>
+  }
+>
+  {/* Any content — Tabs, Switches, forms, etc. */}
+  <p>Drawer body goes here.</p>
+</Drawer>
+```
+
+| Prop | Type | Default |
+|---|---|---|
+| `open` | `boolean` | — |
+| `onClose` | `() => void` | — |
+| `title` | `string` | — |
+| `subtitle` | `string` | — |
+| `side` | `'right' \| 'left'` | `'right'` |
+| `size` | `'sm' \| 'md' \| 'lg' \| 'full'` | `'md'` |
+| `footer` | `ReactNode` | — |
+
+**Widths:** `sm` → 320px · `md` → 440px · `lg` → 580px · `full` → 100vw  
+**Animation:** double `requestAnimationFrame` defers the CSS `translateX` transition so the enter frame is always painted correctly. Exit plays the reverse, then unmounts after 300ms.
+
+---
+
+### Tabs
+
+Tab list with a smooth sliding neon underline indicator. Indicator position and width are computed with `useLayoutEffect` and transition via CSS.
+
+```jsx
+import { Tabs } from './components/ui'
+
+const TABS = [
+  { value: 'overview',  label: 'Overview',  icon: 'box',   badge: null },
+  { value: 'history',   label: 'History',   icon: 'chart', badge: 14   },
+  { value: 'documents', label: 'Documents', icon: 'file',  badge: 3    },
+]
+
+<Tabs tabs={TABS} value={active} onChange={setActive}>
+  {active === 'overview'  && <OverviewPanel />}
+  {active === 'history'   && <HistoryPanel />}
+  {active === 'documents' && <DocsPanel />}
+</Tabs>
+```
+
+| Prop | Type | Default |
+|---|---|---|
+| `tabs` | `{ value, label, icon?, badge? }[]` | — |
+| `value` | `string` | — |
+| `onChange` | `(val: string) => void` | — |
+| `children` | `ReactNode` | — |
+
+The `badge` accepts any `number` or `string`; it renders as a small pill that turns accent-colored when the tab is active.
+
+---
+
 ## Project Structure
 
 ```
 src/
 ├── components/
 │   ├── ui/
+│   │   ├── Alert.jsx           ← inline banner, 4 variants, dismissible
 │   │   ├── Badge.jsx
 │   │   ├── Button.jsx
 │   │   ├── Charts.jsx          ← ChartPanel (Recharts + Nivo)
 │   │   ├── DataTable.jsx
 │   │   ├── DragDrop.jsx        ← DropZone + SortableList
+│   │   ├── Drawer.jsx          ← slide-in panel, enter/exit animation
 │   │   ├── Icon.jsx
 │   │   ├── InputField.jsx
 │   │   ├── Modal.jsx
@@ -530,9 +695,12 @@ src/
 │   │   ├── Select.jsx          ← autocomplete combobox
 │   │   ├── Skeleton.jsx
 │   │   ├── Spinner.jsx         ← 5 variants
-│   │   ├── StatCard.jsx        ← redesigned
+│   │   ├── StatCard.jsx
+│   │   ├── Switch.jsx          ← sliding toggle, 3 sizes
+│   │   ├── Tabs.jsx            ← sliding neon underline indicator
 │   │   ├── Toast.jsx
 │   │   ├── ToastContext.jsx
+│   │   ├── Tooltip.jsx         ← portal tooltip, 4 placements
 │   │   └── index.js            ← barrel export
 │   └── ComponentShowcase.jsx
 ├── App.jsx
@@ -544,6 +712,24 @@ tailwind.config.js              ← design tokens + keyframes
 ---
 
 ## Changelog
+
+### v1.0.3 — 2026-06-02
+
+**Identity**
+- Rebranded as a general-purpose reusable library — no longer scoped to a specific product or domain
+
+**New components**
+- `Tooltip` — portal-rendered hover/focus tooltip with 4 placements, viewport clamping, configurable delay, and a rotated-square arrow caret
+- `Switch` — accessible sliding toggle (`role="switch"`) with 3 sizes, any CSS color, optional label + description, neon glow when on
+- `Alert` — inline persistent banner distinct from Toast; 4 variants (`info` / `success` / `warning` / `danger`), optional title and dismiss button, internal dismissed state
+- `Drawer` — slide-in panel from right or left; portal-rendered, blurred backdrop, focus trap, Escape-to-close, smooth CSS enter/exit without any animation library; 4 widths (`sm` 320px → `full`)
+- `Tabs` — tab list with a sliding neon underline indicator computed via `useLayoutEffect`; icon and badge per tab; content slot for any children
+
+**Showcase**
+- Tooltips wired to every icon button in the Buttons section
+- All new components demonstrated with realistic content (equipment detail Drawer with nested Tabs + Switches, full Alert variants, Switch settings panel)
+
+---
 
 ### v1.0.2 — 2026-06-02
 
@@ -589,38 +775,43 @@ Core component set: `Button`, `Badge`, `Icon`, `InputField`, `SearchBar`, `Passw
 
 ## Improvement Roadmap
 
-Components and patterns worth adding next, prioritized by practical impact for inventory management UIs:
+### Shipped ✓
 
-### High priority
+| Component | Version |
+|---|---|
+| `Tooltip` — portal tooltip, 4 placements, viewport clamp | v1.0.3 |
+| `Switch` — sliding toggle, 3 sizes, any color | v1.0.3 |
+| `Alert` — inline banner, 4 variants, dismissible | v1.0.3 |
+| `Drawer` — slide-in panel, enter/exit animation, focus trap | v1.0.3 |
+| `Tabs` — sliding neon underline indicator | v1.0.3 |
+| `Select` — autocomplete combobox, multi-select chips | v1.0.2 |
+| `DropZone` — file drag-and-drop, image thumbnails | v1.0.2 |
+| `SortableList` — Trello-style FLIP drag-to-reorder | v1.0.2 |
+| `Spinner` — 5 variants with neon glow | v1.0.2 |
+| `Modal` — portal modal, 5 variants, focus trap | v1.0.1 |
+| `DataTable` — sortable, selectable, advanced filters | v1.0.1 |
+| `ChartPanel` — Recharts + Nivo, 6 chart types | v1.0.1 |
+
+### Next up
 
 | Component | Why |
 |---|---|
-| **Tooltip** | Every icon-only button (`edit`, `trash`) needs a hover label; currently there's no way to add one |
-| **Switch / Toggle** | Cleaner than a checkbox for binary settings (e.g., active/inactive, notifications on/off) |
-| **Alert / Banner** | Inline persistent feedback — different from Toast; sits in the page flow for form-level errors or system warnings |
-| **Drawer / Sheet** | Slide-in panel from the right for equipment detail views, edit forms, or filter panels without leaving the current page |
-| **Tabs** | Organizing content inside detail views (e.g., Overview / History / Documents / Calibration) |
-
-### Medium priority
-
-| Component | Why |
-|---|---|
-| **DatePicker** | Calibration dates, maintenance scheduling, filter by date range |
+| **DatePicker** | Date inputs for scheduling, filtering by range, expiry tracking |
 | **Progress / ProgressBar** | Upload progress, onboarding steps, capacity indicators |
 | **NumberInput** | Quantity fields with increment/decrement controls |
-| **EmptyState** | A proper illustrated "nothing here" state with icon, title, description, and a CTA button |
-| **Stepper** | Multi-step forms for equipment registration workflows |
+| **EmptyState** | Polished "nothing here" state with icon, title, description, and a CTA |
+| **Stepper** | Multi-step forms for registration or onboarding workflows |
 
 ### Nice to have
 
 | Component / Feature | Why |
 |---|---|
-| **Command Palette** (`⌘K`) | Power-user navigation; search equipment, actions, and pages from anywhere |
-| **Timeline** | Equipment maintenance and calibration history log |
-| **Avatar / AvatarGroup** | User assignment display (who has the equipment, who last touched it) |
-| **Virtual scroll in DataTable** | Handle 1 000+ rows without rendering them all; `react-virtual` or `@tanstack/virtual` |
-| **`prefers-reduced-motion`** | Wrap all `animate-*` classes and FLIP animation in a motion check for accessibility |
-| **Grouped options in Select** | `{ group: 'Surveying', options: [...] }` support in the Select component |
+| **Command Palette** (`⌘K`) | Power-user navigation — search items, actions, and pages from anywhere |
+| **Timeline** | Activity log / history view for any record type |
+| **Avatar / AvatarGroup** | User display — initials fallback, stacked group, status dot |
+| **Virtual scroll in DataTable** | Handle 1 000+ rows without rendering them all |
+| **`prefers-reduced-motion`** | Accessibility pass — wrap all animations in a motion check |
+| **Grouped options in Select** | `{ group: 'Category', options: [...] }` support |
 
 ---
 
