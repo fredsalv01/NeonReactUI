@@ -26,7 +26,8 @@ export const Toast = ({ id, type = 'info', message, onRemove }) => {
   return (
     <div
       className="flex items-center gap-3 px-4 py-3 rounded-xl border text-sm
-                 shadow-lg animate-fade-in backdrop-blur-sm min-w-[260px] max-w-[340px]"
+                 shadow-lg animate-fade-in backdrop-blur-sm
+                 w-full sm:min-w-[260px] sm:max-w-[340px]"
       style={{ background: s.bg, borderColor: s.border }}
     >
       {type === 'loading'

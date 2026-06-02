@@ -3,6 +3,11 @@
 // import { Button, Badge, Icon, ... } from '@/components/ui'
 
 export { default as Badge }           from './Badge'
+export { default as Select }          from './Select'
+export { default as Modal }           from './Modal'
+export { default as DataTable }       from './DataTable'
+export { ChartPanel }                 from './Charts'
+export { DropZone, SortableList }     from './DragDrop'
 export { default as Button }          from './Button'
 export { default as Icon }            from './Icon'
 export { default as InputField }      from './InputField'

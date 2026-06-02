@@ -3,6 +3,20 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --gs-bg:      #0D0F14;
+  --gs-surface: #13161E;
+  --gs-card:    #181C26;
+  --gs-border:  #232837;
+  --gs-accent:  #00C9A7;
+  --gs-teal:    #0EA5E9;
+  --gs-warn:    #F59E0B;
+  --gs-danger:  #EF4444;
+  --gs-muted:   #4A5568;
+  --gs-text:    #E2E8F0;
+  --gs-soft:    #94A3B8;
+}
+
 @layer base {
   * {
     box-sizing: border-box;
@@ -110,5 +124,8 @@
   }
   td {
     @apply transition-colors duration-100;
+  }
+  .skeleton {
+    @apply bg-gs-border animate-pulse rounded;
   }
 }
