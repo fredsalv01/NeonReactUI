@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../../../lib/supabase'
-import { useToast } from '../../ui'
 import {
   Button,
   DataTable,
@@ -14,6 +13,7 @@ import {
   Drawer,
   QRCode,
   SkeletonBlock,
+  useToast
 } from '../../ui'
 import { AddEquipoModal } from '../modals/AddEquipoModal'
 import { ProductDetailsDrawer } from '../drawers/ProductDetailsDrawer'
