@@ -121,7 +121,7 @@
     @apply px-3 py-1 rounded-md text-xs font-semibold border border-gs-border
            bg-transparent text-gs-soft transition-all duration-200 cursor-pointer font-syne
            hover:border-gs-accent hover:text-gs-accent
-           disabled:opacity-35 disabled:cursor-not-allowed;
+           disabled:opacity-[0.35] disabled:cursor-not-allowed;
   }
   .pgbtn-active {
     @apply bg-gs-accent text-gs-bg border-gs-accent hover:text-gs-bg;
