@@ -16,7 +16,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: nodejs/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'npm'
@@ -33,7 +33,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: nodejs/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'npm'
@@ -50,7 +50,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: nodejs/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'npm'
@@ -62,7 +62,7 @@ jobs:
         run: npm run build
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dist
           path: dist/
@@ -74,7 +74,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: nodejs/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'npm'
@@ -92,7 +92,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: nodejs/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'npm'
