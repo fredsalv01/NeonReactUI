@@ -12,7 +12,7 @@ export const useInventoryStore = create((set, get) => ({
     set({ isLoading: true, error: null })
     try {
       const data = await equipoService.getEquipos()
-      set({ equipos: data, isLoading: false })
+      set({ equipos: (data || []).filter(Boolean), isLoading: false })
     } catch (err) {
       set({ error: err.message, isLoading: false })
     }
@@ -21,9 +21,11 @@ export const useInventoryStore = create((set, get) => ({
   addEquipo: async (equipoData) => {
     try {
       const newEquipo = await equipoService.addEquipo(equipoData)
-      set(state => ({
-        equipos: [newEquipo, ...state.equipos]
-      }))
+      if (newEquipo) {
+        set(state => ({
+          equipos: [newEquipo, ...state.equipos].filter(Boolean)
+        }))
+      }
       return newEquipo
     } catch (err) {
       set({ error: err.message })
@@ -35,7 +37,7 @@ export const useInventoryStore = create((set, get) => ({
     try {
       const updatedEquipo = await equipoService.updateEquipo(id, equipoData)
       set(state => ({
-        equipos: state.equipos.map(e => e.id === id ? updatedEquipo : e)
+        equipos: state.equipos.map(e => e.id === id ? updatedEquipo : e).filter(Boolean)
       }))
       return updatedEquipo
     } catch (err) {

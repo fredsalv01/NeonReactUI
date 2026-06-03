@@ -200,7 +200,7 @@ export const Inventory = () => {
       ) : (
         <Header
           totalEquipos={equipos.length}
-          totalStock={equipos.reduce((sum, e) => sum + e.stock, 0)}
+          totalStock={equipos.reduce((sum, e) => sum + (e?.stock ?? 0), 0)}
           onAddClick={() => setAddModalOpen(true)}
         />
       )}
