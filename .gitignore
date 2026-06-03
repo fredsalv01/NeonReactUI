@@ -28,7 +28,9 @@ dist-ssr
 .env.local
 .env.*.local
 
-#package-lock.json
+# Dependencies lock file - keep local only, never commit
+# Reason: causes merge conflicts and version inconsistencies
+# Each environment regenerates via npm install
 package-lock.json
 EQUIPOS_INSERT.sql
 
