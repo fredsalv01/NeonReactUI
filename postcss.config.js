@@ -1,7 +1,7 @@
-export default async (ctx) => ({
+export default {
   plugins: {
-    'postcss-nesting': await import('postcss-nesting'),
     tailwindcss: {},
     autoprefixer: {},
+    'postcss-nesting': {},
   },
-})
+}
