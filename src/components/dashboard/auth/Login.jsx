@@ -5,7 +5,7 @@ import { supabase } from '../../../lib/supabase'
 import { useToast } from '../../ui'
 import { Button, InputField, Alert, Spinner } from '../../ui'
 import Icon from '../../ui/Icon'
-import { FiMail, FiLock } from 'react-icons/fi'
+import { FiMail } from 'react-icons/fi'
 
 const MicrosoftLogo = () => (
   <svg width="18" height="18" viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg">

@@ -113,12 +113,11 @@ export function DropZone({
   sublabel,
   className  = '',
 }) {
-  const [isDragging, setIsDragging]   = useState(false)
-  const [dragCounter, setDragCounter] = useState(0)
-  const [files, setFiles]             = useState([])
-  const [error, setError]             = useState(null)
-  const inputRef                      = useRef(null)
-  const id                            = useId()
+  const [isDragging, setIsDragging] = useState(false)
+  const [files, setFiles]            = useState([])
+  const [error, setError]            = useState(null)
+  const inputRef                     = useRef(null)
+  const id                           = useId()
 
   const addFiles = useCallback((incoming) => {
     setError(null)

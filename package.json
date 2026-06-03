@@ -39,6 +39,7 @@
     "autoprefixer": "10.4.16",
     "eslint": "^8.56.0",
     "eslint-plugin-react": "^7.33.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
     "husky": "^9.0.0",
     "postcss": "8.4.31",
     "postcss-nesting": "^14.0.0",

@@ -7,7 +7,7 @@
  * Range:   value = { from: Date, to: Date }, onChange = ({ from, to }) => void
  */
 
-import { useState, useRef, useEffect, useLayoutEffect } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Icon from './Icon'
 
 // ── Constants ────────────────────────────────────────────────────
@@ -57,131 +57,6 @@ function buildCells(year, month) {
 
 const SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 const fmt   = (d) => d ? `${SHORT[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}` : ''
-
-// ── Cell ─────────────────────────────────────────────────────────
-function Cell({ date, viewMonth, selected, isFrom, isTo, rangePreview, onSelect, disabled }) {
-  const current  = date.getMonth() === viewMonth
-  const todayD   = isToday(date)
-  const selOrEnd = selected || isFrom || isTo
-  const preview  = rangePreview && !selOrEnd
-
-  return (
-    <div className="relative flex items-center justify-center h-8">
-      {/* Range bar (stretches behind circle) */}
-      {(preview || isFrom || isTo) && (
-        <span
-          className="absolute inset-y-1 pointer-events-none"
-          style={{
-            background: 'color-mix(in srgb, var(--gs-accent) 12%, transparent)',
-            left:  isFrom ? '50%' : 0,
-            right: isTo   ? '50%' : 0,
-          }}
-        />
-      )}
-
-      <button
-        type="button"
-        onClick={() => !disabled && onSelect(date)}
-        disabled={disabled}
-        className={[
-          'relative z-10 w-7 h-7 rounded-full text-[12px] font-["DM_Mono"]',
-          'flex items-center justify-center transition-colors duration-100',
-          disabled ? 'opacity-25 cursor-not-allowed' : 'cursor-pointer',
-          selOrEnd
-            ? 'bg-gs-accent text-gs-bg font-bold'
-            : todayD
-            ? 'ring-1 ring-gs-accent text-gs-accent'
-            : preview
-            ? 'text-gs-text'
-            : current
-            ? 'text-gs-soft hover:bg-gs-surface hover:text-gs-text'
-            : 'text-gs-muted/50',
-        ].join(' ')}
-      >
-        {date.getDate()}
-      </button>
-    </div>
-  )
-}
-
-// ── Calendar panel ───────────────────────────────────────────────
-function Calendar({ year, month, onPrev, onNext, onSelect, single, singleVal, rangeFrom, rangeTo, hoverDate, minDate, maxDate }) {
-  const cells = buildCells(year, month)
-
-  const isDisabled = (d) =>
-    (minDate && d < minDate) || (maxDate && d > maxDate)
-
-  // Effective range end for preview (either committed rangeTo or hover)
-  const previewEnd = rangeTo || hoverDate
-
-  return (
-    <div
-      className="bg-gs-card border border-gs-border rounded-2xl p-4 animate-slide-up select-none"
-      style={{
-        width:     280,
-        boxShadow: '0 0 0 1px var(--gs-border), 0 12px 36px rgba(0,0,0,0.5)',
-      }}
-      onMouseDown={(e) => e.preventDefault()}  // keep input focus
-    >
-      {/* Month navigation */}
-      <div className="flex items-center justify-between mb-3">
-        <button
-          onClick={onPrev}
-          className="p-1.5 rounded-lg text-gs-muted hover:text-gs-text
-                     hover:bg-white/5 transition-colors cursor-pointer"
-        >
-          <Icon name="arrowL" size={15} />
-        </button>
-
-        <span className="text-sm font-bold text-gs-text font-['Syne']">
-          {MONTHS[month]} {year}
-        </span>
-
-        <button
-          onClick={onNext}
-          className="p-1.5 rounded-lg text-gs-muted hover:text-gs-text
-                     hover:bg-white/5 transition-colors cursor-pointer"
-        >
-          <Icon name="arrowR" size={15} />
-        </button>
-      </div>
-
-      {/* Day headers */}
-      <div className="grid grid-cols-7 mb-1">
-        {DAYS.map(d => (
-          <div key={d} className="h-7 flex items-center justify-center
-                                   text-[10px] font-bold text-gs-muted font-['DM_Mono']">
-            {d}
-          </div>
-        ))}
-      </div>
-
-      {/* Day grid */}
-      <div className="grid grid-cols-7">
-        {cells.map((date, i) => (
-          <Cell
-            key={i}
-            date={date}
-            viewMonth={month}
-            selected={single && sameDay(date, singleVal)}
-            isFrom={!single && sameDay(date, rangeFrom)}
-            isTo={!single && sameDay(date, rangeTo)}
-            rangePreview={!single && inRange(date, rangeFrom, previewEnd)}
-            onSelect={onSelect}
-            disabled={isDisabled(date)}
-          />
-        ))}
-      </div>
-
-      {/* Range hint */}
-      {!single && rangeFrom && !rangeTo && (
-        <p className="text-[10px] text-gs-muted font-['DM_Mono'] text-center mt-3">
-          Select end date
-        </p>
-      )}
-    </div>
-  )
-}
 
 // ── Trigger ──────────────────────────────────────────────────────
 function Trigger({ text, placeholder, open, onOpen, onClear, clearable, hasValue, disabled, error }) {
@@ -356,10 +231,6 @@ const DatePicker = ({
       {open && (
         <div
           className="absolute top-full left-0 mt-1.5 z-50"
-          onMouseMove={(e) => {
-            // find the day under the cursor for range preview
-            // hoverDate is updated in Cell's onMouseEnter equivalent
-          }}
         >
           <div
             onMouseLeave={() => setHoverDate(null)}
