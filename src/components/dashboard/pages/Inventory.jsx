@@ -78,7 +78,7 @@ export const Inventory = () => {
 
   const tipoOptions = useMemo(() =>
     uniqueTipos.map(tipo => ({ value: tipo, label: tipo })),
-    [uniqueTipos]
+  [uniqueTipos]
   )
 
   const filteredEquipos = useMemo(() => {
@@ -414,7 +414,9 @@ const PaginationSection = ({
 )
 
 const QRDrawer = ({ open, equipo, loading, onClose }) => {
-  if (!equipo) return null
+  if (!equipo) {
+    return null
+  }
 
   return (
     <Drawer
@@ -489,7 +491,9 @@ const InfoRow = ({ label, value, mono = false, valueClassName = '' }) => (
 // ────────────────────────────────────────────────────────────────
 
 const matchesSearchTerm = (equipo, searchTerm) => {
-  if (!searchTerm) return true
+  if (!searchTerm) {
+    return true
+  }
   const term = searchTerm.toLowerCase()
   return (
     equipo.nombre.toLowerCase().includes(term) ||
