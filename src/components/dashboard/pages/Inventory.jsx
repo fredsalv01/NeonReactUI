@@ -1,5 +1,4 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
-import { supabase } from '../../../lib/supabase'
 import { useInventoryStore } from '../../../stores/inventoryStore'
 import {
   Button,
@@ -18,7 +17,7 @@ import {
 import { AddEquipoModal } from '../modals/AddEquipoModal'
 import { ProductDetailsDrawer } from '../drawers/ProductDetailsDrawer'
 import { ESTADO_OPTIONS, PAGE_SIZES } from '../../../lib/constants/inventoryConstants'
-import { FiPlus, FiEdit2, FiTrash2, FiEye } from 'react-icons/fi'
+import { FiPlus, FiTrash2, FiEye } from 'react-icons/fi'
 
 // ────────────────────────────────────────────────────────────────
 // Component
@@ -113,10 +112,6 @@ export const Inventory = () => {
   const handleOpenDetails = (equipo) => {
     setSelectedEquipo(equipo)
     setDetailsDrawerOpen(true)
-  }
-
-  const handleRefreshData = () => {
-    // Trigger a re-fetch of data
   }
 
   const handleDelete = async (id) => {
@@ -238,7 +233,6 @@ export const Inventory = () => {
         open={detailsDrawerOpen}
         equipo={selectedEquipo}
         onClose={handleCloseDetailsDrawer}
-        onStatusChange={handleRefreshData}
       />
     </div>
   )
@@ -378,12 +372,6 @@ const ActionButtons = ({ equipo, onQRClick, onDetailsClick, onDeleteClick }) => 
       title="Ver detalles"
     >
       <FiEye size={16} />
-    </button>
-    <button
-      className="p-1.5 text-gs-soft hover:text-gs-accent hover:bg-gs-border rounded transition-colors"
-      title="Editar"
-    >
-      <FiEdit2 size={16} />
     </button>
     <button
       onClick={() => onDeleteClick(equipo.id)}
