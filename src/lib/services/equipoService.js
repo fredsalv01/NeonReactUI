@@ -15,7 +15,7 @@ export const equipoService = {
 
   // Agregar nuevo equipo
   async addEquipo(equipoData) {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('equipos')
       .insert([
         {
@@ -31,8 +31,10 @@ export const equipoService = {
           active: true,
         }
       ])
+      .select()
 
     if (error) throw error
+    return data?.[0] || null
   },
 
   // Eliminar equipo (soft delete)

@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 import { equipoService } from '../lib/services/equipoService'
+import { kardexService } from '../lib/services/kardexService'
+import { useAuthStore } from './authStore'
 
 export const useInventoryStore = create((set, get) => ({
   // State
@@ -25,6 +27,19 @@ export const useInventoryStore = create((set, get) => ({
         set(state => ({
           equipos: [newEquipo, ...state.equipos].filter(Boolean)
         }))
+
+        // Registrar movimiento en kardex
+        const usuarioId = useAuthStore.getState().user?.id
+        if (usuarioId && newEquipo.stock > 0) {
+          await kardexService.registrarMovimiento({
+            equipo_id: newEquipo.id,
+            tipo: 'entrada',
+            cantidad: newEquipo.stock,
+            descripcion: `Entrada inicial de ${newEquipo.nombre}`,
+            usuario_id: usuarioId,
+            referencia: `EQUIPO_${newEquipo.id}`,
+          })
+        }
       }
       return newEquipo
     } catch (err) {
