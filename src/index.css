@@ -80,13 +80,13 @@
     @apply bg-gs-accent/10 text-gs-accent border border-gs-accent/25;
   }
   .badge-warn {
-    @apply bg-gs-warn/10 text-gs-warn border border-gs-warn/25;
+    @apply bg-gs-teal/10 text-gs-teal border border-gs-teal/25;
   }
   .badge-err {
-    @apply bg-gs-danger/10 text-gs-danger border border-gs-danger/25;
+    @apply bg-gs-warn/10 text-gs-warn border border-gs-warn/25;
   }
   .badge-muted {
-    @apply bg-white/5 text-gs-muted border border-gs-border;
+    @apply bg-gs-danger/10 text-gs-danger border border-gs-danger/25;
   }
   .qtag {
     @apply inline-block px-2 py-0.5 rounded text-[11px] font-mono
@@ -121,7 +121,7 @@
     @apply px-3 py-1 rounded-md text-xs font-semibold border border-gs-border
            bg-transparent text-gs-soft transition-all duration-200 cursor-pointer font-syne
            hover:border-gs-accent hover:text-gs-accent
-           disabled:opacity-35 disabled:cursor-not-allowed;
+           disabled:opacity-[0.35] disabled:cursor-not-allowed;
   }
   .pgbtn-active {
     @apply bg-gs-accent text-gs-bg border-gs-accent hover:text-gs-bg;
