@@ -132,6 +132,48 @@ export const Inventory = () => {
     setCurrentPage(1)
   }
 
+  const renderTableContent = () => {
+    if (isLoading || showSkeleton) {
+      return <TableSkeleton pageSize={pageSize} />
+    }
+
+    if (filteredEquipos.length === 0) {
+      return (
+        <EmptyState
+          hasFilters={!!searchTerm || !!filterEstado || !!filterTipo}
+        />
+      )
+    }
+
+    return (
+      <>
+        <DataTable
+          columns={getTableColumns()}
+          data={paginatedEquipos}
+          selectable
+          emptyMessage="No hay equipos"
+          actions={(row) => (
+            <ActionButtons
+              equipo={row}
+              onQRClick={handleOpenQR}
+              onDetailsClick={handleOpenDetails}
+              onDeleteClick={handleDelete}
+            />
+          )}
+        />
+
+        <PaginationSection
+          currentPage={currentPage}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          totalEquipos={filteredEquipos.length}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={handlePageSizeChange}
+        />
+      </>
+    )
+  }
+
   // ────────────────────────────────────────────────────────────────
   // Render
   // ────────────────────────────────────────────────────────────────
@@ -180,40 +222,7 @@ export const Inventory = () => {
         )}
 
         {/* Table */}
-        {isLoading || showSkeleton ? (
-          <TableSkeleton pageSize={pageSize} />
-        ) : filteredEquipos.length === 0 ? (
-          <EmptyState
-            hasFilters={!!searchTerm || !!filterEstado || !!filterTipo}
-          />
-        ) : (
-          <>
-            <DataTable
-              columns={getTableColumns()}
-              data={paginatedEquipos}
-              selectable
-              emptyMessage="No hay equipos"
-              actions={(row) => (
-                <ActionButtons
-                  equipo={row}
-                  onQRClick={handleOpenQR}
-                  onDetailsClick={handleOpenDetails}
-                  onDeleteClick={handleDelete}
-                />
-              )}
-            />
-
-            {/* Pagination */}
-            <PaginationSection
-              currentPage={currentPage}
-              totalPages={totalPages}
-              pageSize={pageSize}
-              totalEquipos={filteredEquipos.length}
-              onPageChange={setCurrentPage}
-              onPageSizeChange={handlePageSizeChange}
-            />
-          </>
-        )}
+        {renderTableContent()}
       </div>
 
       {/* Modals & Drawers */}
