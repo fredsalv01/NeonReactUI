@@ -110,7 +110,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
         <QueryLoader />
-        <Router>
+        <Router basename={import.meta.env.BASE_URL}>
           <AppContent />
         </Router>
       </ToastProvider>
