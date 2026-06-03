@@ -72,7 +72,7 @@ export const Inventory = () => {
   // ────────────────────────────────────────────────────────────────
 
   const uniqueTipos = useMemo(() => {
-    const tipos = new Set(equipos.map(e => e.tipo))
+    const tipos = new Set(equipos.filter(Boolean).map(e => e.tipo))
     return Array.from(tipos).sort()
   }, [equipos])
 
@@ -83,6 +83,7 @@ export const Inventory = () => {
 
   const filteredEquipos = useMemo(() => {
     return equipos.filter(equipo => {
+      if (!equipo) return false
       const matchesSearch = matchesSearchTerm(equipo, searchTerm)
       const matchesEstado = !filterEstado || equipo.estado === filterEstado
       const matchesTipo = !filterTipo || equipo.tipo === filterTipo
@@ -500,14 +501,14 @@ const InfoRow = ({ label, value, mono = false, valueClassName = '' }) => (
 // ────────────────────────────────────────────────────────────────
 
 const matchesSearchTerm = (equipo, searchTerm) => {
-  if (!searchTerm) {
+  if (!equipo || !searchTerm) {
     return true
   }
   const term = searchTerm.toLowerCase()
   return (
-    equipo.nombre.toLowerCase().includes(term) ||
-    equipo.serie.toLowerCase().includes(term) ||
-    equipo.id.toLowerCase().includes(term)
+    equipo.nombre?.toLowerCase().includes(term) ||
+    equipo.serie?.toLowerCase().includes(term) ||
+    equipo.id?.toLowerCase().includes(term)
   )
 }
 
