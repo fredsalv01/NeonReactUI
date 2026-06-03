@@ -1,6 +1,5 @@
-import { useState, useMemo, useEffect } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { supabase } from '../../../lib/supabase'
+import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useInventoryStore } from '../../../stores/inventoryStore'
 import {
   Button,
   DataTable,
@@ -17,9 +16,8 @@ import {
 } from '../../ui'
 import { AddEquipoModal } from '../modals/AddEquipoModal'
 import { ProductDetailsDrawer } from '../drawers/ProductDetailsDrawer'
-import { equipoService } from '../../../lib/services/equipoService'
 import { ESTADO_OPTIONS, PAGE_SIZES } from '../../../lib/constants/inventoryConstants'
-import { FiPlus, FiEdit2, FiTrash2, FiEye } from 'react-icons/fi'
+import { FiPlus, FiTrash2, FiEye } from 'react-icons/fi'
 
 // ────────────────────────────────────────────────────────────────
 // Component
@@ -43,11 +41,22 @@ export const Inventory = () => {
   const [selectedEquipo, setSelectedEquipo] = useState(null)
   const [qrLoading, setQrLoading] = useState(false)
 
-  // Data Fetching
-  const { data: equipos = [], isLoading, error } = useQuery({
-    queryKey: ['equipos'],
-    queryFn: () => equipoService.getEquipos(),
-  })
+  // Stable callbacks
+  const handleCloseAddModal = useCallback(() => setAddModalOpen(false), [])
+  const handleCloseQrDrawer = useCallback(() => setQrDrawerOpen(false), [])
+  const handleCloseDetailsDrawer = useCallback(() => setDetailsDrawerOpen(false), [])
+
+  // Data from store
+  const equipos = useInventoryStore(state => state.equipos)
+  const isLoading = useInventoryStore(state => state.isLoading)
+  const error = useInventoryStore(state => state.error)
+  const fetchEquipos = useInventoryStore(state => state.fetchEquipos)
+  const deleteEquipo = useInventoryStore(state => state.deleteEquipo)
+
+  // Load equipos on mount
+  useEffect(() => {
+    fetchEquipos()
+  }, [fetchEquipos])
 
   // Skeleton Loading Effect
   useEffect(() => {
@@ -105,17 +114,13 @@ export const Inventory = () => {
     setDetailsDrawerOpen(true)
   }
 
-  const handleRefreshData = () => {
-    // Trigger a re-fetch of data
-  }
-
   const handleDelete = async (id) => {
     if (!window.confirm('¿Estás seguro de que deseas eliminar este equipo?')) {
       return
     }
 
     try {
-      await equipoService.deleteEquipo(id)
+      await deleteEquipo(id)
       toast.success('Equipo eliminado correctamente')
     } catch (err) {
       toast.error('Error: ' + err.message)
@@ -214,21 +219,20 @@ export const Inventory = () => {
       {/* Modals & Drawers */}
       <AddEquipoModal
         open={addModalOpen}
-        onClose={() => setAddModalOpen(false)}
+        onClose={handleCloseAddModal}
       />
 
       <QRDrawer
         open={qrDrawerOpen}
         equipo={selectedEquipo}
         loading={qrLoading}
-        onClose={() => setQrDrawerOpen(false)}
+        onClose={handleCloseQrDrawer}
       />
 
       <ProductDetailsDrawer
         open={detailsDrawerOpen}
         equipo={selectedEquipo}
-        onClose={() => setDetailsDrawerOpen(false)}
-        onStatusChange={handleRefreshData}
+        onClose={handleCloseDetailsDrawer}
       />
     </div>
   )
@@ -368,12 +372,6 @@ const ActionButtons = ({ equipo, onQRClick, onDetailsClick, onDeleteClick }) => 
       title="Ver detalles"
     >
       <FiEye size={16} />
-    </button>
-    <button
-      className="p-1.5 text-gs-soft hover:text-gs-accent hover:bg-gs-border rounded transition-colors"
-      title="Editar"
-    >
-      <FiEdit2 size={16} />
     </button>
     <button
       onClick={() => onDeleteClick(equipo.id)}

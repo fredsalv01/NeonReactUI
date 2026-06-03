@@ -1,23 +1,23 @@
-import { Drawer, Badge, Switch, Icon } from '../../ui'
-import { equipoService } from '../../../lib/services/equipoService'
-import { useToast } from '../../ui'
 import { useState, useEffect } from 'react'
+import { useToast, Drawer, Switch, Badge } from '../../ui'
+import { equipoService } from '../../../lib/services/equipoService'
 
 const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?w=400&h=400&fit=crop'
 
-export const ProductDetailsDrawer = ({ open, equipo, onClose, onStatusChange }) => {
+export const ProductDetailsDrawer = ({ open, equipo, onClose }) => {
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [isActive, setIsActive] = useState(true)
 
-  // Actualizar el estado local cuando el equipo cambia
   useEffect(() => {
     if (equipo) {
       setIsActive(equipo.active)
     }
   }, [equipo, open])
 
-  if (!equipo) return null
+  if (!equipo) {
+    return null
+  }
 
   const handleToggleActive = async () => {
     const newStatus = !isActive
@@ -28,10 +28,6 @@ export const ProductDetailsDrawer = ({ open, equipo, onClose, onStatusChange }) 
       await equipoService.updateEquipoStatus(equipo.id, newStatus)
       const message = newStatus ? 'Equipo activado' : 'Equipo desactivado'
       toast.success(message)
-
-      if (onStatusChange) {
-        onStatusChange()
-      }
     } catch (err) {
       setIsActive(!newStatus)
       toast.error('Error: ' + err.message)
@@ -56,7 +52,7 @@ export const ProductDetailsDrawer = ({ open, equipo, onClose, onStatusChange }) 
             <img
               src={equipo.imagen_url || DEFAULT_IMAGE}
               alt={equipo.nombre}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
               onError={(e) => {
                 e.target.src = DEFAULT_IMAGE
               }}

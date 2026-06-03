@@ -31,3 +31,14 @@ dist-ssr
 #package-lock.json
 package-lock.json
 EQUIPOS_INSERT.sql
+
+# Testing
+coverage/
+.nyc_output/
+
+# Misc
+.cache/
+.turbo/
+
+# Husky
+.husky/_

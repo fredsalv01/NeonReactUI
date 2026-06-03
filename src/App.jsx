@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ToastProvider, QueryLoader, Spinner } from './components/ui'
 import { useAuthStore } from './stores/authStore'
+import { ModalDebugPage } from './pages/ModalDebugPage'
 import {
   ProtectedRoute,
   Login,
@@ -38,6 +39,8 @@ function AppContent() {
 
   return (
     <Routes>
+      <Route path="/debug/modal" element={<ModalDebugPage />} />
+
       <Route path="/login" element={<Login />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
 
