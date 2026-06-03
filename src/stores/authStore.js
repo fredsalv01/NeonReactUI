@@ -38,7 +38,8 @@ export const useAuthStore = create((set) => ({
     } catch (error) {
       set({ error: error.message, user: null, profile: null })
     } finally {
-      set({ isLoading: false })
+      // generate un pequeño delay para evitar parpadeos en la UI
+      setTimeout(() => set({ isLoading: false }), 500)
     }
   },
 

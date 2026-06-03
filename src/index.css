@@ -80,13 +80,13 @@
     @apply bg-gs-accent/10 text-gs-accent border border-gs-accent/25;
   }
   .badge-warn {
-    @apply bg-gs-warn/10 text-gs-warn border border-gs-warn/25;
+    @apply bg-gs-teal/10 text-gs-teal border border-gs-teal/25;
   }
   .badge-err {
-    @apply bg-gs-danger/10 text-gs-danger border border-gs-danger/25;
+    @apply bg-gs-warn/10 text-gs-warn border border-gs-warn/25;
   }
   .badge-muted {
-    @apply bg-white/5 text-gs-muted border border-gs-border;
+    @apply bg-gs-danger/10 text-gs-danger border border-gs-danger/25;
   }
   .qtag {
     @apply inline-block px-2 py-0.5 rounded text-[11px] font-mono

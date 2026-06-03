@@ -25,7 +25,7 @@ const QueryLoader = () => {
       aria-label="Cargando..."
     >
       {/* Píldora con el loader */}
-      <div
+      {/* <div
         className="flex items-center gap-3 px-4 py-2 rounded-full border animate-fade-in"
         style={{
           background:   '#0D0F14ee',
@@ -45,7 +45,7 @@ const QueryLoader = () => {
         >
           {mutating > 0 ? 'Guardando...' : 'Cargando...'}
         </span>
-      </div>
+      </div> */}
     </div>
   )
 }

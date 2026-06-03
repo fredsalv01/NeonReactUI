@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ToastProvider, QueryLoader } from './components/ui'
+import { ToastProvider, QueryLoader, Spinner } from './components/ui'
 import { useAuthStore } from './stores/authStore'
 import {
   ProtectedRoute,
@@ -29,7 +29,9 @@ function AppContent() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gs-bg">
-        <div className="text-gs-soft">Loading...</div>
+        <div className="text-gs-soft">
+          <Spinner variant={"orbit"} size={40} color="#00C9A7" label="Cargando" />
+        </div>
       </div>
     )
   }
