@@ -51,23 +51,21 @@ const Modal = ({
   const v = VARIANTS[variant] ?? VARIANTS.default
   const resolvedIcon = icon ?? v.icon
 
-  const handleKey = useCallback(
-    (e) => { if (e.key === 'Escape') onClose() },
-    [onClose]
-  )
-
   useEffect(() => {
     if (!open) return
+
+    const handleKey = (e) => {
+      if (e.key === 'Escape') onClose()
+    }
+
     document.addEventListener('keydown', handleKey)
     document.body.style.overflow = 'hidden'
-    // defer focus so the animation has started before we steal focus
-    const raf = requestAnimationFrame(() => boxRef.current?.focus())
+
     return () => {
-      cancelAnimationFrame(raf)
       document.removeEventListener('keydown', handleKey)
       document.body.style.overflow = ''
     }
-  }, [open, handleKey])
+  }, [open, onClose])
 
   if (!open) return null
 
@@ -81,7 +79,6 @@ const Modal = ({
     >
       <div
         ref={boxRef}
-        tabIndex={-1}
         className={[
           'relative w-full flex flex-col outline-none',
           'bg-gs-card border border-gs-border rounded-2xl overflow-hidden',

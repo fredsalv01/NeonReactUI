@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../../../lib/supabase'
 import {
@@ -42,6 +42,11 @@ export const Inventory = () => {
   const [detailsDrawerOpen, setDetailsDrawerOpen] = useState(false)
   const [selectedEquipo, setSelectedEquipo] = useState(null)
   const [qrLoading, setQrLoading] = useState(false)
+
+  // Stable callbacks
+  const handleCloseAddModal = useCallback(() => setAddModalOpen(false), [])
+  const handleCloseQrDrawer = useCallback(() => setQrDrawerOpen(false), [])
+  const handleCloseDetailsDrawer = useCallback(() => setDetailsDrawerOpen(false), [])
 
   // Data Fetching
   const { data: equipos = [], isLoading, error } = useQuery({
@@ -214,20 +219,20 @@ export const Inventory = () => {
       {/* Modals & Drawers */}
       <AddEquipoModal
         open={addModalOpen}
-        onClose={() => setAddModalOpen(false)}
+        onClose={handleCloseAddModal}
       />
 
       <QRDrawer
         open={qrDrawerOpen}
         equipo={selectedEquipo}
         loading={qrLoading}
-        onClose={() => setQrDrawerOpen(false)}
+        onClose={handleCloseQrDrawer}
       />
 
       <ProductDetailsDrawer
         open={detailsDrawerOpen}
         equipo={selectedEquipo}
-        onClose={() => setDetailsDrawerOpen(false)}
+        onClose={handleCloseDetailsDrawer}
         onStatusChange={handleRefreshData}
       />
     </div>

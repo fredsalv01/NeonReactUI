@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { validateEquipo } from '../lib/schemas/equipoSchema'
+import { generateFileNameShort } from '../lib/utils/fileUtils'
 import { INITIAL_FORM_DATA, STORAGE_BUCKET, STORAGE_CACHE_TIME, UPLOAD_PROGRESS_DELAY } from '../lib/constants/inventoryConstants'
 
 export const useEquipoForm = () => {
@@ -58,7 +59,7 @@ export const useEquipoForm = () => {
     if (!file) return null
 
     try {
-      const fileName = `${Date.now()}-${file.name}`
+      const fileName = generateFileNameShort(file)
       setUploadProgress(50)
 
       const { error: uploadError } = await supabase.storage

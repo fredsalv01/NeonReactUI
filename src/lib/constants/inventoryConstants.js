@@ -18,7 +18,7 @@ export const INITIAL_FORM_DATA = {
   imagen: null,
 }
 
-export const STORAGE_BUCKET = 'equipos-imagenes'
+export const STORAGE_BUCKET = 'equipos'
 export const STORAGE_CACHE_TIME = 3600
 
 export const UPLOAD_PROGRESS_DELAY = 300

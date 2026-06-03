@@ -3,9 +3,11 @@ import { useEquipoForm } from '../../../hooks/useEquipoForm'
 import { equipoService } from '../../../lib/services/equipoService'
 import { ESTADO_OPTIONS } from '../../../lib/constants/inventoryConstants'
 import { useToast } from '../../ui'
+import { useRef, useEffect } from 'react'
 
 export const AddEquipoModal = ({ open, onClose }) => {
   const { toast } = useToast()
+  const inputRefs = useRef({})
   const {
     formData,
     formErrors,
@@ -109,14 +111,22 @@ export const AddEquipoModal = ({ open, onClose }) => {
         {/* Basic Information */}
         <InputField label="Nombre del Equipo" error={formErrors.nombre}>
           <input
+            ref={(el) => { if (el) inputRefs.current['nombre'] = el }}
             type="text"
             name="nombre"
             value={formData.nombre}
-            onChange={handleInputChange}
+            onChange={(e) => {
+              handleInputChange(e)
+            }}
+            onBlur={(e) => {
+              handleInputChange(e)
+            }}
             placeholder="Ej: Dell XPS 13, MacBook Pro..."
             className={`w-full px-4 py-2.5 bg-gs-bg border rounded-lg text-gs-text placeholder-gs-muted outline-none transition-all ${
               formErrors.nombre ? 'border-gs-danger ring-1 ring-gs-danger' : 'border-gs-border focus:border-gs-accent focus:ring-1 focus:ring-gs-accent/20'
             }`}
+            autoComplete="off"
+            spellCheck="false"
           />
         </InputField>
 
