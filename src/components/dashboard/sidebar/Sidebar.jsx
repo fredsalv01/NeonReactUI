@@ -1,8 +1,7 @@
-import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../../hooks/useAuth'
 import { Icon } from '../../ui'
-import { FiMenu, FiX, FiLogOut, FiUser, FiChevronRight } from 'react-icons/fi'
+import { FiLogOut, FiUser, FiChevronRight } from 'react-icons/fi'
 
 const MENU_ITEMS = [
   { id: 'dashboard', label: 'Dashboard', icon: 'chart', path: '/dashboard' },

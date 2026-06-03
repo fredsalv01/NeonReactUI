@@ -5,7 +5,7 @@
  * Sizes: sm | md | lg
  */
 
-import { useEffect, useCallback, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import Icon from './Icon'
 

@@ -28,8 +28,6 @@ dist-ssr
 .env.local
 .env.*.local
 
-#package-lock.json
-package-lock.json
 EQUIPOS_INSERT.sql
 
 # Testing

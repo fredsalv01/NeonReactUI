@@ -72,17 +72,18 @@ export const Inventory = () => {
   // ────────────────────────────────────────────────────────────────
 
   const uniqueTipos = useMemo(() => {
-    const tipos = new Set(equipos.map(e => e.tipo))
+    const tipos = new Set(equipos.filter(Boolean).map(e => e.tipo))
     return Array.from(tipos).sort()
   }, [equipos])
 
   const tipoOptions = useMemo(() =>
     uniqueTipos.map(tipo => ({ value: tipo, label: tipo })),
-    [uniqueTipos]
+  [uniqueTipos]
   )
 
   const filteredEquipos = useMemo(() => {
     return equipos.filter(equipo => {
+      if (!equipo) return false
       const matchesSearch = matchesSearchTerm(equipo, searchTerm)
       const matchesEstado = !filterEstado || equipo.estado === filterEstado
       const matchesTipo = !filterTipo || equipo.tipo === filterTipo
@@ -132,6 +133,48 @@ export const Inventory = () => {
     setCurrentPage(1)
   }
 
+  const renderTableContent = () => {
+    if (isLoading || showSkeleton) {
+      return <TableSkeleton pageSize={pageSize} />
+    }
+
+    if (filteredEquipos.length === 0) {
+      return (
+        <EmptyState
+          hasFilters={!!searchTerm || !!filterEstado || !!filterTipo}
+        />
+      )
+    }
+
+    return (
+      <>
+        <DataTable
+          columns={getTableColumns()}
+          data={paginatedEquipos}
+          selectable
+          emptyMessage="No hay equipos"
+          actions={(row) => (
+            <ActionButtons
+              equipo={row}
+              onQRClick={handleOpenQR}
+              onDetailsClick={handleOpenDetails}
+              onDeleteClick={handleDelete}
+            />
+          )}
+        />
+
+        <PaginationSection
+          currentPage={currentPage}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          totalEquipos={filteredEquipos.length}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={handlePageSizeChange}
+        />
+      </>
+    )
+  }
+
   // ────────────────────────────────────────────────────────────────
   // Render
   // ────────────────────────────────────────────────────────────────
@@ -157,7 +200,7 @@ export const Inventory = () => {
       ) : (
         <Header
           totalEquipos={equipos.length}
-          totalStock={equipos.reduce((sum, e) => sum + e.stock, 0)}
+          totalStock={equipos.reduce((sum, e) => sum + (e?.stock ?? 0), 0)}
           onAddClick={() => setAddModalOpen(true)}
         />
       )}
@@ -180,40 +223,7 @@ export const Inventory = () => {
         )}
 
         {/* Table */}
-        {isLoading || showSkeleton ? (
-          <TableSkeleton pageSize={pageSize} />
-        ) : filteredEquipos.length === 0 ? (
-          <EmptyState
-            hasFilters={!!searchTerm || !!filterEstado || !!filterTipo}
-          />
-        ) : (
-          <>
-            <DataTable
-              columns={getTableColumns()}
-              data={paginatedEquipos}
-              selectable
-              emptyMessage="No hay equipos"
-              actions={(row) => (
-                <ActionButtons
-                  equipo={row}
-                  onQRClick={handleOpenQR}
-                  onDetailsClick={handleOpenDetails}
-                  onDeleteClick={handleDelete}
-                />
-              )}
-            />
-
-            {/* Pagination */}
-            <PaginationSection
-              currentPage={currentPage}
-              totalPages={totalPages}
-              pageSize={pageSize}
-              totalEquipos={filteredEquipos.length}
-              onPageChange={setCurrentPage}
-              onPageSizeChange={handlePageSizeChange}
-            />
-          </>
-        )}
+        {renderTableContent()}
       </div>
 
       {/* Modals & Drawers */}
@@ -414,7 +424,9 @@ const PaginationSection = ({
 )
 
 const QRDrawer = ({ open, equipo, loading, onClose }) => {
-  if (!equipo) return null
+  if (!equipo) {
+    return null
+  }
 
   return (
     <Drawer
@@ -489,12 +501,14 @@ const InfoRow = ({ label, value, mono = false, valueClassName = '' }) => (
 // ────────────────────────────────────────────────────────────────
 
 const matchesSearchTerm = (equipo, searchTerm) => {
-  if (!searchTerm) return true
+  if (!equipo || !searchTerm) {
+    return true
+  }
   const term = searchTerm.toLowerCase()
   return (
-    equipo.nombre.toLowerCase().includes(term) ||
-    equipo.serie.toLowerCase().includes(term) ||
-    equipo.id.toLowerCase().includes(term)
+    equipo.nombre?.toLowerCase().includes(term) ||
+    equipo.serie?.toLowerCase().includes(term) ||
+    equipo.id?.toLowerCase().includes(term)
   )
 }
 
