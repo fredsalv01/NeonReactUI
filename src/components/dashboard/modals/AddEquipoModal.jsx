@@ -1,13 +1,14 @@
 import { Modal, Button, InputField, NumberInput, Select, DropZone, Progress, Icon } from '../../ui'
 import { useEquipoForm } from '../../../hooks/useEquipoForm'
-import { equipoService } from '../../../lib/services/equipoService'
+import { useInventoryStore } from '../../../stores/inventoryStore'
 import { ESTADO_OPTIONS } from '../../../lib/constants/inventoryConstants'
 import { useToast } from '../../ui'
-import { useRef, useEffect } from 'react'
+import { useRef } from 'react'
 
 export const AddEquipoModal = ({ open, onClose }) => {
   const { toast } = useToast()
   const inputRefs = useRef({})
+  const addEquipo = useInventoryStore(state => state.addEquipo)
   const {
     formData,
     formErrors,
@@ -34,7 +35,7 @@ export const AddEquipoModal = ({ open, onClose }) => {
         imagenUrl = await uploadImage(formData.imagen)
       }
 
-      await equipoService.addEquipo({
+      await addEquipo({
         nombre: formData.nombre,
         tipo: formData.tipo,
         serie: formData.serie,

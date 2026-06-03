@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../../../lib/supabase'
+import { useInventoryStore } from '../../../stores/inventoryStore'
 import {
   Button,
   DataTable,
@@ -17,7 +17,6 @@ import {
 } from '../../ui'
 import { AddEquipoModal } from '../modals/AddEquipoModal'
 import { ProductDetailsDrawer } from '../drawers/ProductDetailsDrawer'
-import { equipoService } from '../../../lib/services/equipoService'
 import { ESTADO_OPTIONS, PAGE_SIZES } from '../../../lib/constants/inventoryConstants'
 import { FiPlus, FiEdit2, FiTrash2, FiEye } from 'react-icons/fi'
 
@@ -48,11 +47,17 @@ export const Inventory = () => {
   const handleCloseQrDrawer = useCallback(() => setQrDrawerOpen(false), [])
   const handleCloseDetailsDrawer = useCallback(() => setDetailsDrawerOpen(false), [])
 
-  // Data Fetching
-  const { data: equipos = [], isLoading, error } = useQuery({
-    queryKey: ['equipos'],
-    queryFn: () => equipoService.getEquipos(),
-  })
+  // Data from store
+  const equipos = useInventoryStore(state => state.equipos)
+  const isLoading = useInventoryStore(state => state.isLoading)
+  const error = useInventoryStore(state => state.error)
+  const fetchEquipos = useInventoryStore(state => state.fetchEquipos)
+  const deleteEquipo = useInventoryStore(state => state.deleteEquipo)
+
+  // Load equipos on mount
+  useEffect(() => {
+    fetchEquipos()
+  }, [fetchEquipos])
 
   // Skeleton Loading Effect
   useEffect(() => {
@@ -120,7 +125,7 @@ export const Inventory = () => {
     }
 
     try {
-      await equipoService.deleteEquipo(id)
+      await deleteEquipo(id)
       toast.success('Equipo eliminado correctamente')
     } catch (err) {
       toast.error('Error: ' + err.message)
