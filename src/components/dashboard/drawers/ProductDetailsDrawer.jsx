@@ -56,7 +56,7 @@ export const ProductDetailsDrawer = ({ open, equipo, onClose, onStatusChange }) 
             <img
               src={equipo.imagen_url || DEFAULT_IMAGE}
               alt={equipo.nombre}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
               onError={(e) => {
                 e.target.src = DEFAULT_IMAGE
               }}
