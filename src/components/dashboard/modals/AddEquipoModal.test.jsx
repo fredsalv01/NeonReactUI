@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react'
-import { AddEquipoModal } from '../components/dashboard/modals/AddEquipoModal'
+import { AddEquipoModal } from './AddEquipoModal'
 
 // Standalone test component
 export const AddEquipoModalTest = () => {
