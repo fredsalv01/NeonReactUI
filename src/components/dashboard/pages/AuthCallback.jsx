@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuthStore } from '../../../stores/authStore'
+import { supabase } from '../../../lib/supabase'
 import { Spinner, Alert, Button } from '../../ui'
 import { MdError, MdCheckCircle } from 'react-icons/md'
 
@@ -13,19 +14,71 @@ const PROGRESS_STEPS = [
 
 export const AuthCallback = () => {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const initializeAuth = useAuthStore((state) => state.initializeAuth)
+  const user = useAuthStore((state) => state.user)
 
   const [status, setStatus] = useState('loading') // loading, success, error, timeout
   const [error, setError] = useState(null)
   const [currentStep, setCurrentStep] = useState(0)
+  const [callbackProcessed, setCallbackProcessed] = useState(false)
   const timeoutRef = useRef(null)
   const stepRef = useRef(null)
+  const processRef = useRef(false)
+
+  // Check for OAuth error from Supabase
+  const errorDescription = searchParams.get('error_description')
+  const errorCode = searchParams.get('error')
 
   useEffect(() => {
+    // If user is already authenticated, skip callback processing
+    if (user && !callbackProcessed) {
+      navigate('/dashboard', { replace: true })
+      return
+    }
+
+    // If there was an OAuth error from Supabase, show it
+    if (errorCode || errorDescription) {
+      setStatus('error')
+      setError(
+        errorDescription ||
+        'OAuth error occurred. Please try signing in again.'
+      )
+      return
+    }
+
+    // Prevent double processing on refresh
+    if (processRef.current) return
+    processRef.current = true
+
     let isMounted = true
 
     const handleCallback = async () => {
       try {
+        // Check if session already exists (handles page refresh during callback)
+        const {
+          data: { session: existingSession },
+          error: sessionError,
+        } = await supabase.auth.getSession()
+
+        if (existingSession && isMounted) {
+          // Session already exists, initialize auth store and redirect
+          await initializeAuth()
+          setCallbackProcessed(true)
+          setStatus('success')
+
+          setTimeout(() => {
+            if (isMounted) {
+              navigate('/dashboard', { replace: true })
+            }
+          }, 800)
+          return
+        }
+
+        if (sessionError) {
+          throw new Error('Failed to verify session: ' + sessionError.message)
+        }
+
         // Set timeout for auth process
         timeoutRef.current = setTimeout(() => {
           if (isMounted) {
@@ -52,6 +105,7 @@ export const AuthCallback = () => {
         if (isMounted) {
           clearTimeout(timeoutRef.current)
           clearInterval(stepInterval)
+          setCallbackProcessed(true)
           setStatus('success')
 
           // Brief success state before navigation
@@ -71,10 +125,16 @@ export const AuthCallback = () => {
           // Determine error type
           if (error.message?.includes('session')) {
             setError('Your session is invalid or expired. Please sign in again.')
-          } else if (error.message?.includes('oauth') || error.message?.includes('provider')) {
+          } else if (
+            error.message?.includes('oauth') ||
+            error.message?.includes('provider')
+          ) {
             setError('OAuth authentication failed. Please try again or contact support.')
           } else {
-            setError(error.message || 'An error occurred during authentication. Please try again.')
+            setError(
+              error.message ||
+              'An error occurred during authentication. Please try again.'
+            )
           }
 
           setStatus('error')
@@ -90,9 +150,11 @@ export const AuthCallback = () => {
       clearTimeout(timeoutRef.current)
       clearInterval(stepRef.current)
     }
-  }, [initializeAuth, navigate])
+  }, [initializeAuth, navigate, user, errorCode, errorDescription, callbackProcessed])
 
   const handleRetry = () => {
+    // Reset processing flag to allow retry
+    processRef.current = false
     navigate('/login', { replace: true })
   }
 
