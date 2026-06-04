@@ -28,17 +28,18 @@ export const useInventoryStore = create((set, get) => ({
           equipos: [newEquipo, ...state.equipos].filter(Boolean)
         }))
 
-        // Registrar movimiento en kardex
-        const usuarioId = useAuthStore.getState().user?.id
-        if (usuarioId && newEquipo.stock > 0) {
-          await kardexService.registrarMovimiento({
-            equipo_id: newEquipo.id,
-            tipo: 'entrada',
-            cantidad: newEquipo.stock,
-            descripcion: `Entrada inicial de ${newEquipo.nombre}`,
-            usuario_id: usuarioId,
-            referencia: `EQUIPO_${newEquipo.id}`,
-          })
+        // Registrar entrada de stock en kardex
+        if (newEquipo.stock > 0) {
+          try {
+            await kardexService.entradaStock({
+              equipo_id: newEquipo.id,
+              cantidad: newEquipo.stock,
+              motivo: `Entrada inicial de ${newEquipo.nombre}`,
+            })
+          } catch (kardexErr) {
+            console.error('Error registering kardex entry:', kardexErr)
+            // No throw - equipo was created successfully, kardex entry failure is non-critical
+          }
         }
       }
       return newEquipo

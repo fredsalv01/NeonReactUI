@@ -1,7 +1,30 @@
 import { supabase } from '../supabase'
 
 export const kardexService = {
-  // Registrar una entrada de movimiento de inventario
+  // Registrar entrada de stock (usa RPC function)
+  async entradaStock({ equipo_id, cantidad, motivo }) {
+    const { data, error } = await supabase.rpc('fn_entrada_stock', {
+      p_equipo_id: equipo_id,
+      p_cantidad: Number(cantidad),
+      p_motivo: motivo || 'Entrada manual',
+    })
+    if (error) throw new Error(error.message)
+    return data
+  },
+
+  // Obtener kardex de un equipo
+  async fetchKardex(equipoId) {
+    const { data, error } = await supabase
+      .from('kardex')
+      .select('*')
+      .eq('equipo_id', equipoId)
+      .order('created_at', { ascending: false })
+      .limit(50)
+    if (error) throw new Error(error.message)
+    return data
+  },
+
+  // Registrar una entrada de movimiento de inventario (método alternativo)
   async registrarMovimiento(movimiento) {
     const { data, error } = await supabase
       .from('kardex')
