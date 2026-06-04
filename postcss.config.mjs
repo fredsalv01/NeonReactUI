@@ -1,7 +1,11 @@
-export default async () => ({
+import postcssNesting from 'postcss-nesting'
+import tailwindcss from 'tailwindcss'
+import autoprefixer from 'autoprefixer'
+
+export default {
   plugins: {
-    'postcss-nesting': (await import('postcss-nesting')).default,
-    tailwindcss: (await import('tailwindcss')).default,
-    autoprefixer: (await import('autoprefixer')).default,
+    'postcss-nesting': postcssNesting,
+    tailwindcss: tailwindcss,
+    autoprefixer: autoprefixer,
   },
-})
+}
