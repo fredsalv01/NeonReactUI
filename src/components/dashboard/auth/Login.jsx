@@ -105,6 +105,7 @@ export const Login = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'azure',
         options: {
+          scopes: 'email profile openid',
           redirectTo: `${window.location.origin}/auth/callback`,
         },
       })
