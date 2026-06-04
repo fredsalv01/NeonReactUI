@@ -102,18 +102,34 @@ export const Login = () => {
     setIsLoading(true)
 
     try {
+      // Validate callback URL
+      const callbackUrl = `${window.location.origin}/auth/callback`
+      if (!callbackUrl.startsWith('http')) {
+        throw new Error('Invalid callback URL')
+      }
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'azure',
         options: {
           scopes: 'email profile openid',
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: callbackUrl,
+          queryParams: {
+            // Ensure prompt for account selection if multiple accounts
+            prompt: 'select_account',
+          },
         },
       })
 
       if (error) throw error
+
+      // Note: isLoading state will persist during OAuth redirect
+      // The callback page handles the actual auth completion
     } catch (error) {
-      setServerError(error.message)
-      toast.error(error.message)
+      setServerError(
+        error.message ||
+        'Failed to initiate Microsoft sign-in. Please try again or use email login.'
+      )
+      toast.error('Microsoft sign-in failed. Please try again.')
       setIsLoading(false)
     }
   }
