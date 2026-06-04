@@ -5,6 +5,7 @@ import { SpeedInsights } from '@vercel/speed-insights/react'
 import { ToastProvider, QueryLoader, Spinner } from './components/ui'
 import { useAuthStore } from './stores/authStore'
 import { ModalDebugPage } from './pages/ModalDebugPage'
+import { NotFound } from './pages/NotFound'
 import {
   ProtectedRoute,
   Login,
@@ -101,7 +102,7 @@ function AppContent() {
       />
 
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   )
 }
