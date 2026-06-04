@@ -111,11 +111,14 @@ export const Login = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'azure',
         options: {
-          scopes: 'email profile openid',
+          // Required scopes for getting user email and profile
+          scopes: 'openid profile email',
           redirectTo: callbackUrl,
           queryParams: {
             // Ensure prompt for account selection if multiple accounts
             prompt: 'select_account',
+            // Force refresh to get email claim
+            response_type: 'code',
           },
         },
       })
