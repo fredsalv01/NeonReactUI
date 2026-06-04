@@ -121,7 +121,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
                 )}
               </div>
             </div>
-            <Button variant="ghost" onClick={handleLogout}
+            <Button variant="danger" onClick={handleLogout}
               className="w-full flex items-center justify-center gap-2 text-xs py-2 mt-2">
               <Icon name="logout" size={13} /> Cerrar sesión
             </Button>
