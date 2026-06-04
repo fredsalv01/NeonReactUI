@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { SpeedInsights } from '@vercel/speed-insights/react'
 import { ToastProvider, QueryLoader, Spinner } from './components/ui'
 import { useAuthStore } from './stores/authStore'
+import { usePageTitle } from './hooks/usePageTitle'
 import { ModalDebugPage } from './pages/ModalDebugPage'
 import { NotFound } from './pages/NotFound'
 import {
@@ -24,6 +25,7 @@ const queryClient = new QueryClient()
 function AppContent() {
   const initializeAuth = useAuthStore((state) => state.initializeAuth)
   const isLoading = useAuthStore((state) => state.isLoading)
+  usePageTitle() // Update page title and meta tags based on route
 
   useEffect(() => {
     initializeAuth()
