@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 import { ToastProvider, QueryLoader, Spinner } from './components/ui'
 import { useAuthStore } from './stores/authStore'
 import { ModalDebugPage } from './pages/ModalDebugPage'
@@ -113,6 +114,7 @@ function App() {
         <Router basename={import.meta.env.BASE_URL}>
           <AppContent />
         </Router>
+        <SpeedInsights />
       </ToastProvider>
     </QueryClientProvider>
   )
