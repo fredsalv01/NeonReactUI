@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../../hooks/useAuth'
-import { Icon } from '../../ui'
-import { FiLogOut, FiUser, FiChevronRight } from 'react-icons/fi'
+import { Icon, Button } from '../../ui'
+import { FiLogOut, FiChevronRight } from 'react-icons/fi'
 
 const MENU_ITEMS = [
   { id: 'dashboard', label: 'Dashboard', icon: 'chart', path: '/dashboard' },
@@ -97,41 +97,36 @@ export const Sidebar = ({ isOpen, onClose }) => {
           </nav>
         </div>
 
-        {/* User Profile & Logout */}
-        <div className="border-t border-gs-border bg-gs-surface/95 backdrop-blur p-4 space-y-3 sticky bottom-0">
-          {profile && (
-            <div className="relative overflow-hidden bg-gradient-to-br from-gs-border/50 to-gs-border/25 rounded-xl p-4 border border-gs-border">
-              {/* Decorative background */}
-              <div className="absolute top-0 right-0 w-16 h-16 bg-purple-500/10 rounded-full -mr-8 -mt-8"></div>
-
-              <div className="relative flex items-center gap-3">
-                <div className="w-11 h-11 rounded-lg bg-gradient-to-br from-purple-500/30 to-purple-600/30 border border-purple-500/30 flex items-center justify-center flex-shrink-0 shadow-md">
-                  <FiUser size={20} className="text-purple-300" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gs-text truncate">
-                    {profile.nombre?.split(' ')[0] || 'User'}
-                  </p>
-                  {profile.roles?.nombre && (
-                    <span className="inline-block mt-1.5 px-2.5 py-1 bg-gradient-to-r from-gs-accent/30 to-gs-accent/20 text-gs-accent text-[11px] font-semibold rounded-full border border-gs-accent/20">
-                      {profile.roles.nombre}
-                    </span>
-                  )}
-                </div>
+        {/* Usuario + rol */}
+        {profile && (
+          <div className="px-5 py-4 border-t border-gs-border">
+            <div className="flex items-center gap-2.5 mb-1.5">
+              <div className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center
+                              text-[13px] font-extrabold text-gs-accent"
+                style={{ background: 'linear-gradient(135deg,#00C9A740,#0EA5E940)' }}>
+                {profile.nombre?.charAt(0).toUpperCase() || 'U'}
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold leading-tight truncate">
+                  {profile.nombre?.split(' ')[0] || 'User'}
+                </p>
+                {profile.roles?.nombre && (
+                  <span className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded-md"
+                    style={{
+                      background: 'rgba(0, 201, 167, 0.1)',
+                      color: '#00C9A7',
+                    }}>
+                    {profile.roles.nombre}
+                  </span>
+                )}
               </div>
             </div>
-          )}
-
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg
-                     text-gs-danger hover:text-white hover:bg-gs-danger/20 transition-all duration-200
-                     group font-medium text-sm"
-          >
-            <FiLogOut size={18} className="group-hover:scale-110 transition-transform duration-200" />
-            <span>Logout</span>
-          </button>
-        </div>
+            <Button variant="ghost" onClick={handleLogout}
+              className="w-full flex items-center justify-center gap-2 text-xs py-2 mt-2">
+              <Icon name="logout" size={13} /> Cerrar sesión
+            </Button>
+          </div>
+        )}
       </aside>
     </>
   )
