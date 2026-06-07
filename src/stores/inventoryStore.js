@@ -8,24 +8,44 @@ export const useInventoryStore = create((set, get) => ({
   equipos: [],
   isLoading: false,
   error: null,
+  lastUpdated: null,
 
-  // Actions
+  // Actions - Fetch & Reload
   fetchEquipos: async () => {
     set({ isLoading: true, error: null })
     try {
       const data = await equipoService.getEquipos()
-      set({ equipos: (data || []).filter(Boolean), isLoading: false })
+      set({
+        equipos: (data || []).filter(Boolean),
+        isLoading: false,
+        lastUpdated: new Date().toISOString(),
+      })
+      return data || []
     } catch (err) {
       set({ error: err.message, isLoading: false })
+      throw err
     }
   },
 
+  // Reload inventory after changes
+  reloadEquipos: async () => {
+    try {
+      const { fetchEquipos } = get()
+      await fetchEquipos()
+    } catch (err) {
+      console.error('Error reloading equipos:', err)
+      throw err
+    }
+  },
+
+  // Add new equipment
   addEquipo: async (equipoData) => {
     try {
       const newEquipo = await equipoService.addEquipo(equipoData)
       if (newEquipo) {
         set(state => ({
-          equipos: [newEquipo, ...state.equipos].filter(Boolean)
+          equipos: [newEquipo, ...state.equipos].filter(Boolean),
+          lastUpdated: new Date().toISOString(),
         }))
 
         // Registrar entrada de stock en kardex
@@ -49,12 +69,33 @@ export const useInventoryStore = create((set, get) => ({
     }
   },
 
+  // Update existing equipment
   updateEquipo: async (id, equipoData) => {
     try {
+      // Validate equipment exists
+      const existingEquipo = get().getEquipoById(id)
+      if (!existingEquipo) {
+        throw new Error(`Equipo con ID ${id} no encontrado`)
+      }
+
+      // Update in database
       const updatedEquipo = await equipoService.updateEquipo(id, equipoData)
+
+      if (!updatedEquipo) {
+        throw new Error('Error actualizando equipo')
+      }
+
+      // Update in store
       set(state => ({
-        equipos: state.equipos.map(e => e.id === id ? updatedEquipo : e).filter(Boolean)
+        equipos: state.equipos.map(e => e.id === id ? updatedEquipo : e).filter(Boolean),
+        lastUpdated: new Date().toISOString(),
+        error: null,
       }))
+
+      // Optional: Reload fresh data from server to ensure consistency
+      // Uncomment if you want strict consistency (trades performance for accuracy)
+      // await get().reloadEquipos()
+
       return updatedEquipo
     } catch (err) {
       set({ error: err.message })
@@ -62,23 +103,90 @@ export const useInventoryStore = create((set, get) => ({
     }
   },
 
+  // Delete equipment (soft delete)
   deleteEquipo: async (id) => {
     try {
+      // Validate equipment exists
+      const existingEquipo = get().getEquipoById(id)
+      if (!existingEquipo) {
+        throw new Error(`Equipo con ID ${id} no encontrado`)
+      }
+
+      // Perform soft delete in database
       await equipoService.deleteEquipo(id)
+
+      // Update store (remove from list)
       set(state => ({
-        equipos: state.equipos.filter(e => e.id !== id)
+        equipos: state.equipos.filter(e => e.id !== id),
+        lastUpdated: new Date().toISOString(),
+        error: null,
       }))
+
+      return { success: true, id }
     } catch (err) {
       set({ error: err.message })
       throw err
     }
   },
 
-  // Helper
+  // Update equipment status (active/inactive)
+  updateEquipoStatus: async (id, active) => {
+    try {
+      const existingEquipo = get().getEquipoById(id)
+      if (!existingEquipo) {
+        throw new Error(`Equipo con ID ${id} no encontrado`)
+      }
+
+      await equipoService.updateEquipoStatus(id, active)
+
+      set(state => ({
+        equipos: state.equipos
+          .map(e => e.id === id ? { ...e, active } : e)
+          .filter(Boolean),
+        lastUpdated: new Date().toISOString(),
+        error: null,
+      }))
+
+      return { success: true, id, active }
+    } catch (err) {
+      set({ error: err.message })
+      throw err
+    }
+  },
+
+  // Helper methods
   getEquipoById: (id) => {
     const { equipos } = get()
     return equipos.find(e => e.id === id)
   },
 
+  getEquiposByEstado: (estado) => {
+    const { equipos } = get()
+    return equipos.filter(e => e.estado === estado)
+  },
+
+  getLowStockEquipos: (threshold = 5) => {
+    const { equipos } = get()
+    return equipos.filter(e => e.stock <= threshold && e.stock > 0)
+  },
+
+  getOutOfStockEquipos: () => {
+    const { equipos } = get()
+    return equipos.filter(e => e.stock === 0)
+  },
+
+  getTotalInventoryValue: () => {
+    const { equipos } = get()
+    return equipos.reduce((total, e) => total + (e.precio_venta * e.stock), 0)
+  },
+
   clearError: () => set({ error: null }),
+
+  // Cleanup
+  reset: () => set({
+    equipos: [],
+    isLoading: false,
+    error: null,
+    lastUpdated: null,
+  }),
 }))
