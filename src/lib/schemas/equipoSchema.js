@@ -32,8 +32,11 @@ export const equipoSchema = z.object({
     .int('Debe ser un número entero')
     .nonnegative('No puede ser negativo'),
   imagen: z
-    .instanceof(File)
-    .optional()
+    .union([
+      z.instanceof(File),
+      z.null(),
+      z.undefined()
+    ])
     .refine(
       (file) => !file || file.size <= 5 * 1024 * 1024,
       'La imagen no debe superar 5MB'
@@ -51,7 +54,7 @@ export const validateEquipo = (data) => {
   } catch (error) {
     if (error instanceof z.ZodError) {
       const errors = {}
-      error.errors.forEach((err) => {
+      error.issues.forEach((err) => {
         errors[err.path[0]] = err.message
       })
       return { success: false, errors }

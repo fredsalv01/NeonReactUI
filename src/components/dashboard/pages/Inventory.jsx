@@ -16,8 +16,9 @@ import {
 } from '../../ui'
 import { AddEquipoModal } from '../modals/AddEquipoModal'
 import { ProductDetailsDrawer } from '../drawers/ProductDetailsDrawer'
+import { EditEquipoDrawer } from '../drawers/EditEquipoDrawer'
 import { ESTADO_OPTIONS, PAGE_SIZES } from '../../../lib/constants/inventoryConstants'
-import { FiPlus, FiTrash2, FiEye } from 'react-icons/fi'
+import { FiPlus, FiTrash2, FiEye, FiEdit2, FiDownload } from 'react-icons/fi'
 
 // ────────────────────────────────────────────────────────────────
 // Component
@@ -38,13 +39,17 @@ export const Inventory = () => {
   const [addModalOpen, setAddModalOpen] = useState(false)
   const [qrDrawerOpen, setQrDrawerOpen] = useState(false)
   const [detailsDrawerOpen, setDetailsDrawerOpen] = useState(false)
+  const [editDrawerOpen, setEditDrawerOpen] = useState(false)
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [selectedEquipo, setSelectedEquipo] = useState(null)
   const [qrLoading, setQrLoading] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // Stable callbacks
   const handleCloseAddModal = useCallback(() => setAddModalOpen(false), [])
   const handleCloseQrDrawer = useCallback(() => setQrDrawerOpen(false), [])
   const handleCloseDetailsDrawer = useCallback(() => setDetailsDrawerOpen(false), [])
+  const handleCloseEditDrawer = useCallback(() => setEditDrawerOpen(false), [])
 
   // Data from store
   const equipos = useInventoryStore(state => state.equipos)
@@ -115,17 +120,35 @@ export const Inventory = () => {
     setDetailsDrawerOpen(true)
   }
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('¿Estás seguro de que deseas eliminar este equipo?')) {
-      return
-    }
+  const handleOpenEdit = (equipo) => {
+    setSelectedEquipo(equipo)
+    setEditDrawerOpen(true)
+  }
 
+  const handleDeleteClick = (equipo) => {
+    setSelectedEquipo(equipo)
+    setDeleteConfirmOpen(true)
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!selectedEquipo) return
+
+    setIsDeleting(true)
     try {
-      await deleteEquipo(id)
+      await deleteEquipo(selectedEquipo.id)
       toast.success('Equipo eliminado correctamente')
+      setDeleteConfirmOpen(false)
+      setSelectedEquipo(null)
     } catch (err) {
       toast.error('Error: ' + err.message)
+    } finally {
+      setIsDeleting(false)
     }
+  }
+
+  const handleCancelDelete = () => {
+    setDeleteConfirmOpen(false)
+    setSelectedEquipo(null)
   }
 
   const handlePageSizeChange = (newSize) => {
@@ -158,7 +181,8 @@ export const Inventory = () => {
               equipo={row}
               onQRClick={handleOpenQR}
               onDetailsClick={handleOpenDetails}
-              onDeleteClick={handleDelete}
+              onEditClick={handleOpenEdit}
+              onDeleteClick={handleDeleteClick}
             />
           )}
         />
@@ -243,6 +267,24 @@ export const Inventory = () => {
         open={detailsDrawerOpen}
         equipo={selectedEquipo}
         onClose={handleCloseDetailsDrawer}
+      />
+
+      <EditEquipoDrawer
+        open={editDrawerOpen}
+        equipo={selectedEquipo}
+        onClose={handleCloseEditDrawer}
+        onSuccess={() => {
+          setEditDrawerOpen(false)
+          setSelectedEquipo(null)
+        }}
+      />
+
+      <DeleteConfirmModal
+        open={deleteConfirmOpen}
+        equipo={selectedEquipo}
+        isDeleting={isDeleting}
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
       />
     </div>
   )
@@ -367,7 +409,7 @@ const EmptyState = ({ hasFilters }) => (
   </div>
 )
 
-const ActionButtons = ({ equipo, onQRClick, onDetailsClick, onDeleteClick }) => (
+const ActionButtons = ({ equipo, onQRClick, onDetailsClick, onEditClick, onDeleteClick }) => (
   <div className="flex items-center gap-2">
     <button
       onClick={() => onQRClick(equipo)}
@@ -384,7 +426,14 @@ const ActionButtons = ({ equipo, onQRClick, onDetailsClick, onDeleteClick }) => 
       <FiEye size={16} />
     </button>
     <button
-      onClick={() => onDeleteClick(equipo.id)}
+      onClick={() => onEditClick(equipo)}
+      className="p-1.5 text-gs-soft hover:text-amber-400 hover:bg-gs-border rounded transition-colors"
+      title="Editar equipo"
+    >
+      <FiEdit2 size={16} />
+    </button>
+    <button
+      onClick={() => onDeleteClick(equipo)}
       className="p-1.5 text-gs-soft hover:text-gs-danger hover:bg-gs-border rounded transition-colors"
       title="Eliminar"
     >
@@ -450,42 +499,76 @@ const QRDrawer = ({ open, equipo, loading, onClose }) => {
   )
 }
 
-const QRDrawerContent = ({ equipo }) => (
-  <div className="space-y-6">
-    <div className="flex justify-center p-4 bg-gs-bg rounded-lg">
-      <QRCode
-        data={`${equipo.id}|${equipo.serie}`}
-        size={220}
-      />
-    </div>
+const QRDrawerContent = ({ equipo }) => {
+  const handleDownloadQR = () => {
+    try {
+      const canvas = document.querySelector('canvas')
+      if (!canvas) {
+        alert('No se pudo encontrar el código QR')
+        return
+      }
 
-    <div className="space-y-4 border-t border-gs-border pt-4">
-      <InfoRow label="Código" value={equipo.id} mono />
-      <InfoRow label="Nombre" value={equipo.nombre} />
-      <InfoRow label="Número de Serie" value={equipo.serie} mono />
-      <InfoRow label="Tipo" value={equipo.tipo} />
-      <div>
-        <p className="text-[12px] text-gs-soft font-['DM_Mono'] uppercase">Estado</p>
-        <div className="mt-1">
-          <Badge estado={equipo.estado} />
-        </div>
+      canvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `QR-${equipo.id}-${equipo.nombre}.png`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+      })
+    } catch (err) {
+      console.error('Error descargando QR:', err)
+      alert('Error al descargar el código QR')
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-center p-4 bg-gs-bg rounded-lg">
+        <QRCode
+          data={`${equipo.id}|${equipo.serie}`}
+          size={220}
+        />
       </div>
-      <InfoRow
-        label="Stock"
-        value={`${equipo.stock} unidades`}
-        valueClassName={
-          equipo.stock > 5 ? 'text-green-400' : equipo.stock > 0 ? 'text-yellow-400' : 'text-red-400'
-        }
-      />
-      <InfoRow label="Precio de Compra" value={`$${parseFloat(equipo.precio_compra).toFixed(2)}`} />
-      <InfoRow
-        label="Precio de Venta"
-        value={`$${parseFloat(equipo.precio_venta).toFixed(2)}`}
-        valueClassName="text-gs-accent"
-      />
+
+      <button
+        onClick={handleDownloadQR}
+        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gs-accent text-white rounded-lg hover:bg-gs-accent/90 transition-colors font-medium"
+      >
+        <FiDownload size={18} />
+        Descargar Código QR
+      </button>
+
+      <div className="space-y-4 border-t border-gs-border pt-4">
+        <InfoRow label="Código" value={equipo.id} mono />
+        <InfoRow label="Nombre" value={equipo.nombre} />
+        <InfoRow label="Número de Serie" value={equipo.serie} mono />
+        <InfoRow label="Tipo" value={equipo.tipo} />
+        <div>
+          <p className="text-[12px] text-gs-soft font-['DM_Mono'] uppercase">Estado</p>
+          <div className="mt-1">
+            <Badge estado={equipo.estado} />
+          </div>
+        </div>
+        <InfoRow
+          label="Stock"
+          value={`${equipo.stock} unidades`}
+          valueClassName={
+            equipo.stock > 5 ? 'text-green-400' : equipo.stock > 0 ? 'text-yellow-400' : 'text-red-400'
+          }
+        />
+        <InfoRow label="Precio de Compra" value={`$${parseFloat(equipo.precio_compra).toFixed(2)}`} />
+        <InfoRow
+          label="Precio de Venta"
+          value={`$${parseFloat(equipo.precio_venta).toFixed(2)}`}
+          valueClassName="text-gs-accent"
+        />
+      </div>
     </div>
-  </div>
-)
+  )
+}
 
 const InfoRow = ({ label, value, mono = false, valueClassName = '' }) => (
   <div>
@@ -495,6 +578,58 @@ const InfoRow = ({ label, value, mono = false, valueClassName = '' }) => (
     </p>
   </div>
 )
+
+const DeleteConfirmModal = ({ open, equipo, isDeleting, onConfirm, onCancel }) => {
+  if (!open || !equipo) return null
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
+      <div className="bg-gs-card border border-gs-border rounded-lg shadow-xl max-w-sm w-full p-6 space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-gs-danger/10 rounded-lg">
+            <Icon name="warning" size={20} color="var(--gs-danger)" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-gs-text">Eliminar Equipo</h3>
+            <p className="text-sm text-gs-soft">Esta acción no se puede deshacer</p>
+          </div>
+        </div>
+
+        <p className="text-sm text-gs-text">
+          ¿Estás seguro de que deseas eliminar <strong>{equipo.nombre}</strong>?
+        </p>
+
+        <div className="flex gap-3 justify-end pt-2">
+          <Button
+            variant="ghost"
+            onClick={onCancel}
+            disabled={isDeleting}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="danger"
+            onClick={onConfirm}
+            disabled={isDeleting}
+            className="flex items-center gap-2"
+          >
+            {isDeleting ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span>Eliminando...</span>
+              </>
+            ) : (
+              <>
+                <Icon name="trash" size={16} />
+                <span>Sí, Eliminar</span>
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 // ────────────────────────────────────────────────────────────────
 // Helper Functions

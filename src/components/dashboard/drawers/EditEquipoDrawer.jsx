@@ -71,7 +71,12 @@ export const EditEquipoDrawer = ({ open, equipo, onClose, onSuccess }) => {
   }
 
   const handleSubmit = async () => {
-    if (!validateForm()) return
+    const validationResult = validateForm()
+    if (!validationResult) {
+      console.error('Validation failed:', formErrors)
+      toast.error('Por favor completa todos los campos requeridos')
+      return
+    }
 
     setIsSubmitting(true)
 
@@ -83,7 +88,7 @@ export const EditEquipoDrawer = ({ open, equipo, onClose, onSuccess }) => {
         imagenUrl = await uploadImage(formData.imagen)
       }
 
-      await equipoService.updateEquipo(equipo.id, {
+      const updateData = {
         nombre: formData.nombre,
         tipo: formData.tipo,
         serie: formData.serie,
@@ -92,18 +97,13 @@ export const EditEquipoDrawer = ({ open, equipo, onClose, onSuccess }) => {
         precio_venta: parseFloat(formData.precio_venta),
         stock: parseInt(formData.stock),
         imagen_url: imagenUrl,
-      })
+      }
 
-      await updateEquipoInStore(equipo.id, {
-        nombre: formData.nombre,
-        tipo: formData.tipo,
-        serie: formData.serie,
-        estado: formData.estado,
-        precio_compra: parseFloat(formData.precio_compra),
-        precio_venta: parseFloat(formData.precio_venta),
-        stock: parseInt(formData.stock),
-        imagen_url: imagenUrl,
-      })
+      console.log('Updating equipo with ID:', equipo.id, 'Data:', updateData)
+
+      await equipoService.updateEquipo(equipo.id, updateData)
+
+      await updateEquipoInStore(equipo.id, updateData)
 
       // Reload inventory to ensure consistency
       await reloadEquipos()
@@ -112,6 +112,7 @@ export const EditEquipoDrawer = ({ open, equipo, onClose, onSuccess }) => {
       handleClose()
       onSuccess?.()
     } catch (err) {
+      console.error('Error updating equipo:', err)
       toast.error('Error: ' + err.message)
     } finally {
       setIsSubmitting(false)

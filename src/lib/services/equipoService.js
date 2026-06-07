@@ -51,19 +51,23 @@ export const equipoService = {
 
   // Actualizar equipo
   async updateEquipo(id, equipoData) {
+    const updateObj = {
+      updated_at: new Date().toISOString(),
+    }
+
+    // Only include fields that are provided in equipoData
+    if (equipoData.nombre !== undefined) updateObj.nombre = equipoData.nombre
+    if (equipoData.tipo !== undefined) updateObj.tipo = equipoData.tipo
+    if (equipoData.serie !== undefined) updateObj.serie = equipoData.serie
+    if (equipoData.estado !== undefined) updateObj.estado = equipoData.estado
+    if (equipoData.precio_compra !== undefined) updateObj.precio_compra = equipoData.precio_compra
+    if (equipoData.precio_venta !== undefined) updateObj.precio_venta = equipoData.precio_venta
+    if (equipoData.stock !== undefined) updateObj.stock = equipoData.stock
+    if (equipoData.imagen_url !== undefined) updateObj.imagen_url = equipoData.imagen_url
+
     const { data, error } = await supabase
       .from('equipos')
-      .update({
-        nombre: equipoData.nombre,
-        tipo: equipoData.tipo,
-        serie: equipoData.serie,
-        estado: equipoData.estado,
-        precio_compra: equipoData.precio_compra,
-        precio_venta: equipoData.precio_venta,
-        stock: equipoData.stock,
-        imagen_url: equipoData.imagen_url,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateObj)
       .eq('id', id)
       .select()
 

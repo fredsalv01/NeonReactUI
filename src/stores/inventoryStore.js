@@ -79,24 +79,23 @@ export const useInventoryStore = create((set, get) => ({
       }
 
       // Update in database
-      const updatedEquipo = await equipoService.updateEquipo(id, equipoData)
+      const updatedData = await equipoService.updateEquipo(id, equipoData)
 
-      if (!updatedEquipo) {
+      if (!updatedData) {
         throw new Error('Error actualizando equipo')
       }
 
+      // Merge updated data with existing data to preserve all fields
+      const mergedEquipo = { ...existingEquipo, ...updatedData }
+
       // Update in store
       set(state => ({
-        equipos: state.equipos.map(e => e.id === id ? updatedEquipo : e).filter(Boolean),
+        equipos: state.equipos.map(e => e.id === id ? mergedEquipo : e).filter(Boolean),
         lastUpdated: new Date().toISOString(),
         error: null,
       }))
 
-      // Optional: Reload fresh data from server to ensure consistency
-      // Uncomment if you want strict consistency (trades performance for accuracy)
-      // await get().reloadEquipos()
-
-      return updatedEquipo
+      return mergedEquipo
     } catch (err) {
       set({ error: err.message })
       throw err
