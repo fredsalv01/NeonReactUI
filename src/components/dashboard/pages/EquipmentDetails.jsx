@@ -404,8 +404,8 @@ const KardexTab = ({
                 <td className="px-4 py-3 text-sm text-gs-soft max-w-xs truncate">
                   {item.motivo || '-'}
                 </td>
-                <td className="px-4 py-3 text-sm text-gs-text break-all">
-                  {item.usuario_email || 'Sistema'}
+                <td className="px-4 py-3 text-sm text-gs-text">
+                  {item.usuario?.nombre || 'Sistema'}
                 </td>
               </tr>
             ))}
