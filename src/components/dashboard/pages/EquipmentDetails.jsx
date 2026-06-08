@@ -30,6 +30,8 @@ export const EquipmentDetails = () => {
   const [isLoadingKardex, setIsLoadingKardex] = useState(false)
   const [dateRange, setDateRange] = useState({ from: null, to: null })
   const [equipoNotFound, setEquipoNotFound] = useState(false)
+  const [kardexPageSize, setKardexPageSize] = useState(5)
+  const [kardexPage, setKardexPage] = useState(1)
 
   // Get equipment from store
   const equipo = useMemo(() => {
@@ -89,6 +91,13 @@ export const EquipmentDetails = () => {
       return true
     })
   }, [kardexData, dateRange])
+
+  // Paginate kardex
+  const totalPages = Math.ceil(filteredKardex.length / kardexPageSize)
+  const paginatedKardex = useMemo(() => {
+    const start = (kardexPage - 1) * kardexPageSize
+    return filteredKardex.slice(start, start + kardexPageSize)
+  }, [filteredKardex, kardexPage, kardexPageSize])
 
   if (isLoadingInventory) {
     return (
@@ -192,9 +201,18 @@ export const EquipmentDetails = () => {
           {activeTab === 'kardex' && (
             <KardexTab
               isLoading={isLoadingKardex}
-              kardexData={filteredKardex}
+              kardexData={paginatedKardex}
+              filteredKardexCount={filteredKardex.length}
               dateRange={dateRange}
               onDateRangeChange={setDateRange}
+              currentPage={kardexPage}
+              pageSize={kardexPageSize}
+              totalPages={totalPages}
+              onPageChange={setKardexPage}
+              onPageSizeChange={(size) => {
+                setKardexPageSize(size)
+                setKardexPage(1)
+              }}
             />
           )}
         </Tabs>
@@ -274,7 +292,18 @@ const DetailField = ({ label, value, mono = false, isComponent = false, classNam
   </div>
 )
 
-const KardexTab = ({ isLoading, kardexData, dateRange, onDateRangeChange }) => (
+const KardexTab = ({
+  isLoading,
+  kardexData,
+  filteredKardexCount,
+  dateRange,
+  onDateRangeChange,
+  currentPage,
+  pageSize,
+  totalPages,
+  onPageChange,
+  onPageSizeChange
+}) => (
   <div className="space-y-6">
     {/* Date Filter */}
     <div className="bg-gs-bg rounded-lg p-4 space-y-4">
@@ -375,8 +404,8 @@ const KardexTab = ({ isLoading, kardexData, dateRange, onDateRangeChange }) => (
                 <td className="px-4 py-3 text-sm text-gs-soft max-w-xs truncate">
                   {item.motivo || '-'}
                 </td>
-                <td className="px-4 py-3 text-sm text-gs-text">
-                  {item.usuarios?.nombre || 'Sistema'}
+                <td className="px-4 py-3 text-sm text-gs-text break-all">
+                  {item.usuario_email || 'Sistema'}
                 </td>
               </tr>
             ))}
@@ -386,8 +415,53 @@ const KardexTab = ({ isLoading, kardexData, dateRange, onDateRangeChange }) => (
     )}
 
     {kardexData.length > 0 && (
-      <div className="text-center text-sm text-gs-soft pt-4 border-t border-gs-border">
-        Total de movimientos: <span className="font-semibold text-gs-text">{kardexData.length}</span>
+      <div className="space-y-4 pt-4 border-t border-gs-border">
+        {/* Pagination Controls */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          {/* Page Size Selector */}
+          <div className="flex items-center gap-3">
+            <label className="text-sm text-gs-soft">Registros por página:</label>
+            <select
+              value={pageSize}
+              onChange={(e) => onPageSizeChange(parseInt(e.target.value))}
+              className="px-3 py-2 bg-gs-bg border border-gs-border rounded-lg text-gs-text text-sm focus:outline-none focus:ring-2 focus:ring-gs-accent"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={15}>15</option>
+              <option value={20}>20</option>
+            </select>
+          </div>
+
+          {/* Info Text */}
+          <div className="text-center text-sm text-gs-soft">
+            Total de movimientos: <span className="font-semibold text-gs-text">{filteredKardexCount}</span>
+            {currentPage > 1 && ` • Página ${currentPage} de ${totalPages}`}
+          </div>
+
+          {/* Pagination Buttons */}
+          {totalPages > 1 && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-2 bg-gs-bg border border-gs-border rounded-lg text-gs-text text-sm hover:bg-gs-border disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                ← Anterior
+              </button>
+              <span className="text-sm text-gs-soft">
+                {currentPage} / {totalPages}
+              </span>
+              <button
+                onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-2 bg-gs-bg border border-gs-border rounded-lg text-gs-text text-sm hover:bg-gs-border disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Siguiente →
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     )}
   </div>
