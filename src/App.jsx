@@ -75,7 +75,7 @@ function AppContent() {
       <Route
         path="/dashboard/equipment/:equipoId"
         element={
-          <RoleProtectedRoute allowedRoles={['almacen', 'administrador', 'tecnico']}>
+          <RoleProtectedRoute allowedRoles={['Almacén', 'Administrador', 'Técnico']}>
             <DashboardLayout>
               <EquipmentDetails />
             </DashboardLayout>

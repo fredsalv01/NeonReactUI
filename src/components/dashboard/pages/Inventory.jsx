@@ -510,6 +510,11 @@ const QRDrawer = ({ open, equipo, loading, onClose }) => {
 }
 
 const QRDrawerContent = ({ equipo }) => {
+  const getQRUrl = () => {
+    const baseUrl = import.meta.env.VITE_APP_URL || window.location.origin
+    return `${baseUrl}/dashboard/equipment/${equipo.id}`
+  }
+
   const handleDownloadQR = () => {
     try {
       const canvas = document.querySelector('canvas')
@@ -538,7 +543,7 @@ const QRDrawerContent = ({ equipo }) => {
     <div className="space-y-6">
       <div className="flex justify-center p-4 bg-gs-bg rounded-lg">
         <QRCode
-          data={`${equipo.id}|${equipo.serie}`}
+          data={getQRUrl()}
           size={220}
         />
       </div>
@@ -552,6 +557,10 @@ const QRDrawerContent = ({ equipo }) => {
       </button>
 
       <div className="space-y-4 border-t border-gs-border pt-4">
+        <div>
+          <p className="text-[12px] text-gs-soft font-['DM_Mono'] uppercase">URL del Código QR</p>
+          <p className="text-xs font-mono text-gs-soft break-all mt-1">{getQRUrl()}</p>
+        </div>
         <InfoRow label="Código" value={equipo.id} mono />
         <InfoRow label="Nombre" value={equipo.nombre} />
         <InfoRow label="Número de Serie" value={equipo.serie} mono />
