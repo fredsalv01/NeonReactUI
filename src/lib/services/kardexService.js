@@ -44,7 +44,7 @@ export const kardexService = {
     return data?.[0] || null
   },
 
-  // Obtener historial de movimientos de un equipo con información del usuario
+  // Obtener historial de movimientos de un equipo
   async getHistorialEquipo(equipoId) {
     const { data, error } = await supabase
       .from('kardex')
@@ -54,25 +54,14 @@ export const kardexService = {
 
     if (error) throw error
 
-    // Enrich with user emails from auth.users
+    // Enrich with user email from current session if available
+    const { data: { user } } = await supabase.auth.getUser()
+
     if (data && data.length > 0) {
-      const enrichedData = await Promise.all(
-        data.map(async (item) => {
-          if (item.usuario_id) {
-            try {
-              const { data: usuario } = await supabase.auth.admin.getUserById(item.usuario_id)
-              return {
-                ...item,
-                usuario_email: usuario?.email || 'Sistema'
-              }
-            } catch (err) {
-              return { ...item, usuario_email: 'Sistema' }
-            }
-          }
-          return { ...item, usuario_email: 'Sistema' }
-        })
-      )
-      return enrichedData
+      return data.map(item => ({
+        ...item,
+        usuario_email: item.usuario_id === user?.id ? user.email : 'Sistema'
+      }))
     }
     return data || []
   },
@@ -81,7 +70,7 @@ export const kardexService = {
   async getMovimientos(filters = {}) {
     let query = supabase
       .from('kardex')
-      .select('*, equipos(nombre, id)')
+      .select('*')
       .order('created_at', { ascending: false })
 
     if (filters.tipo) {
