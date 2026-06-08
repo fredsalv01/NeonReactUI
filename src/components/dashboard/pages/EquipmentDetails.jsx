@@ -61,6 +61,7 @@ export const EquipmentDetails = () => {
     if (!equipoId) return
     setIsLoadingKardex(true)
     try {
+
       const data = await kardexService.getHistorialEquipo(equipoId)
       setKardexData(data || [])
     } catch (err) {
@@ -372,7 +373,7 @@ const KardexTab = ({ isLoading, kardexData, dateRange, onDateRangeChange }) => (
                   </span>
                 </td>
                 <td className="px-4 py-3 text-sm text-gs-soft max-w-xs truncate">
-                  {item.descripcion || '-'}
+                  {item.motivo || '-'}
                 </td>
                 <td className="px-4 py-3 text-sm text-gs-text">
                   {item.usuarios?.nombre || 'Sistema'}

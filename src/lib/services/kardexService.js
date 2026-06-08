@@ -48,7 +48,7 @@ export const kardexService = {
   async getHistorialEquipo(equipoId) {
     const { data, error } = await supabase
       .from('kardex')
-      .select('*, usuarios(nombre, email)')
+      .select('*')
       .eq('equipo_id', equipoId)
       .order('created_at', { ascending: false })
 
@@ -60,7 +60,7 @@ export const kardexService = {
   async getMovimientos(filters = {}) {
     let query = supabase
       .from('kardex')
-      .select('*, equipos(nombre, id), usuarios(nombre, email)')
+      .select('*, equipos(nombre, id)')
       .order('created_at', { ascending: false })
 
     if (filters.tipo) {
