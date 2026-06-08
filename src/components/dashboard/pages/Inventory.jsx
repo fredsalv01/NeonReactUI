@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useInventoryStore } from '../../../stores/inventoryStore'
 import {
   Button,
@@ -18,7 +19,7 @@ import { AddEquipoModal } from '../modals/AddEquipoModal'
 import { ProductDetailsDrawer } from '../drawers/ProductDetailsDrawer'
 import { EditEquipoDrawer } from '../drawers/EditEquipoDrawer'
 import { ESTADO_OPTIONS, PAGE_SIZES } from '../../../lib/constants/inventoryConstants'
-import { FiPlus, FiTrash2, FiEye, FiEdit2, FiDownload } from 'react-icons/fi'
+import { FiPlus, FiTrash2, FiEye, FiEdit2, FiDownload, FiExternalLink } from 'react-icons/fi'
 
 // ────────────────────────────────────────────────────────────────
 // Component
@@ -26,6 +27,7 @@ import { FiPlus, FiTrash2, FiEye, FiEdit2, FiDownload } from 'react-icons/fi'
 
 export const Inventory = () => {
   const { toast } = useToast()
+  const navigate = useNavigate()
 
   // States
   const [searchTerm, setSearchTerm] = useState('')
@@ -183,6 +185,7 @@ export const Inventory = () => {
               onDetailsClick={handleOpenDetails}
               onEditClick={handleOpenEdit}
               onDeleteClick={handleDeleteClick}
+              onViewFullDetailsClick={() => navigate(`/dashboard/equipment/${row.id}`)}
             />
           )}
         />
@@ -409,7 +412,7 @@ const EmptyState = ({ hasFilters }) => (
   </div>
 )
 
-const ActionButtons = ({ equipo, onQRClick, onDetailsClick, onEditClick, onDeleteClick }) => (
+const ActionButtons = ({ equipo, onQRClick, onDetailsClick, onEditClick, onDeleteClick, onViewFullDetailsClick }) => (
   <div className="flex items-center gap-2">
     <button
       onClick={() => onQRClick(equipo)}
@@ -421,9 +424,16 @@ const ActionButtons = ({ equipo, onQRClick, onDetailsClick, onEditClick, onDelet
     <button
       onClick={() => onDetailsClick(equipo)}
       className="p-1.5 text-gs-soft hover:text-gs-accent hover:bg-gs-border rounded transition-colors"
-      title="Ver detalles"
+      title="Ver detalles rápidos"
     >
       <FiEye size={16} />
+    </button>
+    <button
+      onClick={onViewFullDetailsClick}
+      className="p-1.5 text-gs-soft hover:text-gs-accent hover:bg-gs-border rounded transition-colors"
+      title="Ver detalles completos"
+    >
+      <FiExternalLink size={16} />
     </button>
     <button
       onClick={() => onEditClick(equipo)}

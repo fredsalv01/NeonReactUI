@@ -9,10 +9,12 @@ import { ModalDebugPage } from './pages/ModalDebugPage'
 import { NotFound } from './pages/NotFound'
 import {
   ProtectedRoute,
+  RoleProtectedRoute,
   Login,
   DashboardLayout,
   Dashboard,
   Inventory,
+  EquipmentDetails,
   Sales,
   Reports,
   Settings,
@@ -67,6 +69,17 @@ function AppContent() {
               <Inventory />
             </DashboardLayout>
           </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/dashboard/equipment/:equipoId"
+        element={
+          <RoleProtectedRoute allowedRoles={['almacen', 'administrador', 'tecnico']}>
+            <DashboardLayout>
+              <EquipmentDetails />
+            </DashboardLayout>
+          </RoleProtectedRoute>
         }
       />
 

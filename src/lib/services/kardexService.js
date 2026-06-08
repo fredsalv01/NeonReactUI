@@ -46,7 +46,7 @@ export const kardexService = {
 
   // Obtener historial de movimientos de un equipo
   async getHistorialEquipo(equipoId) {
-    const { data, error } = supabase
+    const { data, error } = await supabase
       .from('kardex')
       .select('*, usuarios(nombre, email)')
       .eq('equipo_id', equipoId)
