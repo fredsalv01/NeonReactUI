@@ -48,19 +48,17 @@ export const kardexService = {
   async getHistorialEquipo(equipoId) {
     const { data, error } = await supabase
       .from('kardex')
-      .select('*')
+      .select('*, perfiles!inner(email)')
       .eq('equipo_id', equipoId)
       .order('created_at', { ascending: false })
 
     if (error) throw error
 
-    // Enrich with user email from current session if available
-    const { data: { user } } = await supabase.auth.getUser()
-
+    // Map the nested email from perfiles table
     if (data && data.length > 0) {
       return data.map(item => ({
         ...item,
-        usuario_email: item.usuario_id === user?.id ? user.email : 'Sistema'
+        usuario_email: item.perfiles?.email || 'Sistema'
       }))
     }
     return data || []
@@ -70,7 +68,7 @@ export const kardexService = {
   async getMovimientos(filters = {}) {
     let query = supabase
       .from('kardex')
-      .select('*')
+      .select('*, equipos(nombre, id), perfiles(email)')
       .order('created_at', { ascending: false })
 
     if (filters.tipo) {
