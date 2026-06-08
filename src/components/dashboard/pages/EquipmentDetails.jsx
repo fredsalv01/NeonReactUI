@@ -151,52 +151,52 @@ export const EquipmentDetails = () => {
             <img
               src={equipo.image_url}
               alt={equipo.nombre}
-              className="w-24 h-24 md:w-32 md:h-32 object-cover rounded-lg border border-gs-border"
+              className="w-24 h-24 md:w-32 md:h-32 object-cover rounded-lg border border-gs-border bg-gs-bg"
               onError={(e) => {
                 e.target.style.display = 'none'
+                e.target.nextElementSibling?.style.removeProperty('display')
+              }}
+              onLoad={(e) => {
+                if (e.target.nextElementSibling) {
+                  e.target.nextElementSibling.style.display = 'none'
+                }
               }}
             />
+            <div
+              className="w-24 h-24 md:w-32 md:h-32 rounded-lg border border-gs-border bg-gs-bg flex items-center justify-center"
+              style={{ display: 'none' }}
+            >
+              <Icon name="image" size={32} color="var(--gs-muted)" />
+            </div>
           </div>
         )}
       </div>
 
       {/* Main Content with Tabs */}
       <div className="bg-gs-surface border border-gs-border rounded-lg p-4 md:p-6">
-        {kardexData.length > 0 ? (
-          // Show tabs when there's kardex data
-          <Tabs
-            tabs={[
-              { value: 'details', label: 'Detalles', icon: 'info' },
-              { value: 'kardex', label: 'Kardex', icon: 'chart', badge: filteredKardex.length }
-            ]}
-            value={activeTab}
-            onChange={setActiveTab}
-          >
-            {/* Details Tab */}
-            {activeTab === 'details' && (
-              <DetailsTab equipo={equipo} />
-            )}
-
-            {/* Kardex Tab */}
-            {activeTab === 'kardex' && (
-              <KardexTab
-                isLoading={isLoadingKardex}
-                kardexData={filteredKardex}
-                dateRange={dateRange}
-                onDateRangeChange={setDateRange}
-              />
-            )}
-          </Tabs>
-        ) : (
-          // Show only details when there's no kardex data
-          <>
-            <div className="flex items-center gap-2 mb-6 pb-6 border-b border-gs-border">
-              <Icon name="info" size={18} color="var(--gs-accent)" />
-              <span className="text-sm font-semibold text-gs-text">Detalles</span>
-            </div>
+        <Tabs
+          tabs={[
+            { value: 'details', label: 'Detalles', icon: 'info' },
+            { value: 'kardex', label: 'Kardex', icon: 'chart', badge: filteredKardex.length || undefined }
+          ]}
+          value={activeTab}
+          onChange={setActiveTab}
+        >
+          {/* Details Tab */}
+          {activeTab === 'details' && (
             <DetailsTab equipo={equipo} />
-          </>
-        )}
+          )}
+
+          {/* Kardex Tab */}
+          {activeTab === 'kardex' && (
+            <KardexTab
+              isLoading={isLoadingKardex}
+              kardexData={filteredKardex}
+              dateRange={dateRange}
+              onDateRangeChange={setDateRange}
+            />
+          )}
+        </Tabs>
       </div>
     </div>
   )
