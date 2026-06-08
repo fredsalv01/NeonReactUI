@@ -22,24 +22,40 @@ export const EquipmentDetails = () => {
   // Store
   const equipos = useInventoryStore(state => state.equipos)
   const isLoadingInventory = useInventoryStore(state => state.isLoading)
+  const fetchEquipos = useInventoryStore(state => state.fetchEquipos)
 
   // States
   const [activeTab, setActiveTab] = useState('details')
   const [kardexData, setKardexData] = useState([])
   const [isLoadingKardex, setIsLoadingKardex] = useState(false)
   const [dateRange, setDateRange] = useState({ from: null, to: null })
+  const [equipoNotFound, setEquipoNotFound] = useState(false)
 
   // Get equipment from store
   const equipo = useMemo(() => {
     return equipos.find(e => e.id === equipoId) || null
   }, [equipos, equipoId])
 
+  // Load inventory on mount and check if equipment exists
+  useEffect(() => {
+    if (equipos.length === 0) {
+      fetchEquipos()
+    }
+  }, [])
+
+  // Check if equipment was not found after inventory loads
+  useEffect(() => {
+    if (!isLoadingInventory && equipos.length > 0 && !equipo) {
+      setEquipoNotFound(true)
+    }
+  }, [isLoadingInventory, equipos, equipo])
+
   // Load kardex when tab changes or equipment changes
   useEffect(() => {
-    if (activeTab === 'kardex' && equipoId) {
+    if (activeTab === 'kardex' && equipoId && equipo) {
       loadKardex()
     }
-  }, [activeTab, equipoId])
+  }, [activeTab, equipoId, equipo])
 
   const loadKardex = async () => {
     if (!equipoId) return
@@ -81,7 +97,7 @@ export const EquipmentDetails = () => {
     )
   }
 
-  if (!equipo) {
+  if (equipoNotFound) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gs-bg p-4">
         <div className="text-center max-w-md">
@@ -96,6 +112,14 @@ export const EquipmentDetails = () => {
             Volver al Inventario
           </Button>
         </div>
+      </div>
+    )
+  }
+
+  if (!equipo) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gs-bg">
+        <Spinner />
       </div>
     )
   }
@@ -138,29 +162,41 @@ export const EquipmentDetails = () => {
 
       {/* Main Content with Tabs */}
       <div className="bg-gs-surface border border-gs-border rounded-lg p-4 md:p-6">
-        <Tabs
-          tabs={[
-            { value: 'details', label: 'Detalles', icon: 'info' },
-            { value: 'kardex', label: 'Kardex', icon: 'chart', badge: filteredKardex.length }
-          ]}
-          value={activeTab}
-          onChange={setActiveTab}
-        >
-          {/* Details Tab */}
-          {activeTab === 'details' && (
-            <DetailsTab equipo={equipo} />
-          )}
+        {kardexData.length > 0 ? (
+          // Show tabs when there's kardex data
+          <Tabs
+            tabs={[
+              { value: 'details', label: 'Detalles', icon: 'info' },
+              { value: 'kardex', label: 'Kardex', icon: 'chart', badge: filteredKardex.length }
+            ]}
+            value={activeTab}
+            onChange={setActiveTab}
+          >
+            {/* Details Tab */}
+            {activeTab === 'details' && (
+              <DetailsTab equipo={equipo} />
+            )}
 
-          {/* Kardex Tab */}
-          {activeTab === 'kardex' && (
-            <KardexTab
-              isLoading={isLoadingKardex}
-              kardexData={filteredKardex}
-              dateRange={dateRange}
-              onDateRangeChange={setDateRange}
-            />
-          )}
-        </Tabs>
+            {/* Kardex Tab */}
+            {activeTab === 'kardex' && (
+              <KardexTab
+                isLoading={isLoadingKardex}
+                kardexData={filteredKardex}
+                dateRange={dateRange}
+                onDateRangeChange={setDateRange}
+              />
+            )}
+          </Tabs>
+        ) : (
+          // Show only details when there's no kardex data
+          <>
+            <div className="flex items-center gap-2 mb-6 pb-6 border-b border-gs-border">
+              <Icon name="info" size={18} color="var(--gs-accent)" />
+              <span className="text-sm font-semibold text-gs-text">Detalles</span>
+            </div>
+            <DetailsTab equipo={equipo} />
+          </>
+        )}
       </div>
     </div>
   )
