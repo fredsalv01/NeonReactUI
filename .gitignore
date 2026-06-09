@@ -66,3 +66,16 @@ INVENTORY_STORE_UPDATES.md
 MVP_IMPLEMENTATION_ROADMAP.md
 REVISED_MVP_ROADMAP.md
 STORE_RELOAD_IMPLEMENTATION.md
+
+# Generated Documentation (Security)
+# Ignore all .md files generated during task implementation to avoid exposing sensitive documentation
+IMPLEMENTATION_LOG.md
+TEST_IMPLEMENTATIONS.md
+IMPLEMENTATION_PLAN.md
+API_DESIGN.md
+DATABASE_SCHEMA.md
+FEATURE_*.md
+TASK_*.md
+*_IMPLEMENTATION.md
+*_SUMMARY.md
+*_ROADMAP.md
