@@ -30,10 +30,20 @@ export const AuthCallback = () => {
   const errorDescription = searchParams.get('error_description')
   const errorCode = searchParams.get('error')
 
+  // Helper function to get redirect path
+  const getRedirectPath = () => {
+    const intendedRoute = localStorage.getItem('intended_route')
+    if (intendedRoute) {
+      localStorage.removeItem('intended_route')
+      return intendedRoute
+    }
+    return '/dashboard'
+  }
+
   useEffect(() => {
     // If user is already authenticated, skip callback processing
     if (user && !callbackProcessed) {
-      navigate('/dashboard', { replace: true })
+      navigate(getRedirectPath(), { replace: true })
       return
     }
 
@@ -69,7 +79,7 @@ export const AuthCallback = () => {
 
           setTimeout(() => {
             if (isMounted) {
-              navigate('/dashboard', { replace: true })
+              navigate(getRedirectPath(), { replace: true })
             }
           }, 800)
           return
@@ -111,7 +121,7 @@ export const AuthCallback = () => {
           // Brief success state before navigation
           setTimeout(() => {
             if (isMounted) {
-              navigate('/dashboard', { replace: true })
+              navigate(getRedirectPath(), { replace: true })
             }
           }, 800)
         }

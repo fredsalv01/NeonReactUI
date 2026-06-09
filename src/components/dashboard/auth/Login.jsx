@@ -33,7 +33,17 @@ export const Login = () => {
 
   useEffect(() => {
     if (user) {
-      navigate('/dashboard', { replace: true })
+      // Verificar si hay una ruta intended en localStorage
+      const intendedRoute = localStorage.getItem('intended_route')
+      if (intendedRoute) {
+        // Limpiar localStorage
+        localStorage.removeItem('intended_route')
+        // Redirigir a la ruta intended
+        navigate(intendedRoute, { replace: true })
+      } else {
+        // Si no hay ruta intended, redirigir al dashboard normal
+        navigate('/dashboard', { replace: true })
+      }
     }
   }, [user, navigate])
 
@@ -88,7 +98,8 @@ export const Login = () => {
 
       await initializeAuth()
       toast.success('Welcome back!')
-      navigate('/dashboard', { replace: true })
+      // No navegar aquí, dejar que el useEffect se encargue
+      // Esto permite que use la ruta intended si existe
     } catch (error) {
       setServerError(error.message)
       toast.error(error.message)
