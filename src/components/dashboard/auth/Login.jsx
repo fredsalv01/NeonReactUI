@@ -5,7 +5,7 @@ import { supabase } from '../../../lib/supabase'
 import { useToast } from '../../ui'
 import { Button, InputField, Alert, Spinner } from '../../ui'
 import Icon from '../../ui/Icon'
-import { FiMail } from 'react-icons/fi'
+import { FiMail, FiEye, FiEyeOff } from 'react-icons/fi'
 
 const MicrosoftLogo = () => (
   <svg width="18" height="18" viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg">
@@ -27,6 +27,7 @@ export const Login = () => {
   const [errors, setErrors] = useState({})
   const [isLoading, setIsLoading] = useState(false)
   const [serverError, setServerError] = useState(null)
+  const [showPassword, setShowPassword] = useState(false)
 
   const initializeAuth = useAuthStore((state) => state.initializeAuth)
   const user = useAuthStore((state) => state.user)
@@ -193,17 +194,32 @@ export const Login = () => {
           </InputField>
 
           <InputField label="Password" error={errors.password}>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleInputChange}
-              placeholder="••••••••"
-              className="w-full px-4 py-2.5 bg-gs-surface border border-gs-border rounded-lg
-                       focus:outline-none focus:border-gs-accent focus:ring-1 focus:ring-gs-accent
-                       text-gs-text placeholder-gs-muted transition-colors"
-              disabled={isLoading}
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                placeholder="••••••••"
+                className="w-full pl-4 pr-11 py-2.5 bg-gs-surface border border-gs-border rounded-lg
+                         focus:outline-none focus:border-gs-accent focus:ring-1 focus:ring-gs-accent
+                         text-gs-text placeholder-gs-muted transition-colors"
+                disabled={isLoading}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                disabled={isLoading}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-pressed={showPassword}
+                className="absolute inset-y-0 right-0 flex items-center px-3 text-gs-soft
+                         hover:text-gs-text transition-colors focus:outline-none
+                         focus-visible:text-gs-accent disabled:cursor-not-allowed"
+                tabIndex={0}
+              >
+                {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+              </button>
+            </div>
           </InputField>
 
           <Button
