@@ -52,15 +52,15 @@ export const Login = () => {
     const newErrors = {}
 
     if (!formData.email) {
-      newErrors.email = 'Email is required'
+      newErrors.email = 'El correo es obligatorio'
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email'
+      newErrors.email = 'Por favor ingresa un correo válido'
     }
 
     if (!formData.password) {
-      newErrors.password = 'Password is required'
+      newErrors.password = 'La contraseña es obligatoria'
     } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters'
+      newErrors.password = 'La contraseña debe tener al menos 6 caracteres'
     }
 
     setErrors(newErrors)
@@ -98,7 +98,7 @@ export const Login = () => {
       if (error) throw error
 
       await initializeAuth()
-      toast.success('Welcome back!')
+      toast.success('¡Bienvenido!')
       // No navegar aquí, dejar que el useEffect se encargue
       // Esto permite que use la ruta intended si existe
     } catch (error) {
@@ -117,7 +117,7 @@ export const Login = () => {
       // Validate callback URL
       const callbackUrl = `${window.location.origin}/auth/callback`
       if (!callbackUrl.startsWith('http')) {
-        throw new Error('Invalid callback URL')
+        throw new Error('URL de callback inválida')
       }
 
       const { error } = await supabase.auth.signInWithOAuth({
@@ -142,9 +142,9 @@ export const Login = () => {
     } catch (error) {
       setServerError(
         error.message ||
-        'Failed to initiate Microsoft sign-in. Please try again or use email login.'
+        'No se pudo iniciar sesión con Microsoft. Intenta de nuevo o usa el inicio con correo.'
       )
-      toast.error('Microsoft sign-in failed. Please try again.')
+      toast.error('Falló el inicio de sesión con Microsoft. Intenta de nuevo.')
       setIsLoading(false)
     }
   }
@@ -179,13 +179,13 @@ export const Login = () => {
             </Alert>
           )}
 
-          <InputField label="Email" error={errors.email}>
+          <InputField label="Correo electrónico" error={errors.email}>
             <input
               type="email"
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-              placeholder="you@example.com"
+              placeholder="tu@ejemplo.com"
               className="w-full px-4 py-2.5 bg-gs-surface border border-gs-border rounded-lg
                        focus:outline-none focus:border-gs-accent focus:ring-1 focus:ring-gs-accent
                        text-gs-text placeholder-gs-muted transition-colors"
@@ -193,7 +193,7 @@ export const Login = () => {
             />
           </InputField>
 
-          <InputField label="Password" error={errors.password}>
+          <InputField label="Contraseña" error={errors.password}>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
@@ -210,7 +210,7 @@ export const Login = () => {
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
                 disabled={isLoading}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                 aria-pressed={showPassword}
                 className="absolute inset-y-0 right-0 flex items-center px-3 text-gs-soft
                          hover:text-gs-text transition-colors focus:outline-none
@@ -231,12 +231,12 @@ export const Login = () => {
             {isLoading ? (
               <>
                 <Spinner size={16} />
-                Signing in...
+                Iniciando sesión...
               </>
             ) : (
               <>
                 <FiMail size={18} />
-                Sign in with Email
+                Iniciar sesión con Correo
               </>
             )}
           </Button>
@@ -247,7 +247,7 @@ export const Login = () => {
             <div className="w-full border-t border-gs-border" />
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-gs-bg text-gs-soft">Or continue with</span>
+            <span className="px-2 bg-gs-bg text-gs-soft">O continúa con</span>
           </div>
         </div>
 
@@ -262,9 +262,9 @@ export const Login = () => {
         </Button>
 
         <p className="text-center text-gs-soft text-sm mt-6">
-          Don't have an account?{' '}
+          ¿No tienes una cuenta?{' '}
           <span className="text-gs-accent cursor-not-allowed">
-            Contact administrator
+            Contacta al administrador
           </span>
         </p>
       </div>

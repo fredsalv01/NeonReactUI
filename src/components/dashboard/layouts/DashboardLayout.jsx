@@ -11,7 +11,7 @@ export const DashboardLayout = ({ children }) => {
 
       <main className="flex-1 flex flex-col overflow-hidden">
         <header className="md:hidden flex items-center justify-between px-4 py-4 bg-gs-surface border-b border-gs-border">
-          <h2 className="text-lg font-semibold text-gs-text">Menu</h2>
+          <h2 className="text-lg font-semibold text-gs-text">Menú</h2>
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="p-2 hover:bg-gs-border rounded-lg transition-colors"

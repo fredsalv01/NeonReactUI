@@ -27,18 +27,18 @@ export const NotFound = () => {
             <div className="space-y-1">
               <h1 className="text-5xl font-bold text-gs-accent">404</h1>
               <p className="text-xs text-gs-muted uppercase tracking-widest">
-                Page Not Found
+                Página no encontrada
               </p>
             </div>
 
             <p className="text-gs-soft text-sm">
-              The page you're looking for doesn't exist or may have been moved.
+              La página que buscas no existe o pudo haber sido movida.
             </p>
           </div>
 
           {/* Path Info */}
           <div className="bg-gs-surface border border-gs-border rounded-lg p-4 text-left">
-            <p className="text-xs text-gs-muted font-mono mb-2">Requested Path:</p>
+            <p className="text-xs text-gs-muted font-mono mb-2">Ruta solicitada:</p>
             <p className="text-sm text-gs-text font-mono break-all">
               {window.location.pathname}
             </p>
@@ -51,7 +51,7 @@ export const NotFound = () => {
               variant="primary"
               className="w-full"
             >
-              Go to Dashboard
+              Ir al Panel
             </Button>
 
             <Button
@@ -59,18 +59,18 @@ export const NotFound = () => {
               variant="ghost"
               className="w-full border border-gs-border"
             >
-              Go Back
+              Volver atrás
             </Button>
           </div>
 
           {/* Help Text */}
           <p className="text-xs text-gs-muted">
-            If you believe this is a mistake, please{' '}
+            Si crees que esto es un error, por favor{' '}
             <button
               onClick={() => window.location.href = 'mailto:support@example.com'}
               className="text-gs-accent hover:underline"
             >
-              contact support
+              contacta a soporte
             </button>
           </p>
         </div>

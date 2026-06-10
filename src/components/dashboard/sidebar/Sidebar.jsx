@@ -4,12 +4,12 @@ import { Icon, Button } from '../../ui'
 import { FiLogOut, FiChevronRight } from 'react-icons/fi'
 
 const MENU_ITEMS = [
-  { id: 'dashboard', label: 'Dashboard', icon: 'chart', path: '/dashboard' },
-  { id: 'inventory', label: 'Inventory', icon: 'box', path: '/dashboard/inventory' },
-  { id: 'sales', label: 'Sales', icon: 'cart', path: '/dashboard/sales' },
-  { id: 'reports', label: 'Reports', icon: 'file', path: '/dashboard/reports' },
-  { id: 'users', label: 'Users', icon: 'users', path: '/dashboard/users', allowedRoles: ['Administrador'] },
-  { id: 'settings', label: 'Settings', icon: 'settings', path: '/dashboard/settings' },
+  { id: 'dashboard', label: 'Panel', icon: 'chart', path: '/dashboard' },
+  { id: 'inventory', label: 'Inventario', icon: 'box', path: '/dashboard/inventory' },
+  { id: 'sales', label: 'Ventas', icon: 'cart', path: '/dashboard/sales' },
+  { id: 'reports', label: 'Reportes', icon: 'file', path: '/dashboard/reports' },
+  { id: 'users', label: 'Usuarios', icon: 'users', path: '/dashboard/users', allowedRoles: ['Administrador'] },
+  { id: 'settings', label: 'Configuración', icon: 'settings', path: '/dashboard/settings' },
 ]
 
 export const Sidebar = ({ isOpen, onClose }) => {
@@ -61,7 +61,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
               </div>
               <div>
                 <h1 className="text-lg font-bold text-gs-text leading-none">GeoStock</h1>
-                <p className="text-xs text-gs-muted mt-1">Management System</p>
+                <p className="text-xs text-gs-muted mt-1">Sistema de Gestión</p>
               </div>
             </div>
           </div>
@@ -69,7 +69,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
           {/* Navigation */}
           <nav className="flex-1 px-4 py-6 space-y-1.5">
             <p className="text-xs font-semibold text-gs-muted uppercase tracking-wider px-3 mb-4">
-              Menu
+              Menú
             </p>
             {visibleItems.map((item) => {
               const isActive = location.pathname === item.path
@@ -113,7 +113,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
               </div>
               <div className="min-w-0">
                 <p className="text-xs font-bold leading-tight truncate">
-                  {profile.nombre?.split(' ')[0] || 'User'}
+                  {profile.nombre?.split(' ')[0] || 'Usuario'}
                 </p>
                 {profile.roles?.nombre && (
                   <span className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded-md"

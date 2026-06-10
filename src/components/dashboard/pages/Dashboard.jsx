@@ -8,10 +8,10 @@ export const Dashboard = () => {
     <div>
       <div className="mb-8">
         <h1 className="text-3xl md:text-4xl font-bold text-gs-text mb-2">
-          Welcome back, {profile?.nombre}!
+          ¡Bienvenido, {profile?.nombre}!
         </h1>
         <p className="text-gs-soft">
-          Role: <span className="font-semibold text-gs-accent">{profile?.roles?.nombre || 'N/A'}</span>
+          Rol: <span className="font-semibold text-gs-accent">{profile?.roles?.nombre || 'N/D'}</span>
         </p>
       </div>
 
@@ -45,13 +45,13 @@ export const Dashboard = () => {
       <div className="mt-8">
         <div className="bg-gs-surface rounded-xl p-6 border border-gs-border">
           <h2 className="text-lg font-semibold text-gs-text mb-4">
-            Quick Start Guide
+            Guía de Inicio Rápido
           </h2>
           <ul className="space-y-2 text-gs-soft text-sm">
-            <li>✓ Navigate to Inventory to manage your equipment</li>
-            <li>✓ Check Sales for transaction history</li>
-            <li>✓ View Reports for detailed analytics</li>
-            <li>✓ Update Settings for account preferences</li>
+            <li>✓ Ve a Inventario para gestionar tus equipos</li>
+            <li>✓ Revisa Ventas para el historial de transacciones</li>
+            <li>✓ Consulta Reportes para analíticas detalladas</li>
+            <li>✓ Actualiza Configuración para preferencias de cuenta</li>
           </ul>
         </div>
       </div>

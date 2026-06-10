@@ -7,9 +7,9 @@ import { MdError, MdCheckCircle } from 'react-icons/md'
 
 const CALLBACK_TIMEOUT = 10000 // 10 seconds
 const PROGRESS_STEPS = [
-  { label: 'Verifying credentials...', delay: 0 },
-  { label: 'Initializing session...', delay: 2000 },
-  { label: 'Setting up your workspace...', delay: 5000 },
+  { label: 'Verificando credenciales...', delay: 0 },
+  { label: 'Inicializando sesión...', delay: 2000 },
+  { label: 'Preparando tu espacio de trabajo...', delay: 5000 },
 ]
 
 export const AuthCallback = () => {
@@ -52,7 +52,7 @@ export const AuthCallback = () => {
       setStatus('error')
       setError(
         errorDescription ||
-        'OAuth error occurred. Please try signing in again.'
+        'Ocurrió un error de OAuth. Por favor intenta iniciar sesión de nuevo.'
       )
       return
     }
@@ -86,14 +86,14 @@ export const AuthCallback = () => {
         }
 
         if (sessionError) {
-          throw new Error('Failed to verify session: ' + sessionError.message)
+          throw new Error('No se pudo verificar la sesión: ' + sessionError.message)
         }
 
         // Set timeout for auth process
         timeoutRef.current = setTimeout(() => {
           if (isMounted) {
             setStatus('timeout')
-            setError('Authentication took too long. Please try again.')
+            setError('La autenticación tardó demasiado. Por favor intenta de nuevo.')
           }
         }, CALLBACK_TIMEOUT)
 
@@ -134,16 +134,16 @@ export const AuthCallback = () => {
 
           // Determine error type
           if (error.message?.includes('session')) {
-            setError('Your session is invalid or expired. Please sign in again.')
+            setError('Tu sesión es inválida o ha expirado. Por favor inicia sesión de nuevo.')
           } else if (
             error.message?.includes('oauth') ||
             error.message?.includes('provider')
           ) {
-            setError('OAuth authentication failed. Please try again or contact support.')
+            setError('Falló la autenticación OAuth. Intenta de nuevo o contacta a soporte.')
           } else {
             setError(
               error.message ||
-              'An error occurred during authentication. Please try again.'
+              'Ocurrió un error durante la autenticación. Por favor intenta de nuevo.'
             )
           }
 
@@ -196,7 +196,7 @@ export const AuthCallback = () => {
             </div>
 
             <p className="text-gs-soft text-sm">
-              Please don't close this window
+              Por favor no cierres esta ventana
             </p>
           </div>
         )}
@@ -211,9 +211,9 @@ export const AuthCallback = () => {
             </div>
 
             <div className="space-y-2">
-              <h2 className="text-xl font-semibold text-gs-text">Welcome!</h2>
+              <h2 className="text-xl font-semibold text-gs-text">¡Bienvenido!</h2>
               <p className="text-gs-soft text-sm">
-                Redirecting to your dashboard...
+                Redirigiendo a tu panel...
               </p>
             </div>
           </div>
@@ -231,10 +231,10 @@ export const AuthCallback = () => {
 
               <div className="space-y-2">
                 <h2 className="text-xl font-semibold text-gs-text">
-                  Authentication Failed
+                  Autenticación fallida
                 </h2>
                 <p className="text-gs-soft text-sm">
-                  We couldn't complete your sign-in
+                  No pudimos completar tu inicio de sesión
                 </p>
               </div>
             </div>
@@ -249,7 +249,7 @@ export const AuthCallback = () => {
                 variant="primary"
                 className="w-full"
               >
-                Try Again
+                Intentar de nuevo
               </Button>
 
               <Button
@@ -257,12 +257,12 @@ export const AuthCallback = () => {
                 variant="ghost"
                 className="w-full border border-gs-border"
               >
-                Get Help
+                Obtener ayuda
               </Button>
             </div>
 
             <p className="text-xs text-gs-muted text-center">
-              Error details have been logged. If the problem persists, contact support.
+              Los detalles del error han sido registrados. Si el problema persiste, contacta a soporte.
             </p>
           </div>
         )}
@@ -279,10 +279,10 @@ export const AuthCallback = () => {
 
               <div className="space-y-2">
                 <h2 className="text-xl font-semibold text-gs-text">
-                  Sign-in Timeout
+                  Tiempo de inicio de sesión agotado
                 </h2>
                 <p className="text-gs-soft text-sm">
-                  The authentication took longer than expected
+                  La autenticación tardó más de lo esperado
                 </p>
               </div>
             </div>
@@ -297,7 +297,7 @@ export const AuthCallback = () => {
                 variant="primary"
                 className="w-full"
               >
-                Start Over
+                Comenzar de nuevo
               </Button>
 
               <Button
@@ -305,7 +305,7 @@ export const AuthCallback = () => {
                 variant="ghost"
                 className="w-full border border-gs-border"
               >
-                Back to Home
+                Volver al inicio
               </Button>
             </div>
           </div>
