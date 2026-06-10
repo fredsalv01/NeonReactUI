@@ -1,125 +1,185 @@
 import { supabase } from '../supabase'
 
+const EQUIPO_FIELDS_BASE = 'id, nombre, tipo, imagen_url, precio_venta'
+const EQUIPO_FIELDS_DETAIL = 'id, nombre, tipo, imagen_url, precio_venta, serie, estado'
+
+// ─────────────────────────────────────────────────────────────────────────
+// MAPEO DE NOMBRES BD ↔ UI
+// ─────────────────────────────────────────────────────────────────────────
+// La tabla `ventas` en Supabase usa nombres distintos a los que asumen los
+// componentes existentes. Este service traduce en ambos sentidos para que
+// la UI no tenga que cambiar nada.
+//
+//   BD               UI / Componente
+//   precio_venta  →  precio_unitario
+//   total         →  monto_total
+//   vendido_por   →  usuario_id
+//   notas         →  descripcion
+//
+// equipo_id en `ventas` es un string tipo "EQ-002" que coincide con
+// `equipos.id` (también código). El lookup se hace por igualdad de id.
+// ─────────────────────────────────────────────────────────────────────────
+
+function mapVentaRowToUI(venta) {
+  if (!venta) return venta
+  return {
+    ...venta,
+    precio_unitario: venta.precio_venta,
+    monto_total: venta.total,
+    usuario_id: venta.vendido_por,
+    descripcion: venta.notas,
+  }
+}
+
+function mapUIDataToInsert(ventaData) {
+  return {
+    equipo_id: ventaData.equipo_id,
+    cantidad: ventaData.cantidad,
+    precio_venta: ventaData.precio_unitario ?? ventaData.precio_venta,
+    total: ventaData.monto_total ?? ventaData.total,
+    notas: ventaData.descripcion ?? ventaData.notas ?? null,
+    vendido_por: ventaData.usuario_id ?? ventaData.vendido_por,
+    ...(ventaData.cliente !== undefined && { cliente: ventaData.cliente }),
+    ...(ventaData.cliente_tipo_doc !== undefined && { cliente_tipo_doc: ventaData.cliente_tipo_doc }),
+    ...(ventaData.cliente_nro_doc !== undefined && { cliente_nro_doc: ventaData.cliente_nro_doc }),
+    ...(ventaData.cliente_telefono !== undefined && { cliente_telefono: ventaData.cliente_telefono }),
+    ...(ventaData.cliente_email !== undefined && { cliente_email: ventaData.cliente_email }),
+  }
+}
+
+function mapUIDataToUpdate(ventaData) {
+  const obj = {}
+  if (ventaData.cantidad !== undefined) obj.cantidad = ventaData.cantidad
+  if (ventaData.precio_unitario !== undefined) obj.precio_venta = ventaData.precio_unitario
+  if (ventaData.precio_venta !== undefined) obj.precio_venta = ventaData.precio_venta
+  if (ventaData.monto_total !== undefined) obj.total = ventaData.monto_total
+  if (ventaData.total !== undefined) obj.total = ventaData.total
+  if (ventaData.descripcion !== undefined) obj.notas = ventaData.descripcion
+  if (ventaData.notas !== undefined) obj.notas = ventaData.notas
+  if (ventaData.cliente !== undefined) obj.cliente = ventaData.cliente
+  if (ventaData.cliente_tipo_doc !== undefined) obj.cliente_tipo_doc = ventaData.cliente_tipo_doc
+  if (ventaData.cliente_nro_doc !== undefined) obj.cliente_nro_doc = ventaData.cliente_nro_doc
+  if (ventaData.cliente_telefono !== undefined) obj.cliente_telefono = ventaData.cliente_telefono
+  if (ventaData.cliente_email !== undefined) obj.cliente_email = ventaData.cliente_email
+  return obj
+}
+
+// Resuelve equipos y perfiles en paralelo, con Promise.allSettled
+// para que un id inexistente no tumbe las demás filas.
+async function enrichVentas(ventas, equipoFields = EQUIPO_FIELDS_BASE) {
+  if (!Array.isArray(ventas) || ventas.length === 0) return ventas || []
+
+  const [equiposResults, perfilesResults] = await Promise.all([
+    Promise.allSettled(
+      ventas.map(async (venta) => {
+        if (!venta?.equipo_id) return null
+        const { data } = await supabase
+          .from('equipos')
+          .select(equipoFields)
+          .eq('id', venta.equipo_id)
+          .single()
+        return data || null
+      })
+    ),
+    Promise.allSettled(
+      ventas.map(async (venta) => {
+        if (!venta?.vendido_por) return null
+        const { data } = await supabase
+          .from('perfiles')
+          .select('id, nombre, email')
+          .eq('id', venta.vendido_por)
+          .single()
+        return data || null
+      })
+    ),
+  ])
+
+  return ventas.map((venta, index) =>
+    mapVentaRowToUI({
+      ...venta,
+      equipos:
+        equiposResults[index].status === 'fulfilled'
+          ? equiposResults[index].value
+          : null,
+      perfiles:
+        perfilesResults[index].status === 'fulfilled'
+          ? perfilesResults[index].value
+          : null,
+    })
+  )
+}
+
 export const ventaService = {
-  // Obtener todas las ventas
   async getVentas() {
     const { data, error } = await supabase
       .from('ventas')
-      .select(`
-        *,
-        equipos:equipo_id(id, nombre, tipo, imagen_url, precio_venta),
-        perfiles:usuario_id(id, nombre, email)
-      `)
-      .eq('active', true)
+      .select('*')
       .order('created_at', { ascending: false })
 
     if (error) throw error
-    return data || []
+    return await enrichVentas(data || [])
   },
 
-  // Obtener venta por ID
   async getVentaById(id) {
     const { data, error } = await supabase
       .from('ventas')
-      .select(`
-        *,
-        equipos:equipo_id(id, nombre, tipo, imagen_url, precio_venta, serie, estado),
-        perfiles:usuario_id(id, nombre, email)
-      `)
+      .select('*')
       .eq('id', id)
       .single()
 
     if (error) throw error
-    return data
+    const [enriched] = await enrichVentas(data ? [data] : [], EQUIPO_FIELDS_DETAIL)
+    return enriched || null
   },
 
-  // Agregar nueva venta
   async addVenta(ventaData) {
     const { data, error } = await supabase
       .from('ventas')
-      .insert([
-        {
-          equipo_id: ventaData.equipo_id,
-          cantidad: ventaData.cantidad,
-          precio_unitario: ventaData.precio_unitario,
-          monto_total: ventaData.monto_total,
-          descripcion: ventaData.descripcion || null,
-          usuario_id: ventaData.usuario_id,
-          active: true,
-        }
-      ])
-      .select(`
-        *,
-        equipos:equipo_id(id, nombre, tipo, imagen_url, precio_venta),
-        perfiles:usuario_id(id, nombre, email)
-      `)
+      .insert([mapUIDataToInsert(ventaData)])
+      .select('*')
 
     if (error) throw error
-    return data?.[0] || null
+    const enriched = await enrichVentas(data || [])
+    return enriched?.[0] || null
   },
 
-  // Actualizar venta
   async updateVenta(id, ventaData) {
-    const updateObj = {
-      updated_at: new Date().toISOString(),
-    }
-
-    if (ventaData.cantidad !== undefined) updateObj.cantidad = ventaData.cantidad
-    if (ventaData.precio_unitario !== undefined) updateObj.precio_unitario = ventaData.precio_unitario
-    if (ventaData.monto_total !== undefined) updateObj.monto_total = ventaData.monto_total
-    if (ventaData.descripcion !== undefined) updateObj.descripcion = ventaData.descripcion
-
     const { data, error } = await supabase
       .from('ventas')
-      .update(updateObj)
+      .update(mapUIDataToUpdate(ventaData))
       .eq('id', id)
-      .select(`
-        *,
-        equipos:equipo_id(id, nombre, tipo, imagen_url, precio_venta),
-        perfiles:usuario_id(id, nombre, email)
-      `)
+      .select('*')
 
     if (error) throw error
-    return data?.[0] || null
+    const enriched = await enrichVentas(data || [])
+    return enriched?.[0] || null
   },
 
-  // Eliminar venta (soft delete)
   async deleteVenta(id) {
     const { error } = await supabase
       .from('ventas')
-      .update({ active: false, updated_at: new Date().toISOString() })
+      .delete()
       .eq('id', id)
 
     if (error) throw error
   },
 
-  // Actualizar estado activo de la venta
-  async updateVentaStatus(id, active) {
-    const { error } = await supabase
-      .from('ventas')
-      .update({ active, updated_at: new Date().toISOString() })
-      .eq('id', id)
-
-    if (error) throw error
+  // NOTA: la tabla `ventas` no tiene columna `active`. Este método queda
+  // como no-op para no romper a salesStore.updateVentaStatus hasta que se
+  // defina la estrategia de status.
+  async updateVentaStatus(_id, _active) {
+    return
   },
 
-  // Obtener ventas con filtros
   async getVentasFiltered(filters = {}) {
-    let query = supabase
-      .from('ventas')
-      .select(`
-        *,
-        equipos:equipo_id(id, nombre, tipo, imagen_url, precio_venta),
-        perfiles:usuario_id(id, nombre, email)
-      `)
-      .eq('active', true)
+    let query = supabase.from('ventas').select('*')
 
     if (filters.equipoId) {
       query = query.eq('equipo_id', filters.equipoId)
     }
 
     if (filters.usuarioId) {
-      query = query.eq('usuario_id', filters.usuarioId)
+      query = query.eq('vendido_por', filters.usuarioId)
     }
 
     if (filters.startDate && filters.endDate) {
@@ -131,17 +191,16 @@ export const ventaService = {
     const { data, error } = await query.order('created_at', { ascending: false })
 
     if (error) throw error
-    return data || []
+    return await enrichVentas(data || [])
   },
 
-  // Obtener totales de ventas
   async getVentasTotals() {
     const { data, error } = await supabase
       .from('ventas')
-      .select('monto_total, cantidad')
-      .eq('active', true)
+      .select('total, cantidad')
 
     if (error) throw error
-    return data || []
+    // monto_total = alias hacia la UI
+    return (data || []).map((row) => ({ ...row, monto_total: row.total }))
   },
 }

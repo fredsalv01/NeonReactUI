@@ -18,6 +18,7 @@ import {
   Sales,
   Reports,
   Settings,
+  Users,
   AuthCallback,
 } from './components/dashboard'
 import './App.css'
@@ -102,6 +103,17 @@ function AppContent() {
               <Reports />
             </DashboardLayout>
           </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/dashboard/users"
+        element={
+          <RoleProtectedRoute allowedRoles={['Administrador']}>
+            <DashboardLayout>
+              <Users />
+            </DashboardLayout>
+          </RoleProtectedRoute>
         }
       />
 

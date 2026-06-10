@@ -22,6 +22,10 @@ const PAGE_CONFIG = {
     title: 'Reports - GeoStock',
     description: 'View detailed reports and analytics.',
   },
+  '/dashboard/users': {
+    title: 'Users - GeoStock',
+    description: 'Manage system users, roles and account access.',
+  },
   '/dashboard/settings': {
     title: 'Settings - GeoStock',
     description: 'Configure your account and system settings.',

@@ -1,9 +1,25 @@
-import { Navigate } from 'react-router-dom'
+import { useEffect, useRef } from 'react'
+import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../../hooks/useAuth'
-import { Spinner } from '../../ui'
+import { Spinner, useToast } from '../../ui'
 
 export const RoleProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { isAuthenticated, isLoading, userRole } = useAuth()
+  const location = useLocation()
+  const { toast } = useToast()
+  const deniedToastFiredRef = useRef(false)
+
+  const hasPermission = allowedRoles.length === 0 || allowedRoles.includes(userRole)
+
+  useEffect(() => {
+    if (!isLoading && isAuthenticated && !hasPermission && !deniedToastFiredRef.current) {
+      toast.error(
+        `No tienes permiso para acceder a esta página. Rol requerido: ${allowedRoles.join(', ')}`
+      )
+      localStorage.removeItem('intended_route')
+      deniedToastFiredRef.current = true
+    }
+  }, [isLoading, isAuthenticated, hasPermission, allowedRoles, toast])
 
   if (isLoading) {
     return (
@@ -14,11 +30,11 @@ export const RoleProtectedRoute = ({ children, allowedRoles = [] }) => {
   }
 
   if (!isAuthenticated) {
+    if (location.pathname && location.pathname !== '/login') {
+      localStorage.setItem('intended_route', location.pathname + location.search)
+    }
     return <Navigate to="/login" replace />
   }
-
-  // Check if user has one of the allowed roles (case-sensitive match)
-  const hasPermission = allowedRoles.length === 0 || allowedRoles.includes(userRole)
 
   if (!hasPermission) {
     return (

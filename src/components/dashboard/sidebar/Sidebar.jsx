@@ -6,15 +6,20 @@ import { FiLogOut, FiChevronRight } from 'react-icons/fi'
 const MENU_ITEMS = [
   { id: 'dashboard', label: 'Dashboard', icon: 'chart', path: '/dashboard' },
   { id: 'inventory', label: 'Inventory', icon: 'box', path: '/dashboard/inventory' },
-  { id: 'sales', label: 'Sales', icon: 'shopping-cart', path: '/dashboard/sales' },
+  { id: 'sales', label: 'Sales', icon: 'cart', path: '/dashboard/sales' },
   { id: 'reports', label: 'Reports', icon: 'file', path: '/dashboard/reports' },
-  { id: 'settings', label: 'Settings', icon: 'wifi', path: '/dashboard/settings' },
+  { id: 'users', label: 'Users', icon: 'users', path: '/dashboard/users', allowedRoles: ['Administrador'] },
+  { id: 'settings', label: 'Settings', icon: 'settings', path: '/dashboard/settings' },
 ]
 
 export const Sidebar = ({ isOpen, onClose }) => {
   const navigate = useNavigate()
   const location = useLocation()
-  const { logout, profile } = useAuth()
+  const { logout, profile, userRole } = useAuth()
+
+  const visibleItems = MENU_ITEMS.filter(
+    (item) => !item.allowedRoles || item.allowedRoles.includes(userRole)
+  )
 
   const handleNavigate = (path) => {
     navigate(path)
@@ -66,7 +71,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
             <p className="text-xs font-semibold text-gs-muted uppercase tracking-wider px-3 mb-4">
               Menu
             </p>
-            {MENU_ITEMS.map((item) => {
+            {visibleItems.map((item) => {
               const isActive = location.pathname === item.path
               return (
                 <button

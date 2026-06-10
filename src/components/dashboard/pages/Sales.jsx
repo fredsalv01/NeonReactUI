@@ -11,6 +11,7 @@ import {
   SkeletonRow,
   Drawer,
   SkeletonBlock,
+  DatePicker,
   useToast
 } from '../../ui'
 import { SalesDetailsDrawer } from '../drawers/SalesDetailsDrawer'
@@ -26,7 +27,7 @@ export const Sales = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterCategoria, setFilterCategoria] = useState('')
   const [filterTipo, setFilterTipo] = useState('')
-  const [filterDate, setFilterDate] = useState('')
+  const [filterDate, setFilterDate] = useState(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(5)
   const [showSkeleton, setShowSkeleton] = useState(true)
@@ -96,9 +97,12 @@ export const Sales = () => {
       const matchesTipo = !filterTipo || venta.equipos?.tipo === filterTipo
 
       let matchesDate = true
-      if (filterDate) {
-        const ventaDate = new Date(venta.created_at).toISOString().split('T')[0]
-        matchesDate = ventaDate === filterDate
+      if (filterDate instanceof Date) {
+        const ventaDate = new Date(venta.created_at)
+        matchesDate =
+          ventaDate.getFullYear() === filterDate.getFullYear() &&
+          ventaDate.getMonth() === filterDate.getMonth() &&
+          ventaDate.getDate() === filterDate.getDate()
       }
 
       return matchesSearch && matchesCategoria && matchesTipo && matchesDate
@@ -166,7 +170,7 @@ export const Sales = () => {
     if (filteredVentas.length === 0) {
       return (
         <EmptyState
-          hasFilters={!!searchTerm || !!filterCategoria || !!filterTipo || !!filterDate}
+          hasFilters={!!searchTerm || !!filterCategoria || !!filterTipo || filterDate instanceof Date}
         />
       )
     }
@@ -349,12 +353,15 @@ const Filters = ({
         label="Tipo"
         className="w-full md:w-48"
       />
-      <input
-        type="date"
-        value={filterDate}
-        onChange={(e) => onDateChange(e.target.value)}
-        className="w-full md:w-40 px-3 py-2 bg-gs-bg border border-gs-border rounded-lg text-gs-text text-sm"
-      />
+      <div className="w-full md:w-48">
+        <DatePicker
+          mode="single"
+          value={filterDate}
+          onChange={onDateChange}
+          placeholder="Filtrar por fecha"
+          clearable
+        />
+      </div>
     </div>
   </div>
 )
@@ -524,7 +531,7 @@ const matchesSearchTerm = (venta, searchTerm) => {
   return (
     venta.equipos?.nombre?.toLowerCase().includes(term) ||
     venta.perfiles?.nombre?.toLowerCase().includes(term) ||
-    venta.id?.toLowerCase().includes(term)
+    String(venta.id ?? '').toLowerCase().includes(term)
   )
 }
 
@@ -534,7 +541,7 @@ const getTableColumns = () => [
     label: 'ID Venta',
     mono: true,
     sortable: true,
-    render: (value) => value?.substring(0, 8)
+    render: (value) => (value != null ? String(value).substring(0, 8) : '')
   },
   {
     key: 'equipos.nombre',
@@ -545,10 +552,10 @@ const getTableColumns = () => [
   {
     key: 'equipos.imagen_url',
     label: 'Imagen',
-    render: (value) => (
-      value ? (
+    render: (_, row) => (
+      row.equipos?.imagen_url ? (
         <img
-          src={value}
+          src={row.equipos.imagen_url}
           alt="equipo"
           className="w-10 h-10 object-cover rounded"
         />
@@ -561,23 +568,26 @@ const getTableColumns = () => [
     key: 'cantidad',
     label: 'Cantidad',
     sortable: true,
-    render: (value) => `${value} u`
+    render: (value) => `${value} unid.`
   },
   {
     key: 'precio_unitario',
     label: 'P. Unitario',
     sortable: true,
-    render: (value) => `$${parseFloat(value).toFixed(2)}`
+    render: (value) => {
+      const n = Number(value)
+      return Number.isFinite(n) ? `$${n.toFixed(2)}` : '$0.00'
+    }
   },
   {
     key: 'monto_total',
     label: 'Total',
     sortable: true,
-    render: (value) => (
-      <span className="font-semibold text-green-400">
-        $${parseFloat(value).toFixed(2)}
-      </span>
-    )
+    render: (value) => {
+      const n = Number(value)
+      const text = Number.isFinite(n) ? `$${n.toFixed(2)}` : '$0.00'
+      return <span className="font-semibold text-green-400">{text}</span>
+    }
   },
   {
     key: 'created_at',
