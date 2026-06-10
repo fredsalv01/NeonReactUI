@@ -34,7 +34,6 @@ export const equipoService = {
           nombre: equipoData.nombre,
           tipo: equipoData.tipo,
           serie: equipoData.serie,
-          estado: equipoData.estado,
           precio_compra: equipoData.precio_compra,
           precio_venta: equipoData.precio_venta,
           stock: equipoData.stock,
@@ -59,7 +58,6 @@ export const equipoService = {
     if (equipoData.nombre !== undefined) updateObj.nombre = equipoData.nombre
     if (equipoData.tipo !== undefined) updateObj.tipo = equipoData.tipo
     if (equipoData.serie !== undefined) updateObj.serie = equipoData.serie
-    if (equipoData.estado !== undefined) updateObj.estado = equipoData.estado
     if (equipoData.precio_compra !== undefined) updateObj.precio_compra = equipoData.precio_compra
     if (equipoData.precio_venta !== undefined) updateObj.precio_venta = equipoData.precio_venta
     if (equipoData.stock !== undefined) updateObj.stock = equipoData.stock

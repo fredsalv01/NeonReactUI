@@ -16,9 +16,6 @@ export const equipoSchema = z.object({
     .min(1, 'La serie es requerida')
     .min(3, 'Mínimo 3 caracteres')
     .max(100, 'Máximo 100 caracteres'),
-  estado: z.enum(['Disponible', 'En uso', 'Mantenimiento', 'Baja'], {
-    errorMap: () => ({ message: 'Estado inválido' })
-  }),
   precio_compra: z
     .number()
     .positive('Debe ser mayor a 0')

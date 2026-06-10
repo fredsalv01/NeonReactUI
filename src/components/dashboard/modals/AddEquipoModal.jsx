@@ -1,7 +1,6 @@
-import { Modal, Button, InputField, NumberInput, Select, DropZone, Progress, Icon } from '../../ui'
+import { Modal, Button, InputField, NumberInput, DropZone, Progress, Icon } from '../../ui'
 import { useEquipoForm } from '../../../hooks/useEquipoForm'
 import { useInventoryStore } from '../../../stores/inventoryStore'
-import { ESTADO_OPTIONS } from '../../../lib/constants/inventoryConstants'
 import { useToast } from '../../ui'
 import { useRef } from 'react'
 
@@ -39,7 +38,6 @@ export const AddEquipoModal = ({ open, onClose }) => {
         nombre: formData.nombre,
         tipo: formData.tipo,
         serie: formData.serie,
-        estado: formData.estado,
         precio_compra: parseFloat(formData.precio_compra),
         precio_venta: parseFloat(formData.precio_venta),
         stock: parseInt(formData.stock),
@@ -159,19 +157,6 @@ export const AddEquipoModal = ({ open, onClose }) => {
             />
           </InputField>
         </div>
-
-        {/* Estado */}
-        <InputField label="Estado">
-          <Select
-            options={ESTADO_OPTIONS}
-            value={formData.estado}
-            onChange={(val) => {
-              handleInputChange({ target: { name: 'estado', value: val } })
-            }}
-            placeholder="Selecciona un estado..."
-            className="w-full"
-          />
-        </InputField>
 
         {/* Prices */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

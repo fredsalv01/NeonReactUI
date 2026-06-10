@@ -43,7 +43,6 @@ export const useEquipoForm = () => {
       nombre: formData.nombre,
       tipo: formData.tipo,
       serie: formData.serie,
-      estado: formData.estado,
       precio_compra: parseFloat(formData.precio_compra),
       precio_venta: parseFloat(formData.precio_venta),
       stock: parseInt(formData.stock),

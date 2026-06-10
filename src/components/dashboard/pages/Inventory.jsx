@@ -18,7 +18,7 @@ import {
 import { AddEquipoModal } from '../modals/AddEquipoModal'
 import { ProductDetailsDrawer } from '../drawers/ProductDetailsDrawer'
 import { EditEquipoDrawer } from '../drawers/EditEquipoDrawer'
-import { ESTADO_OPTIONS, PAGE_SIZES } from '../../../lib/constants/inventoryConstants'
+import { STOCK_ESTADO_OPTIONS, PAGE_SIZES, getStockEstado } from '../../../lib/constants/inventoryConstants'
 import { FiPlus, FiTrash2, FiEye, FiEdit2, FiDownload, FiExternalLink } from 'react-icons/fi'
 
 // ────────────────────────────────────────────────────────────────
@@ -92,7 +92,7 @@ export const Inventory = () => {
     return equipos.filter(equipo => {
       if (!equipo) return false
       const matchesSearch = matchesSearchTerm(equipo, searchTerm)
-      const matchesEstado = !filterEstado || equipo.estado === filterEstado
+      const matchesEstado = !filterEstado || getStockEstado(equipo.stock) === filterEstado
       const matchesTipo = !filterTipo || equipo.tipo === filterTipo
 
       return matchesSearch && matchesEstado && matchesTipo
@@ -352,7 +352,7 @@ const Filters = ({
         />
       </div>
       <Select
-        options={ESTADO_OPTIONS}
+        options={STOCK_ESTADO_OPTIONS}
         value={filterEstado}
         onChange={onEstadoChange}
         placeholder="Estado..."
@@ -568,15 +568,13 @@ const QRDrawerContent = ({ equipo }) => {
         <div>
           <p className="text-[12px] text-gs-soft font-['DM_Mono'] uppercase">Estado</p>
           <div className="mt-1">
-            <Badge estado={equipo.estado} />
+            <Badge estado={getStockEstado(equipo.stock)} />
           </div>
         </div>
         <InfoRow
           label="Stock"
           value={`${equipo.stock} unidades`}
-          valueClassName={
-            equipo.stock > 5 ? 'text-green-400' : equipo.stock > 0 ? 'text-yellow-400' : 'text-red-400'
-          }
+          valueClassName={stockColorClass(equipo.stock)}
         />
         <InfoRow label="Precio de Compra" value={`$${parseFloat(equipo.precio_compra).toFixed(2)}`} />
         <InfoRow
@@ -654,6 +652,14 @@ const DeleteConfirmModal = ({ open, equipo, isDeleting, onConfirm, onCancel }) =
 // Helper Functions
 // ────────────────────────────────────────────────────────────────
 
+const stockColorClass = (stock) => {
+  const estado = getStockEstado(stock)
+  if (estado === 'Disponible') return 'text-green-400'
+  if (estado === 'Stock Medio') return 'text-yellow-400'
+  if (estado === 'Stock Bajo') return 'text-orange-400'
+  return 'text-red-400'
+}
+
 const matchesSearchTerm = (equipo, searchTerm) => {
   if (!equipo || !searchTerm) {
     return true
@@ -676,17 +682,15 @@ const getTableColumns = () => [
     label: 'Stock',
     sortable: true,
     render: (value) => (
-      <span className={`font-semibold ${
-        value > 5 ? 'text-green-400' : value > 0 ? 'text-yellow-400' : 'text-red-400'
-      }`}>
+      <span className={`font-semibold ${stockColorClass(value)}`}>
         {value}
       </span>
     )
   },
   {
-    key: 'estado',
+    key: 'stock_estado',
     label: 'Estado',
-    render: (value) => <Badge estado={value} />
+    render: (_value, row) => <Badge estado={getStockEstado(row.stock)} />
   },
   {
     key: 'precio_venta',

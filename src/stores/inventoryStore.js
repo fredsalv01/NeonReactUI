@@ -159,11 +159,6 @@ export const useInventoryStore = create((set, get) => ({
     return equipos.find(e => e.id === id)
   },
 
-  getEquiposByEstado: (estado) => {
-    const { equipos } = get()
-    return equipos.filter(e => e.estado === estado)
-  },
-
   getLowStockEquipos: (threshold = 5) => {
     const { equipos } = get()
     return equipos.filter(e => e.stock <= threshold && e.stock > 0)
