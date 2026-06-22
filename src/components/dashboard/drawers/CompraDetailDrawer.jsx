@@ -32,7 +32,9 @@ export const CompraDetailDrawer = ({ open, onClose, compra }) => {
     }
     load()
     return () => { cancelled = true }
-  }, [open, compra?.id, toast])
+    // toast viene del context — no es estable, intencionalmente fuera de deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, compra?.id])
 
   if (!compra) return null
 

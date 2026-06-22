@@ -11,6 +11,7 @@ import {
   Icon,
   InputField,
   Modal,
+  NumberInput,
   Select,
   Spinner,
   useToast
@@ -362,7 +363,7 @@ const EntradaStockModal = ({ open, equipo, onClose, onSuccess }) => {
   const [almacenes, setAlmacenes] = useState([])
   const [form, setForm] = useState({
     almacen_id: ALMACEN_PRINCIPAL_ID,
-    cantidad: '1',
+    cantidad: 1,
     motivo: '',
   })
   const [errors, setErrors] = useState({})
@@ -370,7 +371,7 @@ const EntradaStockModal = ({ open, equipo, onClose, onSuccess }) => {
 
   useEffect(() => {
     if (!open) {
-      setForm({ almacen_id: ALMACEN_PRINCIPAL_ID, cantidad: '1', motivo: '' })
+      setForm({ almacen_id: ALMACEN_PRINCIPAL_ID, cantidad: 1, motivo: '' })
       setErrors({})
       return
     }
@@ -379,7 +380,9 @@ const EntradaStockModal = ({ open, equipo, onClose, onSuccess }) => {
       .then((data) => { if (!cancelled) setAlmacenes(data || []) })
       .catch((err) => { if (!cancelled) toast.error('Error cargando almacenes: ' + err.message) })
     return () => { cancelled = true }
-  }, [open, toast])
+    // toast viene del context — no es estable, intencionalmente fuera de deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open])
 
   const handleChange = (field) => (e) => {
     const value = e?.target ? e.target.value : e
@@ -459,13 +462,11 @@ const EntradaStockModal = ({ open, equipo, onClose, onSuccess }) => {
         </InputField>
 
         <InputField label="Cantidad *" error={errors.cantidad}>
-          <input
-            type="number"
+          <NumberInput
+            value={form.cantidad}
+            onChange={(v) => handleChange('cantidad')(v)}
             min={1}
             step={1}
-            value={form.cantidad}
-            onChange={handleChange('cantidad')}
-            className="w-full px-4 py-2.5 bg-gs-bg border border-gs-border rounded-lg text-gs-text outline-none focus:border-gs-accent focus:ring-1 focus:ring-gs-accent/20"
             disabled={isSubmitting}
           />
         </InputField>

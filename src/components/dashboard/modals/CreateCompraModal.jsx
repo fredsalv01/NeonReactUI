@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { Modal, Button, InputField, Select, Icon, useToast } from '../../ui'
+import { Modal, Button, InputField, NumberInput, Select, Icon, useToast } from '../../ui'
 import { FiPlus, FiTrash2 } from 'react-icons/fi'
 import { useComprasStore } from '../../../stores/comprasStore'
 import { proveedorService } from '../../../lib/services/proveedorService'
@@ -73,7 +73,9 @@ export const CreateCompraModal = ({ open, onClose }) => {
     }
     loadCatalogs()
     return () => { cancelled = true }
-  }, [open, toast])
+    // toast viene del context — no es estable, intencionalmente fuera de deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open])
 
   const updateHeader = (field) => (e) => {
     const value = e?.target ? e.target.value : e
@@ -136,23 +138,23 @@ export const CreateCompraModal = ({ open, onClose }) => {
     }
   }
 
-  const proveedorOptions = [
+  const proveedorOptions = useMemo(() => [
     { value: '', label: 'Sin proveedor' },
     ...proveedores.map((p) => ({
       value: p.id,
       label: p.ruc ? `${p.nombre} · ${p.ruc}` : p.nombre,
     })),
-  ]
+  ], [proveedores])
 
-  const almacenOptions = almacenes.map((a) => ({ value: a.id, label: a.nombre }))
+  const almacenOptions = useMemo(
+    () => almacenes.map((a) => ({ value: a.id, label: a.nombre })),
+    [almacenes]
+  )
 
-  const equipoOptions = [
+  const equipoOptions = useMemo(() => [
     { value: '', label: 'Selecciona un equipo…' },
-    ...equipos.map((e) => ({
-      value: e.id,
-      label: `${e.id} · ${e.nombre}`,
-    })),
-  ]
+    ...equipos.map((e) => ({ value: e.id, label: `${e.id} · ${e.nombre}` })),
+  ], [equipos])
 
   return (
     <Modal
@@ -256,55 +258,54 @@ export const CreateCompraModal = ({ open, onClose }) => {
             <div className="text-xs text-gs-danger">{errors.items}</div>
           )}
 
+          {/* Header de columnas — sólo se renderiza una vez */}
+          <div className="hidden md:grid md:grid-cols-12 gap-2 px-3 text-[11px] text-gs-soft font-['DM_Mono'] uppercase tracking-[0.8px]">
+            <div className="md:col-span-5">Equipo</div>
+            <div className="md:col-span-2">Cantidad</div>
+            <div className="md:col-span-2">Precio unit.</div>
+            <div className="md:col-span-2 text-right">Subtotal</div>
+            <div className="md:col-span-1"></div>
+          </div>
+
           <div className="space-y-2">
             {items.map((it, idx) => {
               const subtotal = (Number(it.cantidad) || 0) * (Number(it.precio_unitario) || 0)
               return (
                 <div
                   key={it.key}
-                  className="grid grid-cols-12 gap-2 items-end p-3 bg-gs-bg border border-gs-border rounded-lg"
+                  className="grid grid-cols-12 gap-2 items-center p-3 bg-gs-bg border border-gs-border rounded-lg"
                 >
                   <div className="col-span-12 md:col-span-5">
-                    <InputField label={idx === 0 ? 'Equipo' : ''}>
-                      <Select
-                        value={it.equipo_id}
-                        onChange={(v) => updateItem(idx, 'equipo_id', v)}
-                        options={equipoOptions}
-                        placeholder="Equipo…"
-                      />
-                    </InputField>
+                    <Select
+                      value={it.equipo_id}
+                      onChange={(v) => updateItem(idx, 'equipo_id', v)}
+                      options={equipoOptions}
+                      placeholder="Equipo…"
+                    />
                   </div>
 
                   <div className="col-span-4 md:col-span-2">
-                    <InputField label={idx === 0 ? 'Cantidad' : ''}>
-                      <input
-                        type="number"
-                        min={1}
-                        step={1}
-                        value={it.cantidad}
-                        onChange={(e) => updateItem(idx, 'cantidad', e.target.value)}
-                        className={inputClass}
-                        disabled={isSubmitting}
-                      />
-                    </InputField>
+                    <NumberInput
+                      value={it.cantidad}
+                      onChange={(v) => updateItem(idx, 'cantidad', v)}
+                      min={1}
+                      step={1}
+                      disabled={isSubmitting}
+                    />
                   </div>
 
                   <div className="col-span-4 md:col-span-2">
-                    <InputField label={idx === 0 ? 'Precio unit.' : ''}>
-                      <input
-                        type="number"
-                        min={0}
-                        step="0.01"
-                        value={it.precio_unitario}
-                        onChange={(e) => updateItem(idx, 'precio_unitario', e.target.value)}
-                        className={inputClass}
-                        disabled={isSubmitting}
-                      />
-                    </InputField>
+                    <NumberInput
+                      value={it.precio_unitario}
+                      onChange={(v) => updateItem(idx, 'precio_unitario', v)}
+                      min={0}
+                      step={0.01}
+                      prefix="S/"
+                      disabled={isSubmitting}
+                    />
                   </div>
 
-                  <div className="col-span-3 md:col-span-2 text-right text-sm text-gs-soft font-['DM_Mono']">
-                    {idx === 0 && <p className="text-[10px] text-gs-muted mb-2 uppercase">Subtotal</p>}
+                  <div className="col-span-3 md:col-span-2 text-right text-sm text-gs-text font-['DM_Mono'] font-bold">
                     {formatCurrency(subtotal)}
                   </div>
 

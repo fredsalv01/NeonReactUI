@@ -47,20 +47,25 @@ export const Compras = () => {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    let cancelled = false
     const loadCatalogs = async () => {
       try {
         const [prov, alm] = await Promise.all([
           proveedorService.fetchProveedores({ page: 1, pageSize: 500, status: 'active' }),
           almacenService.fetchAlmacenesActivos(),
         ])
+        if (cancelled) return
         setProveedores(prov.data || [])
         setAlmacenes(alm || [])
       } catch (err) {
-        toast.error('Error cargando filtros: ' + err.message)
+        if (!cancelled) toast.error('Error cargando filtros: ' + err.message)
       }
     }
     loadCatalogs()
-  }, [toast])
+    return () => { cancelled = true }
+    // toast viene del context — no es estable, intencionalmente fuera de deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
