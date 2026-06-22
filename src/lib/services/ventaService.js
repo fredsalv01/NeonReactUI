@@ -34,6 +34,10 @@ function mapUIDataToInsert(ventaData) {
     total: ventaData.monto_total ?? ventaData.total,
     notas: ventaData.descripcion ?? ventaData.notas ?? null,
     vendido_por: ventaData.usuario_id ?? ventaData.vendido_por,
+    // FKs nuevas (modelo normalizado)
+    ...(ventaData.cliente_id !== undefined && { cliente_id: ventaData.cliente_id }),
+    ...(ventaData.almacen_id !== undefined && { almacen_id: ventaData.almacen_id }),
+    // Columnas legacy denormalizadas — se conservan mientras existan en BD
     ...(ventaData.cliente !== undefined && { cliente: ventaData.cliente }),
     ...(ventaData.cliente_tipo_doc !== undefined && { cliente_tipo_doc: ventaData.cliente_tipo_doc }),
     ...(ventaData.cliente_nro_doc !== undefined && { cliente_nro_doc: ventaData.cliente_nro_doc }),

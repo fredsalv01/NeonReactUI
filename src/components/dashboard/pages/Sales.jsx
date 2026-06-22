@@ -16,6 +16,7 @@ import {
 } from '../../ui'
 import { SalesDetailsDrawer } from '../drawers/SalesDetailsDrawer'
 import { EditVentaDrawer } from '../drawers/EditVentaDrawer'
+import { CreateVentaModal } from '../modals/CreateVentaModal'
 import { PAGE_SIZES } from '../../../lib/constants/inventoryConstants'
 import { FiPlus, FiTrash2, FiEye, FiEdit2 } from 'react-icons/fi'
 
@@ -33,6 +34,7 @@ export const Sales = () => {
   const [showSkeleton, setShowSkeleton] = useState(true)
 
   // Modal States
+  const [createModalOpen, setCreateModalOpen] = useState(false)
   const [detailsDrawerOpen, setDetailsDrawerOpen] = useState(false)
   const [editDrawerOpen, setEditDrawerOpen] = useState(false)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
@@ -40,6 +42,7 @@ export const Sales = () => {
   const [isDeleting, setIsDeleting] = useState(false)
 
   // Stable callbacks
+  const handleCloseCreateModal = useCallback(() => setCreateModalOpen(false), [])
   const handleCloseDetailsDrawer = useCallback(() => setDetailsDrawerOpen(false), [])
   const handleCloseEditDrawer = useCallback(() => setEditDrawerOpen(false), [])
 
@@ -230,6 +233,7 @@ export const Sales = () => {
         <Header
           totalVentas={ventas.length}
           totalMonto={ventas.reduce((sum, v) => sum + (v.monto_total || 0), 0)}
+          onAddClick={() => setCreateModalOpen(true)}
         />
       )}
 
@@ -256,6 +260,12 @@ export const Sales = () => {
         {/* Table */}
         {renderTableContent()}
       </div>
+
+      {/* Modal de creación */}
+      <CreateVentaModal
+        open={createModalOpen}
+        onClose={handleCloseCreateModal}
+      />
 
       {/* Drawers */}
       <SalesDetailsDrawer
@@ -289,7 +299,7 @@ export const Sales = () => {
 // Sub-components
 // ────────────────────────────────────────────────────────────────
 
-const Header = ({ totalVentas, totalMonto }) => (
+const Header = ({ totalVentas, totalMonto, onAddClick }) => (
   <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-8">
     <div>
       <h1 className="text-3xl md:text-4xl font-bold text-gs-text mb-2">
@@ -302,6 +312,14 @@ const Header = ({ totalVentas, totalMonto }) => (
         Monto Total: <span className="font-semibold text-gs-accent">${totalMonto.toFixed(2)}</span>
       </p>
     </div>
+    <Button
+      variant="primary"
+      onClick={onAddClick}
+      className="flex items-center gap-2 w-full md:w-auto h-fit"
+    >
+      <FiPlus size={18} />
+      Nueva Venta
+    </Button>
   </div>
 )
 
