@@ -48,30 +48,14 @@ export const kardexService = {
   async getHistorialEquipo(equipoId) {
     const { data, error } = await supabase
       .from('kardex')
-      .select('*')
+      .select('*, perfiles(nombre)')
       .eq('equipo_id', equipoId)
       .order('created_at', { ascending: false })
-    if (error) {
-      return []
-    }
-    if (data && data.length > 0) {
-      const usuarioNames = await Promise.allSettled(data.map(async (item) => {
-        const { data: usuarioData } = await supabase
-          .from('perfiles')
-          .select('nombre')
-          .eq('id', item?.usuario_id)
-          .single()
-        return usuarioData?.nombre || 'Sistema'
-      })).then(results => {
-        return results.map(result => result.status === 'fulfilled' ? result.value : 'Sistema')
-      })
-      return data.map((item, index) => ({
-        ...item,
-        usuario: { nombre: usuarioNames[index] }
-      }))
-    }else {
-      return []
-    }
+    if (error) return []
+    return (data || []).map((item) => ({
+      ...item,
+      usuario: { nombre: item.perfiles?.nombre || 'Sistema' },
+    }))
   },
 
   // Obtener todos los movimientos

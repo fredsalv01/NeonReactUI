@@ -14,7 +14,9 @@
     "test:coverage": "vitest --coverage",
     "prepare": "husky install",
     "commit": "cz commit",
-    "commitlint": "commitlint"
+    "commitlint": "commitlint",
+    "scan": "unlighthouse",
+    "scan:local": "unlighthouse --site http://localhost:5173"
   },
   "dependencies": {
     "@nivo/bar": "0.99.0",
@@ -56,6 +58,7 @@
     "postcss": "8.4.31",
     "postcss-nesting": "^14.0.0",
     "tailwindcss": "3.3.6",
+    "unlighthouse": "^0.17.10",
     "vite": "5.0.0",
     "vitest": "^1.0.4"
   }

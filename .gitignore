@@ -28,6 +28,10 @@ dist-ssr
 .env.local
 .env.*.local
 
+# Unlighthouse
+.unlighthouse/
+unlighthouse.auth.json
+
 EQUIPOS_INSERT.sql
 
 # Testing

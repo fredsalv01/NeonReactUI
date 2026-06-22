@@ -1,25 +1,20 @@
 import { supabase } from '../supabase'
 
-const EQUIPO_FIELDS_BASE = 'id, nombre, tipo, imagen_url, precio_venta'
-const EQUIPO_FIELDS_DETAIL = 'id, nombre, tipo, imagen_url, precio_venta, serie, estado'
+const VENTA_SELECT_BASE = `
+  *,
+  equipos!inner(id, nombre, tipo, imagen_url, precio_venta),
+  perfiles(id, nombre, email)
+`
 
-// ─────────────────────────────────────────────────────────────────────────
-// MAPEO DE NOMBRES BD ↔ UI
-// ─────────────────────────────────────────────────────────────────────────
-// La tabla `ventas` en Supabase usa nombres distintos a los que asumen los
-// componentes existentes. Este service traduce en ambos sentidos para que
-// la UI no tenga que cambiar nada.
-//
-//   BD               UI / Componente
-//   precio_venta  →  precio_unitario
-//   total         →  monto_total
-//   vendido_por   →  usuario_id
-//   notas         →  descripcion
-//
-// equipo_id en `ventas` es un string tipo "EQ-002" que coincide con
-// `equipos.id` (también código). El lookup se hace por igualdad de id.
-// ─────────────────────────────────────────────────────────────────────────
+const VENTA_SELECT_DETAIL = `
+  *,
+  equipos!inner(id, nombre, tipo, imagen_url, precio_venta, serie, estado),
+  perfiles(id, nombre, email)
+`
 
+// MAPEO BD ↔ UI:
+//   precio_venta → precio_unitario | total → monto_total
+//   vendido_por  → usuario_id      | notas → descripcion
 function mapVentaRowToUI(venta) {
   if (!venta) return venta
   return {
@@ -64,83 +59,37 @@ function mapUIDataToUpdate(ventaData) {
   return obj
 }
 
-// Resuelve equipos y perfiles en paralelo, con Promise.allSettled
-// para que un id inexistente no tumbe las demás filas.
-async function enrichVentas(ventas, equipoFields = EQUIPO_FIELDS_BASE) {
-  if (!Array.isArray(ventas) || ventas.length === 0) return ventas || []
-
-  const [equiposResults, perfilesResults] = await Promise.all([
-    Promise.allSettled(
-      ventas.map(async (venta) => {
-        if (!venta?.equipo_id) return null
-        const { data } = await supabase
-          .from('equipos')
-          .select(equipoFields)
-          .eq('id', venta.equipo_id)
-          .single()
-        return data || null
-      })
-    ),
-    Promise.allSettled(
-      ventas.map(async (venta) => {
-        if (!venta?.vendido_por) return null
-        const { data } = await supabase
-          .from('perfiles')
-          .select('id, nombre, email')
-          .eq('id', venta.vendido_por)
-          .single()
-        return data || null
-      })
-    ),
-  ])
-
-  return ventas.map((venta, index) =>
-    mapVentaRowToUI({
-      ...venta,
-      equipos:
-        equiposResults[index].status === 'fulfilled'
-          ? equiposResults[index].value
-          : null,
-      perfiles:
-        perfilesResults[index].status === 'fulfilled'
-          ? perfilesResults[index].value
-          : null,
-    })
-  )
-}
-
 export const ventaService = {
   async getVentas() {
     const { data, error } = await supabase
       .from('ventas')
-      .select('*')
+      .select(VENTA_SELECT_BASE)
       .order('created_at', { ascending: false })
 
     if (error) throw error
-    return await enrichVentas(data || [])
+    return (data || []).map(mapVentaRowToUI)
   },
 
   async getVentaById(id) {
     const { data, error } = await supabase
       .from('ventas')
-      .select('*')
+      .select(VENTA_SELECT_DETAIL)
       .eq('id', id)
       .single()
 
     if (error) throw error
-    const [enriched] = await enrichVentas(data ? [data] : [], EQUIPO_FIELDS_DETAIL)
-    return enriched || null
+    return data ? mapVentaRowToUI(data) : null
   },
 
   async addVenta(ventaData) {
     const { data, error } = await supabase
       .from('ventas')
       .insert([mapUIDataToInsert(ventaData)])
-      .select('*')
+      .select(VENTA_SELECT_BASE)
+      .single()
 
     if (error) throw error
-    const enriched = await enrichVentas(data || [])
-    return enriched?.[0] || null
+    return data ? mapVentaRowToUI(data) : null
   },
 
   async updateVenta(id, ventaData) {
@@ -148,11 +97,11 @@ export const ventaService = {
       .from('ventas')
       .update(mapUIDataToUpdate(ventaData))
       .eq('id', id)
-      .select('*')
+      .select(VENTA_SELECT_BASE)
+      .single()
 
     if (error) throw error
-    const enriched = await enrichVentas(data || [])
-    return enriched?.[0] || null
+    return data ? mapVentaRowToUI(data) : null
   },
 
   async deleteVenta(id) {
@@ -164,15 +113,13 @@ export const ventaService = {
     if (error) throw error
   },
 
-  // NOTA: la tabla `ventas` no tiene columna `active`. Este método queda
-  // como no-op para no romper a salesStore.updateVentaStatus hasta que se
-  // defina la estrategia de status.
+  // NOTA: la tabla `ventas` no tiene columna `active`. No-op hasta definir estrategia de status.
   async updateVentaStatus(_id, _active) {
     return
   },
 
   async getVentasFiltered(filters = {}) {
-    let query = supabase.from('ventas').select('*')
+    let query = supabase.from('ventas').select(VENTA_SELECT_BASE)
 
     if (filters.equipoId) {
       query = query.eq('equipo_id', filters.equipoId)
@@ -191,7 +138,7 @@ export const ventaService = {
     const { data, error } = await query.order('created_at', { ascending: false })
 
     if (error) throw error
-    return await enrichVentas(data || [])
+    return (data || []).map(mapVentaRowToUI)
   },
 
   async getVentasTotals() {
@@ -200,7 +147,6 @@ export const ventaService = {
       .select('total, cantidad')
 
     if (error) throw error
-    // monto_total = alias hacia la UI
     return (data || []).map((row) => ({ ...row, monto_total: row.total }))
   },
 }
