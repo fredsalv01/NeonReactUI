@@ -6,8 +6,12 @@ import { FiLogOut, FiChevronRight } from 'react-icons/fi'
 const MENU_ITEMS = [
   { id: 'dashboard', label: 'Panel', icon: 'chart', path: '/dashboard' },
   { id: 'inventory', label: 'Inventario', icon: 'box', path: '/dashboard/inventory' },
+  { id: 'almacenes', label: 'Almacenes', icon: 'box', path: '/dashboard/almacenes', allowedRoles: ['Administrador', 'Almacén'] },
+  { id: 'compras', label: 'Compras', icon: 'cart', path: '/dashboard/compras', allowedRoles: ['Administrador', 'Almacén'] },
   { id: 'sales', label: 'Ventas', icon: 'cart', path: '/dashboard/sales' },
   { id: 'reports', label: 'Reportes', icon: 'file', path: '/dashboard/reports' },
+  { id: 'proveedores', label: 'Proveedores', icon: 'users', path: '/dashboard/proveedores', allowedRoles: ['Administrador', 'Almacén'] },
+  { id: 'clientes', label: 'Clientes', icon: 'users', path: '/dashboard/clientes', allowedRoles: ['Administrador', 'Ventas'] },
   { id: 'users', label: 'Usuarios', icon: 'users', path: '/dashboard/users', allowedRoles: ['Administrador'] },
   { id: 'settings', label: 'Configuración', icon: 'settings', path: '/dashboard/settings' },
 ]

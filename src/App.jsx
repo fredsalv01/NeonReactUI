@@ -19,6 +19,10 @@ import {
   Reports,
   Settings,
   Users,
+  Proveedores,
+  Clientes,
+  Almacenes,
+  Compras,
   AuthCallback,
 } from './components/dashboard'
 import './App.css'
@@ -112,6 +116,50 @@ function AppContent() {
           <RoleProtectedRoute allowedRoles={['Administrador']}>
             <DashboardLayout>
               <Users />
+            </DashboardLayout>
+          </RoleProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/dashboard/proveedores"
+        element={
+          <RoleProtectedRoute allowedRoles={['Administrador', 'Almacén']}>
+            <DashboardLayout>
+              <Proveedores />
+            </DashboardLayout>
+          </RoleProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/dashboard/clientes"
+        element={
+          <RoleProtectedRoute allowedRoles={['Administrador', 'Ventas']}>
+            <DashboardLayout>
+              <Clientes />
+            </DashboardLayout>
+          </RoleProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/dashboard/almacenes"
+        element={
+          <RoleProtectedRoute allowedRoles={['Administrador', 'Almacén']}>
+            <DashboardLayout>
+              <Almacenes />
+            </DashboardLayout>
+          </RoleProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/dashboard/compras"
+        element={
+          <RoleProtectedRoute allowedRoles={['Administrador', 'Almacén']}>
+            <DashboardLayout>
+              <Compras />
             </DashboardLayout>
           </RoleProtectedRoute>
         }
