@@ -72,6 +72,13 @@ const NumberInput = ({
     onChange(clamp(isNaN(n) ? (min ?? 0) : n))
   }
 
+  // Al recibir foco, seleccionar todo el contenido para que escribir reemplace
+  // el valor en lugar de concatenarse al inicial (ej. tipear "1500" sobre "0"
+  // produce "1500" y no "01500").
+  const handleFocus = (e) => {
+    e.target.select()
+  }
+
   const handleKeyDown = (e) => {
     if (e.key === 'ArrowUp')   { e.preventDefault(); increment() }
     if (e.key === 'ArrowDown') { e.preventDefault(); decrement() }
@@ -134,6 +141,7 @@ const NumberInput = ({
           value={value ?? ''}
           onChange={handleChange}
           onBlur={handleBlur}
+          onFocus={handleFocus}
           onKeyDown={handleKeyDown}
           disabled={disabled}
           min={min}
