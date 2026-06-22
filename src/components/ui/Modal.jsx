@@ -2,7 +2,7 @@
  * Atom: Modal
  * Responsive portal modal with neon accent, focus trap, Escape-to-close.
  * Variants: default | danger | success | info
- * Sizes: sm | md | lg
+ * Sizes: sm | md | lg | xl | 2xl
  */
 
 import { useEffect, useRef } from 'react'
@@ -10,9 +10,11 @@ import { createPortal } from 'react-dom'
 import Icon from './Icon'
 
 const SIZES = {
-  sm: 'max-w-sm',
-  md: 'max-w-[540px]',
-  lg: 'max-w-2xl',
+  sm:    'max-w-sm',
+  md:    'max-w-[540px]',
+  lg:    'max-w-2xl',
+  xl:    'max-w-4xl',
+  '2xl': 'max-w-6xl',
 }
 
 const VARIANTS = {
@@ -31,7 +33,7 @@ const VARIANTS = {
  *   subtitle?: string,
  *   icon?: string,
  *   variant?: 'default'|'success'|'danger'|'info'|'warn',
- *   size?: 'sm'|'md'|'lg',
+ *   size?: 'sm'|'md'|'lg'|'xl'|'2xl',
  *   footer?: React.ReactNode,
  *   children?: React.ReactNode,
  * }} props

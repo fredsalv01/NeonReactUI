@@ -162,7 +162,7 @@ export const CreateCompraModal = ({ open, onClose }) => {
       onClose={isSubmitting ? () => {} : onClose}
       title="Nueva Compra"
       subtitle="Registra una entrada de mercadería. El stock y el kardex se actualizan automáticamente."
-      size="xl"
+      size="2xl"
       footer={
         <div className="flex items-center justify-between w-full">
           <div className="text-sm">
