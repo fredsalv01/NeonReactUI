@@ -260,9 +260,9 @@ export const CreateCompraModal = ({ open, onClose }) => {
 
           {/* Header de columnas — sólo se renderiza una vez */}
           <div className="hidden md:grid md:grid-cols-12 gap-2 px-3 text-[11px] text-gs-soft font-['DM_Mono'] uppercase tracking-[0.8px]">
-            <div className="md:col-span-5">Equipo</div>
-            <div className="md:col-span-2">Cantidad</div>
-            <div className="md:col-span-2">Precio unit.</div>
+            <div className="md:col-span-3">Equipo</div>
+            <div className="md:col-span-3">Cantidad</div>
+            <div className="md:col-span-3">Precio unit.</div>
             <div className="md:col-span-2 text-right">Subtotal</div>
             <div className="md:col-span-1"></div>
           </div>
@@ -275,7 +275,7 @@ export const CreateCompraModal = ({ open, onClose }) => {
                   key={it.key}
                   className="grid grid-cols-12 gap-2 items-center p-3 bg-gs-bg border border-gs-border rounded-lg"
                 >
-                  <div className="col-span-12 md:col-span-5">
+                  <div className="col-span-12 md:col-span-3">
                     <Select
                       value={it.equipo_id}
                       onChange={(v) => updateItem(idx, 'equipo_id', v)}
@@ -284,7 +284,7 @@ export const CreateCompraModal = ({ open, onClose }) => {
                     />
                   </div>
 
-                  <div className="col-span-4 md:col-span-2">
+                  <div className="col-span-6 md:col-span-3">
                     <NumberInput
                       value={it.cantidad}
                       onChange={(v) => updateItem(idx, 'cantidad', v)}
@@ -294,7 +294,7 @@ export const CreateCompraModal = ({ open, onClose }) => {
                     />
                   </div>
 
-                  <div className="col-span-4 md:col-span-2">
+                  <div className="col-span-6 md:col-span-3">
                     <NumberInput
                       value={it.precio_unitario}
                       onChange={(v) => updateItem(idx, 'precio_unitario', v)}
@@ -305,11 +305,11 @@ export const CreateCompraModal = ({ open, onClose }) => {
                     />
                   </div>
 
-                  <div className="col-span-3 md:col-span-2 text-right text-sm text-gs-text font-['DM_Mono'] font-bold">
+                  <div className="col-span-10 md:col-span-2 text-right text-sm text-gs-text font-['DM_Mono'] font-bold">
                     {formatCurrency(subtotal)}
                   </div>
 
-                  <div className="col-span-1 flex justify-end">
+                  <div className="col-span-2 md:col-span-1 flex justify-end">
                     <button
                       type="button"
                       onClick={() => removeItem(idx)}
