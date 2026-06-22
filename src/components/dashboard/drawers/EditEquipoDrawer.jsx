@@ -38,7 +38,7 @@ export const EditEquipoDrawer = ({ open, equipo, onClose, onSuccess }) => {
         serie: equipo.serie || '',
         precio_compra: equipo.precio_compra?.toString() || '0',
         precio_venta: equipo.precio_venta?.toString() || '0',
-        stock: equipo.stock?.toString() || '0',
+        stock: equipo.stock_total?.toString() || '0',
         imagen: null,
       }
       // Direct state update for edit mode

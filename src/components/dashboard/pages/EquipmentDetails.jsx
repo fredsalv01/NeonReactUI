@@ -2,17 +2,21 @@ import { useState, useEffect, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useInventoryStore } from '../../../stores/inventoryStore'
 import { kardexService } from '../../../lib/services/kardexService'
+import { almacenService } from '../../../lib/services/almacenService'
 import {
   Button,
   Tabs,
   Badge,
-  DataTable,
   DatePicker,
   Icon,
+  InputField,
+  Modal,
+  Select,
   Spinner,
   useToast
 } from '../../ui'
-import { FiArrowLeft } from 'react-icons/fi'
+import { FiArrowLeft, FiPlus } from 'react-icons/fi'
+import { ALMACEN_PRINCIPAL_ID } from '../../../lib/constants/almacenConstants'
 
 export const EquipmentDetails = () => {
   const { equipoId } = useParams()
@@ -32,6 +36,9 @@ export const EquipmentDetails = () => {
   const [equipoNotFound, setEquipoNotFound] = useState(false)
   const [kardexPageSize, setKardexPageSize] = useState(5)
   const [kardexPage, setKardexPage] = useState(1)
+
+  // Entrada de stock
+  const [entradaOpen, setEntradaOpen] = useState(false)
 
   // Get equipment from store
   const equipo = useMemo(() => {
@@ -156,6 +163,15 @@ export const EquipmentDetails = () => {
           </div>
         </div>
 
+        <Button
+          variant="primary"
+          onClick={() => setEntradaOpen(true)}
+          className="flex items-center gap-2"
+        >
+          <FiPlus size={16} />
+          Entrada de Stock
+        </Button>
+
         {equipo.image_url && (
           <div className="flex-shrink-0">
             <img
@@ -197,6 +213,18 @@ export const EquipmentDetails = () => {
             <DetailsTab equipo={equipo} />
           )}
 
+          {/* Entrada de stock modal */}
+          <EntradaStockModal
+            open={entradaOpen}
+            equipo={equipo}
+            onClose={() => setEntradaOpen(false)}
+            onSuccess={async () => {
+              setEntradaOpen(false)
+              await fetchEquipos()
+              if (activeTab === 'kardex') await loadKardex()
+            }}
+          />
+
           {/* Kardex Tab */}
           {activeTab === 'kardex' && (
             <KardexTab
@@ -225,57 +253,237 @@ export const EquipmentDetails = () => {
 // Sub-components
 // ────────────────────────────────────────────────────────────────
 
-const DetailsTab = ({ equipo }) => (
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-    {/* Left Column */}
-    <div className="space-y-5">
-      <DetailField label="Nombre" value={equipo.nombre} />
-      <DetailField label="Código/ID" value={equipo.id} mono />
-      <DetailField label="Serie" value={equipo.serie} mono />
-      <DetailField label="Tipo" value={equipo.tipo} />
-      <DetailField
-        label="Estado"
-        value={<Badge estado={equipo.estado} />}
-        isComponent
-      />
-    </div>
+const DetailsTab = ({ equipo }) => {
+  const stockTotal = equipo.stock_total ?? 0
+  const stockColor =
+    stockTotal > 5 ? 'text-green-400'
+    : stockTotal > 0 ? 'text-yellow-400'
+    : 'text-red-400'
+  const porAlmacen = Array.isArray(equipo.stock_por_almacen) ? equipo.stock_por_almacen : []
 
-    {/* Right Column */}
-    <div className="space-y-5">
-      <DetailField
-        label="Stock"
-        value={equipo.stock}
-        className={
-          equipo.stock > 5 ? 'text-green-400' : equipo.stock > 0 ? 'text-yellow-400' : 'text-red-400'
-        }
-      />
-      <DetailField
-        label="Precio de Compra"
-        value={`$${parseFloat(equipo.precio_compra || 0).toFixed(2)}`}
-      />
-      <DetailField
-        label="Precio de Venta"
-        value={`$${parseFloat(equipo.precio_venta || 0).toFixed(2)}`}
-        className="text-gs-accent"
-      />
-      <DetailField
-        label="Estado del Sistema"
-        value={equipo.active ? 'Activo' : 'Inactivo'}
-        className={equipo.active ? 'text-green-400' : 'text-gs-danger'}
-      />
-      {equipo.created_at && (
-        <DetailField
-          label="Fecha de Creación"
-          value={new Date(equipo.created_at).toLocaleDateString('es-ES', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-          })}
-        />
-      )}
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-5">
+          <DetailField label="Nombre" value={equipo.nombre} />
+          <DetailField label="Código/ID" value={equipo.id} mono />
+          <DetailField label="Serie" value={equipo.serie} mono />
+          <DetailField label="Tipo" value={equipo.tipo} />
+          <DetailField
+            label="Estado"
+            value={<Badge estado={equipo.estado} />}
+            isComponent
+          />
+        </div>
+
+        <div className="space-y-5">
+          <DetailField
+            label="Stock total"
+            value={stockTotal}
+            className={stockColor}
+          />
+          <DetailField
+            label="Unidades vendidas"
+            value={equipo.vendidos_total ?? 0}
+          />
+          <DetailField
+            label="Precio de Compra"
+            value={`$${parseFloat(equipo.precio_compra || 0).toFixed(2)}`}
+          />
+          <DetailField
+            label="Precio de Venta"
+            value={`$${parseFloat(equipo.precio_venta || 0).toFixed(2)}`}
+            className="text-gs-accent"
+          />
+          <DetailField
+            label="Estado del Sistema"
+            value={equipo.active ? 'Activo' : 'Inactivo'}
+            className={equipo.active ? 'text-green-400' : 'text-gs-danger'}
+          />
+          {equipo.created_at && (
+            <DetailField
+              label="Fecha de Creación"
+              value={new Date(equipo.created_at).toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Stock por almacén */}
+      <div className="pt-4 border-t border-gs-border">
+        <p className="text-[11px] text-gs-soft font-['DM_Mono'] uppercase tracking-[0.8px] mb-3">
+          Stock por almacén
+        </p>
+        {porAlmacen.length === 0 ? (
+          <p className="text-sm text-gs-muted">Sin existencias en ningún almacén</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {porAlmacen.map((row) => (
+              <div
+                key={row.almacen_id}
+                className="bg-gs-bg border border-gs-border rounded-lg p-3 flex items-center justify-between"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-gs-text truncate">
+                    {row.almacen_nombre || 'Sin nombre'}
+                  </p>
+                  {row.stock_minimo > 0 && (
+                    <p className="text-[10px] text-gs-muted font-['DM_Mono']">
+                      mínimo: {row.stock_minimo}
+                    </p>
+                  )}
+                </div>
+                <span className={`text-lg font-bold font-['DM_Mono'] ${
+                  row.cantidad === 0 ? 'text-red-400'
+                  : row.stock_minimo > 0 && row.cantidad <= row.stock_minimo ? 'text-yellow-400'
+                  : 'text-gs-accent'
+                }`}>
+                  {row.cantidad}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
-  </div>
-)
+  )
+}
+
+// ────────────────────────────────────────────────────────────────
+// Entrada de stock — modal
+// ────────────────────────────────────────────────────────────────
+
+const EntradaStockModal = ({ open, equipo, onClose, onSuccess }) => {
+  const { toast } = useToast()
+  const [almacenes, setAlmacenes] = useState([])
+  const [form, setForm] = useState({
+    almacen_id: ALMACEN_PRINCIPAL_ID,
+    cantidad: '1',
+    motivo: '',
+  })
+  const [errors, setErrors] = useState({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  useEffect(() => {
+    if (!open) {
+      setForm({ almacen_id: ALMACEN_PRINCIPAL_ID, cantidad: '1', motivo: '' })
+      setErrors({})
+      return
+    }
+    let cancelled = false
+    almacenService.fetchAlmacenesActivos()
+      .then((data) => { if (!cancelled) setAlmacenes(data || []) })
+      .catch((err) => { if (!cancelled) toast.error('Error cargando almacenes: ' + err.message) })
+    return () => { cancelled = true }
+  }, [open, toast])
+
+  const handleChange = (field) => (e) => {
+    const value = e?.target ? e.target.value : e
+    setForm((p) => ({ ...p, [field]: value }))
+    if (errors[field]) setErrors((p) => ({ ...p, [field]: '' }))
+  }
+
+  const validate = () => {
+    const e = {}
+    if (!form.almacen_id) e.almacen_id = 'Selecciona un almacén'
+    const cant = Number(form.cantidad)
+    if (!Number.isFinite(cant) || cant <= 0) e.cantidad = 'Cantidad debe ser > 0'
+    setErrors(e)
+    return Object.keys(e).length === 0
+  }
+
+  const handleSubmit = async () => {
+    if (!validate() || !equipo) return
+    setIsSubmitting(true)
+    try {
+      await kardexService.entradaStock({
+        equipo_id: equipo.id,
+        cantidad: Number(form.cantidad),
+        motivo: form.motivo?.trim() || 'Entrada manual',
+        almacen_id: form.almacen_id,
+      })
+      toast.success(`+${form.cantidad} unidades registradas`)
+      onSuccess?.()
+    } catch (err) {
+      toast.error('Error: ' + (err.message || 'No se pudo registrar la entrada'))
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const almacenOptions = almacenes.map((a) => ({ value: a.id, label: a.nombre }))
+
+  return (
+    <Modal
+      open={open}
+      onClose={isSubmitting ? () => {} : onClose}
+      title="Entrada de Stock"
+      subtitle={equipo ? `${equipo.id} · ${equipo.nombre}` : ''}
+      size="md"
+      footer={
+        <div className="flex gap-3 justify-end">
+          <Button variant="ghost" onClick={onClose} disabled={isSubmitting}>Cancelar</Button>
+          <Button
+            variant="primary"
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            className="min-w-[160px] flex items-center justify-center gap-2"
+          >
+            {isSubmitting ? (
+              <>
+                <div className="w-4 h-4 border-2 border-gs-bg border-t-transparent rounded-full animate-spin" />
+                Registrando...
+              </>
+            ) : (
+              <>
+                <Icon name="check" size={16} />
+                Registrar entrada
+              </>
+            )}
+          </Button>
+        </div>
+      }
+    >
+      <div className="space-y-5">
+        <InputField label="Almacén *" error={errors.almacen_id}>
+          <Select
+            value={form.almacen_id}
+            onChange={(v) => handleChange('almacen_id')(v)}
+            options={almacenOptions}
+            placeholder="Selecciona almacén…"
+          />
+        </InputField>
+
+        <InputField label="Cantidad *" error={errors.cantidad}>
+          <input
+            type="number"
+            min={1}
+            step={1}
+            value={form.cantidad}
+            onChange={handleChange('cantidad')}
+            className="w-full px-4 py-2.5 bg-gs-bg border border-gs-border rounded-lg text-gs-text outline-none focus:border-gs-accent focus:ring-1 focus:ring-gs-accent/20"
+            disabled={isSubmitting}
+          />
+        </InputField>
+
+        <InputField label="Motivo">
+          <input
+            type="text"
+            value={form.motivo}
+            onChange={handleChange('motivo')}
+            placeholder="Ej. ajuste de inventario, devolución, etc."
+            className="w-full px-4 py-2.5 bg-gs-bg border border-gs-border rounded-lg text-gs-text outline-none focus:border-gs-accent focus:ring-1 focus:ring-gs-accent/20"
+            disabled={isSubmitting}
+          />
+        </InputField>
+      </div>
+    </Modal>
+  )
+}
 
 const DetailField = ({ label, value, mono = false, isComponent = false, className = '' }) => (
   <div>

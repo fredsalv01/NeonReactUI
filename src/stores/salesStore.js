@@ -37,7 +37,8 @@ export const useSalesStore = create((set, get) => ({
     }
   },
 
-  // Add new sale
+  // Add new sale — la salida de stock se hace vía fn_salida_stock RPC
+  // que actualiza stock_almacen + escribe en kardex en una sola transacción
   addVenta: async (ventaData) => {
     try {
       const newVenta = await ventaService.addVenta(ventaData)
@@ -47,18 +48,17 @@ export const useSalesStore = create((set, get) => ({
           lastUpdated: new Date().toISOString(),
         }))
 
-        // Registrar salida de stock en kardex
         try {
-          await kardexService.registrarMovimiento({
+          await kardexService.salidaStock({
             equipo_id: ventaData.equipo_id,
-            tipo: 'salida',
             cantidad: ventaData.cantidad,
-            descripcion: `Venta de ${ventaData.cantidad} unidades`,
-            usuario_id: ventaData.usuario_id,
-            referencia: newVenta.id,
+            motivo: `Venta ${newVenta.id}`,
+            almacen_id: ventaData.almacen_id,
+            referencia_tipo: 'venta',
+            referencia_id: newVenta.id,
           })
         } catch (kardexErr) {
-          console.error('Error registering kardex entry:', kardexErr)
+          console.error('Error registrando salida en kardex:', kardexErr)
         }
       }
       return newVenta

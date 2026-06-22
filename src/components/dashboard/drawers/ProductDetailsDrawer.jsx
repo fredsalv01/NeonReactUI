@@ -103,12 +103,12 @@ export const ProductDetailsDrawer = ({ open, equipo, onClose }) => {
           </div>
           <DetailRow
             label="Stock Disponible"
-            value={`${equipo.stock} unidades`}
+            value={`${equipo.stock_total ?? 0} unidades`}
             valueClassName={
-              equipo.stock > 5 ? 'text-green-400' : equipo.stock > 0 ? 'text-yellow-400' : 'text-red-400'
+              equipo.stock_total > 5 ? 'text-green-400' : equipo.stock_total > 0 ? 'text-yellow-400' : 'text-red-400'
             }
           />
-          <DetailRow label="Unidades Vendidas" value={equipo.vendidos || 0} />
+          <DetailRow label="Unidades Vendidas" value={equipo.vendidos_total || 0} />
         </div>
 
         {/* Pricing */}

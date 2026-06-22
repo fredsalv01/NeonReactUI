@@ -1,7 +1,5 @@
 import { create } from 'zustand'
 import { equipoService } from '../lib/services/equipoService'
-import { kardexService } from '../lib/services/kardexService'
-import { useAuthStore } from './authStore'
 
 export const useInventoryStore = create((set, get) => ({
   // State
@@ -38,7 +36,7 @@ export const useInventoryStore = create((set, get) => ({
     }
   },
 
-  // Add new equipment
+  // Add new equipment — equipoService ya dispara la entrada inicial al kardex
   addEquipo: async (equipoData) => {
     try {
       const newEquipo = await equipoService.addEquipo(equipoData)
@@ -47,20 +45,6 @@ export const useInventoryStore = create((set, get) => ({
           equipos: [newEquipo, ...state.equipos].filter(Boolean),
           lastUpdated: new Date().toISOString(),
         }))
-
-        // Registrar entrada de stock en kardex
-        if (newEquipo.stock > 0) {
-          try {
-            await kardexService.entradaStock({
-              equipo_id: newEquipo.id,
-              cantidad: newEquipo.stock,
-              motivo: `Entrada inicial de ${newEquipo.nombre}`,
-            })
-          } catch (kardexErr) {
-            console.error('Error registering kardex entry:', kardexErr)
-            // No throw - equipo was created successfully, kardex entry failure is non-critical
-          }
-        }
       }
       return newEquipo
     } catch (err) {
@@ -161,17 +145,17 @@ export const useInventoryStore = create((set, get) => ({
 
   getLowStockEquipos: (threshold = 5) => {
     const { equipos } = get()
-    return equipos.filter(e => e.stock <= threshold && e.stock > 0)
+    return equipos.filter(e => e.stock_total <= threshold && e.stock_total > 0)
   },
 
   getOutOfStockEquipos: () => {
     const { equipos } = get()
-    return equipos.filter(e => e.stock === 0)
+    return equipos.filter(e => e.stock_total === 0)
   },
 
   getTotalInventoryValue: () => {
     const { equipos } = get()
-    return equipos.reduce((total, e) => total + (e.precio_venta * e.stock), 0)
+    return equipos.reduce((total, e) => total + (e.precio_venta * e.stock_total), 0)
   },
 
   clearError: () => set({ error: null }),

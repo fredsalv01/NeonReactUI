@@ -120,10 +120,10 @@ export const reportService = {
     const promedioVenta     = totalVentas > 0 ? totalMontoVentas / totalVentas : 0
 
     const totalInventarioValue = (inventoryData || []).reduce(
-      (sum, e) => sum + ((e.stock || 0) * toNumber(e.precio_venta)),
+      (sum, e) => sum + ((e.stock_total || 0) * toNumber(e.precio_venta)),
       0
     )
-    const totalStock = (inventoryData || []).reduce((sum, e) => sum + (e.stock || 0), 0)
+    const totalStock = (inventoryData || []).reduce((sum, e) => sum + (e.stock_total || 0), 0)
 
     return {
       totalVentas,

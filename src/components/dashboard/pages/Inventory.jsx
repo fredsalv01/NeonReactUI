@@ -92,7 +92,7 @@ export const Inventory = () => {
     return equipos.filter(equipo => {
       if (!equipo) return false
       const matchesSearch = matchesSearchTerm(equipo, searchTerm)
-      const matchesEstado = !filterEstado || getStockEstado(equipo.stock) === filterEstado
+      const matchesEstado = !filterEstado || getStockEstado(equipo.stock_total) === filterEstado
       const matchesTipo = !filterTipo || equipo.tipo === filterTipo
 
       return matchesSearch && matchesEstado && matchesTipo
@@ -227,7 +227,7 @@ export const Inventory = () => {
       ) : (
         <Header
           totalEquipos={equipos.length}
-          totalStock={equipos.reduce((sum, e) => sum + (e?.stock ?? 0), 0)}
+          totalStock={equipos.reduce((sum, e) => sum + (e?.stock_total ?? 0), 0)}
           onAddClick={() => setAddModalOpen(true)}
         />
       )}
@@ -568,13 +568,13 @@ const QRDrawerContent = ({ equipo }) => {
         <div>
           <p className="text-[12px] text-gs-soft font-['DM_Mono'] uppercase">Estado</p>
           <div className="mt-1">
-            <Badge estado={getStockEstado(equipo.stock)} />
+            <Badge estado={getStockEstado(equipo.stock_total)} />
           </div>
         </div>
         <InfoRow
           label="Stock"
-          value={`${equipo.stock} unidades`}
-          valueClassName={stockColorClass(equipo.stock)}
+          value={`${equipo.stock_total} unidades`}
+          valueClassName={stockColorClass(equipo.stock_total)}
         />
         <InfoRow label="Precio de Compra" value={`$${parseFloat(equipo.precio_compra).toFixed(2)}`} />
         <InfoRow
@@ -678,7 +678,7 @@ const getTableColumns = () => [
   { key: 'tipo', label: 'Tipo', sortable: true },
   { key: 'serie', label: 'Serie', mono: true },
   {
-    key: 'stock',
+    key: 'stock_total',
     label: 'Stock',
     sortable: true,
     render: (value) => (
@@ -690,7 +690,7 @@ const getTableColumns = () => [
   {
     key: 'stock_estado',
     label: 'Estado',
-    render: (_value, row) => <Badge estado={getStockEstado(row.stock)} />
+    render: (_value, row) => <Badge estado={getStockEstado(row.stock_total)} />
   },
   {
     key: 'precio_venta',
