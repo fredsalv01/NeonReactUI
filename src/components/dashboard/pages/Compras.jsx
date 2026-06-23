@@ -6,6 +6,7 @@ import {
   Pagination,
   Select,
   SkeletonRow,
+  Tooltip,
   useToast,
 } from '../../ui'
 import { FiPlus, FiEye } from 'react-icons/fi'
@@ -153,13 +154,14 @@ export const Compras = () => {
               emptyMessage="No hay compras"
               actions={(row) => (
                 <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => setDetail(row)}
-                    className="p-1.5 text-gs-muted hover:text-gs-accent transition-colors cursor-pointer"
-                    title="Ver detalle"
-                  >
-                    <FiEye size={15} />
-                  </button>
+                  <Tooltip content="Ver detalle de compra">
+                    <button
+                      onClick={() => setDetail(row)}
+                      className="p-1.5 text-gs-muted hover:text-gs-accent transition-colors cursor-pointer"
+                    >
+                      <FiEye size={15} />
+                    </button>
+                  </Tooltip>
                 </div>
               )}
             />

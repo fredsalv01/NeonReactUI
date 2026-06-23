@@ -12,6 +12,7 @@ import {
   Drawer,
   SkeletonBlock,
   DatePicker,
+  Tooltip,
   useToast
 } from '../../ui'
 import { SalesDetailsDrawer } from '../drawers/SalesDetailsDrawer'
@@ -431,27 +432,30 @@ const EmptyState = ({ hasFilters }) => (
 
 const ActionButtons = ({ venta, onDetailsClick, onEditClick, onDeleteClick }) => (
   <div className="flex items-center gap-2">
-    <button
-      onClick={() => onDetailsClick(venta)}
-      className="p-1.5 text-gs-soft hover:text-gs-accent hover:bg-gs-border rounded transition-colors"
-      title="Ver detalles"
-    >
-      <FiEye size={16} />
-    </button>
-    <button
-      onClick={() => onEditClick(venta)}
-      className="p-1.5 text-gs-soft hover:text-amber-400 hover:bg-gs-border rounded transition-colors"
-      title="Editar venta"
-    >
-      <FiEdit2 size={16} />
-    </button>
-    <button
-      onClick={() => onDeleteClick(venta)}
-      className="p-1.5 text-gs-soft hover:text-gs-danger hover:bg-gs-border rounded transition-colors"
-      title="Eliminar"
-    >
-      <FiTrash2 size={16} />
-    </button>
+    <Tooltip content="Ver detalles">
+      <button
+        onClick={() => onDetailsClick(venta)}
+        className="p-1.5 text-gs-soft hover:text-gs-accent hover:bg-gs-border rounded transition-colors"
+      >
+        <FiEye size={16} />
+      </button>
+    </Tooltip>
+    <Tooltip content="Editar venta">
+      <button
+        onClick={() => onEditClick(venta)}
+        className="p-1.5 text-gs-soft hover:text-amber-400 hover:bg-gs-border rounded transition-colors"
+      >
+        <FiEdit2 size={16} />
+      </button>
+    </Tooltip>
+    <Tooltip content="Eliminar venta">
+      <button
+        onClick={() => onDeleteClick(venta)}
+        className="p-1.5 text-gs-soft hover:text-gs-danger hover:bg-gs-border rounded transition-colors"
+      >
+        <FiTrash2 size={16} />
+      </button>
+    </Tooltip>
   </div>
 )
 

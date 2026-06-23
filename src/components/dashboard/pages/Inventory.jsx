@@ -13,6 +13,7 @@ import {
   Drawer,
   QRCode,
   SkeletonBlock,
+  Tooltip,
   useToast
 } from '../../ui'
 import { AddEquipoModal } from '../modals/AddEquipoModal'
@@ -414,41 +415,46 @@ const EmptyState = ({ hasFilters }) => (
 
 const ActionButtons = ({ equipo, onQRClick, onDetailsClick, onEditClick, onDeleteClick, onViewFullDetailsClick }) => (
   <div className="flex items-center gap-2">
-    <button
-      onClick={() => onQRClick(equipo)}
-      className="p-1.5 text-gs-soft hover:text-gs-teal hover:bg-gs-border rounded transition-colors"
-      title="Ver código QR"
-    >
-      <Icon name="qr" size={16} />
-    </button>
-    <button
-      onClick={() => onDetailsClick(equipo)}
-      className="p-1.5 text-gs-soft hover:text-gs-accent hover:bg-gs-border rounded transition-colors"
-      title="Ver detalles rápidos"
-    >
-      <FiEye size={16} />
-    </button>
-    <button
-      onClick={onViewFullDetailsClick}
-      className="p-1.5 text-gs-soft hover:text-gs-accent hover:bg-gs-border rounded transition-colors"
-      title="Ver detalles completos"
-    >
-      <FiExternalLink size={16} />
-    </button>
-    <button
-      onClick={() => onEditClick(equipo)}
-      className="p-1.5 text-gs-soft hover:text-amber-400 hover:bg-gs-border rounded transition-colors"
-      title="Editar equipo"
-    >
-      <FiEdit2 size={16} />
-    </button>
-    <button
-      onClick={() => onDeleteClick(equipo)}
-      className="p-1.5 text-gs-soft hover:text-gs-danger hover:bg-gs-border rounded transition-colors"
-      title="Eliminar"
-    >
-      <FiTrash2 size={16} />
-    </button>
+    <Tooltip content="Ver código QR">
+      <button
+        onClick={() => onQRClick(equipo)}
+        className="p-1.5 text-gs-soft hover:text-gs-teal hover:bg-gs-border rounded transition-colors"
+      >
+        <Icon name="qr" size={16} />
+      </button>
+    </Tooltip>
+    <Tooltip content="Detalles rápidos">
+      <button
+        onClick={() => onDetailsClick(equipo)}
+        className="p-1.5 text-gs-soft hover:text-gs-accent hover:bg-gs-border rounded transition-colors"
+      >
+        <FiEye size={16} />
+      </button>
+    </Tooltip>
+    <Tooltip content="Detalles completos">
+      <button
+        onClick={onViewFullDetailsClick}
+        className="p-1.5 text-gs-soft hover:text-gs-accent hover:bg-gs-border rounded transition-colors"
+      >
+        <FiExternalLink size={16} />
+      </button>
+    </Tooltip>
+    <Tooltip content="Editar equipo">
+      <button
+        onClick={() => onEditClick(equipo)}
+        className="p-1.5 text-gs-soft hover:text-amber-400 hover:bg-gs-border rounded transition-colors"
+      >
+        <FiEdit2 size={16} />
+      </button>
+    </Tooltip>
+    <Tooltip content="Eliminar equipo">
+      <button
+        onClick={() => onDeleteClick(equipo)}
+        className="p-1.5 text-gs-soft hover:text-gs-danger hover:bg-gs-border rounded transition-colors"
+      >
+        <FiTrash2 size={16} />
+      </button>
+    </Tooltip>
   </div>
 )
 
@@ -540,6 +546,49 @@ const QRDrawerContent = ({ equipo }) => {
     }
   }
 
+  // Imprime una etiqueta auto-adhesiva 60×40mm con QR + ID + nombre + tipo
+  // ponytail: window.print() en popup — sin routes, sin componentes nuevos
+  const handlePrintLabel = () => {
+    const canvas = document.querySelector('canvas')
+    if (!canvas) { alert('No se pudo encontrar el código QR'); return }
+    const dataUrl = canvas.toDataURL('image/png')
+    const w = window.open('', '_blank', 'width=400,height=320')
+    if (!w) { alert('Permite popups para imprimir la etiqueta'); return }
+    w.document.write(`<!doctype html>
+<html><head><title>Etiqueta ${equipo.id}</title>
+<style>
+  @page { size: 60mm 40mm; margin: 0 }
+  html, body { margin: 0; padding: 0; background: #fff; color: #111;
+    font-family: Helvetica, Arial, sans-serif }
+  .label { width: 60mm; height: 40mm; padding: 3mm; box-sizing: border-box;
+    display: flex; gap: 3mm; align-items: center }
+  .qr { width: 34mm; height: 34mm; flex-shrink: 0 }
+  .info { flex: 1; min-width: 0 }
+  .brand { font-size: 8px; color: #00C9A7; font-weight: 800; letter-spacing: 1px }
+  .id    { font-size: 12px; font-weight: 800; margin-top: 1mm; letter-spacing: 0.5px }
+  .name  { font-size: 9px; margin-top: 1mm; line-height: 1.2;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+    overflow: hidden }
+  .tipo  { font-size: 7px; color: #666; margin-top: 1.5mm; text-transform: uppercase;
+    letter-spacing: 0.8px }
+  @media screen { body { padding: 16px; background: #f3f3f3 }
+    .label { box-shadow: 0 4px 12px rgba(0,0,0,.15); background: #fff } }
+</style></head>
+<body>
+  <div class="label">
+    <img class="qr" src="${dataUrl}" alt="QR" />
+    <div class="info">
+      <div class="brand">GEOSTOCK</div>
+      <div class="id">${equipo.id}</div>
+      <div class="name">${(equipo.nombre || '').replace(/[<>&]/g, (c) => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))}</div>
+      <div class="tipo">${(equipo.tipo || '').replace(/[<>&]/g, (c) => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))}</div>
+    </div>
+  </div>
+  <script>window.onload = () => setTimeout(() => window.print(), 200)</script>
+</body></html>`)
+    w.document.close()
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-center p-4 bg-gs-bg rounded-lg">
@@ -549,13 +598,21 @@ const QRDrawerContent = ({ equipo }) => {
         />
       </div>
 
-      <button
-        onClick={handleDownloadQR}
-        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gs-accent text-white rounded-lg hover:bg-gs-accent/90 transition-colors font-medium"
-      >
-        <FiDownload size={18} />
-        Descargar Código QR
-      </button>
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          onClick={handleDownloadQR}
+          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gs-accent text-white rounded-lg hover:bg-gs-accent/90 transition-colors font-medium"
+        >
+          <FiDownload size={18} />
+          Descargar
+        </button>
+        <button
+          onClick={handlePrintLabel}
+          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gs-surface border border-gs-border text-gs-text rounded-lg hover:bg-gs-bg transition-colors font-medium"
+        >
+          🖨️ Etiqueta
+        </button>
+      </div>
 
       <div className="space-y-4 border-t border-gs-border pt-4">
         <div>

@@ -7,6 +7,7 @@ import {
   Select,
   SearchBar,
   SkeletonRow,
+  Tooltip,
   useToast,
 } from '../../ui'
 import { FiPlus, FiEdit2, FiUserX, FiUserCheck } from 'react-icons/fi'
@@ -124,20 +125,22 @@ export const Clientes = () => {
               emptyMessage="No hay clientes"
               actions={(row) => (
                 <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => setEditing(row)}
-                    className="p-1.5 text-gs-muted hover:text-gs-accent transition-colors cursor-pointer"
-                    title="Editar"
-                  >
-                    <FiEdit2 size={15} />
-                  </button>
-                  <button
-                    onClick={() => handleQuickToggle(row)}
-                    className="p-1.5 text-gs-muted hover:text-gs-danger transition-colors cursor-pointer"
-                    title={row.active ? 'Desactivar' : 'Reactivar'}
-                  >
-                    {row.active ? <FiUserX size={15} /> : <FiUserCheck size={15} />}
-                  </button>
+                  <Tooltip content="Editar cliente">
+                    <button
+                      onClick={() => setEditing(row)}
+                      className="p-1.5 text-gs-muted hover:text-gs-accent transition-colors cursor-pointer"
+                    >
+                      <FiEdit2 size={15} />
+                    </button>
+                  </Tooltip>
+                  <Tooltip content={row.active ? 'Desactivar cliente' : 'Reactivar cliente'}>
+                    <button
+                      onClick={() => handleQuickToggle(row)}
+                      className="p-1.5 text-gs-muted hover:text-gs-danger transition-colors cursor-pointer"
+                    >
+                      {row.active ? <FiUserX size={15} /> : <FiUserCheck size={15} />}
+                    </button>
+                  </Tooltip>
                 </div>
               )}
             />

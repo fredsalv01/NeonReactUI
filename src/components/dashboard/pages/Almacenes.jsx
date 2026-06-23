@@ -7,6 +7,7 @@ import {
   Select,
   SearchBar,
   SkeletonRow,
+  Tooltip,
   useToast,
 } from '../../ui'
 import { FiPlus, FiEdit2, FiUserX, FiUserCheck } from 'react-icons/fi'
@@ -129,25 +130,27 @@ export const Almacenes = () => {
               emptyMessage="No hay almacenes"
               actions={(row) => (
                 <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => setEditing(row)}
-                    className="p-1.5 text-gs-muted hover:text-gs-accent transition-colors cursor-pointer"
-                    title="Editar"
-                  >
-                    <FiEdit2 size={15} />
-                  </button>
-                  <button
-                    onClick={() => handleQuickToggle(row)}
-                    disabled={row.id === ALMACEN_PRINCIPAL_ID}
-                    className="p-1.5 text-gs-muted hover:text-gs-danger transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-                    title={
-                      row.id === ALMACEN_PRINCIPAL_ID
-                        ? 'No puedes desactivar el almacén Principal'
-                        : row.active ? 'Desactivar' : 'Reactivar'
-                    }
-                  >
-                    {row.active ? <FiUserX size={15} /> : <FiUserCheck size={15} />}
-                  </button>
+                  <Tooltip content="Editar almacén">
+                    <button
+                      onClick={() => setEditing(row)}
+                      className="p-1.5 text-gs-muted hover:text-gs-accent transition-colors cursor-pointer"
+                    >
+                      <FiEdit2 size={15} />
+                    </button>
+                  </Tooltip>
+                  <Tooltip content={
+                    row.id === ALMACEN_PRINCIPAL_ID
+                      ? 'No puedes desactivar el almacén Principal'
+                      : row.active ? 'Desactivar almacén' : 'Reactivar almacén'
+                  }>
+                    <button
+                      onClick={() => handleQuickToggle(row)}
+                      disabled={row.id === ALMACEN_PRINCIPAL_ID}
+                      className="p-1.5 text-gs-muted hover:text-gs-danger transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      {row.active ? <FiUserX size={15} /> : <FiUserCheck size={15} />}
+                    </button>
+                  </Tooltip>
                 </div>
               )}
             />
