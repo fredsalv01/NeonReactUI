@@ -127,12 +127,9 @@ export const CreateVentaModal = ({ open, onClose }) => {
         monto_total: total,
         almacen_id: form.almacen_id,
         cliente_id: form.cliente_id || null,
-        // ponytail: legacy `cliente` text column is NOT NULL — backfill from selección
+        // ponytail: solo `cliente` (NOT NULL) — el resto de cliente_* legacy
+        // tiene check constraints viejas; FKs viven en clientes via cliente_id
         cliente: clienteSel?.nombre || 'Cliente sin nombre',
-        cliente_tipo_doc: clienteSel?.tipo_doc || null,
-        cliente_nro_doc:  clienteSel?.nro_doc  || null,
-        cliente_telefono: clienteSel?.telefono || null,
-        cliente_email:    clienteSel?.email    || null,
         usuario_id: user?.id || null,
         descripcion: form.notas?.trim() || null,
       })

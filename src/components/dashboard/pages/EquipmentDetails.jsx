@@ -598,12 +598,14 @@ const KardexTab = ({
                   })}
                 </td>
                 <td className="px-4 py-3 text-sm">
-                  <TypeBadge tipo={item.tipo} />
+                  <TypeBadge tipo={item.tipo} referencia_tipo={item.referencia_tipo} />
                 </td>
                 <td className="px-4 py-3 text-sm font-semibold text-right">
                   <span className={
+                    item.referencia_tipo === 'compra' ? 'text-cyan-400' :
+                    item.referencia_tipo === 'venta'  ? 'text-fuchsia-400' :
                     item.tipo === 'entrada' ? 'text-green-400' :
-                    item.tipo === 'salida' ? 'text-red-400' :
+                    item.tipo === 'salida'  ? 'text-red-400' :
                     'text-amber-400'
                   }>
                     {item.tipo === 'entrada' ? '+' : item.tipo === 'salida' ? '-' : '~'}
@@ -676,7 +678,15 @@ const KardexTab = ({
   </div>
 )
 
-const TypeBadge = ({ tipo }) => {
+const TypeBadge = ({ tipo, referencia_tipo }) => {
+  // Compra/venta tienen su propio color para diferenciarse del entrada/salida manual
+  if (referencia_tipo === 'compra') {
+    return <span className="px-2 py-1 rounded text-[11px] font-semibold font-['Syne'] bg-cyan-400/15 text-cyan-400">Compra</span>
+  }
+  if (referencia_tipo === 'venta') {
+    return <span className="px-2 py-1 rounded text-[11px] font-semibold font-['Syne'] bg-fuchsia-400/15 text-fuchsia-400">Venta</span>
+  }
+
   const styles = {
     entrada: 'bg-green-400/15 text-green-400',
     salida: 'bg-red-400/15 text-red-400',
