@@ -7,6 +7,7 @@ import { useAuthStore } from './stores/authStore'
 import { usePageTitle } from './hooks/usePageTitle'
 import { ModalDebugPage } from './pages/ModalDebugPage'
 import { NotFound } from './pages/NotFound'
+import { PublicEquipoPage } from './pages/PublicEquipoPage'
 import {
   ProtectedRoute,
   RoleProtectedRoute,
@@ -51,6 +52,9 @@ function AppContent() {
   return (
     <Routes>
       <Route path="/debug/modal" element={<ModalDebugPage />} />
+
+      {/* Vista pública del QR — sin auth, mobile-first */}
+      <Route path="/p/equipo/:id" element={<PublicEquipoPage />} />
 
       <Route path="/login" element={<Login />} />
       <Route path="/auth/callback" element={<AuthCallback />} />

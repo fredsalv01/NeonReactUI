@@ -512,7 +512,8 @@ const QRDrawer = ({ open, equipo, loading, onClose }) => {
 const QRDrawerContent = ({ equipo }) => {
   const getQRUrl = () => {
     const baseUrl = import.meta.env.VITE_APP_URL || window.location.origin
-    return `${baseUrl}/dashboard/equipment/${equipo.id}`
+    // Vista pública móvil — sin auth
+    return `${baseUrl}/p/equipo/${equipo.id}`
   }
 
   const handleDownloadQR = () => {
