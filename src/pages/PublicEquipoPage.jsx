@@ -16,7 +16,7 @@ export const PublicEquipoPage = () => {
       setLoading(true)
       const { data, error } = await supabase
         .from('v_equipos_con_stock')
-        .select('id, nombre, tipo, descripcion, serie, estado, imagen_url, stock_total, active')
+        .select('*')
         .eq('id', id)
         .eq('active', true)
         .maybeSingle()
