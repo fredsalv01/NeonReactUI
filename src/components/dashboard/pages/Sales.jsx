@@ -586,7 +586,7 @@ const getTableColumns = () => [
       return (
         <span>
           <span className="text-gs-text">{first}</span>
-          <span className="text-gs-muted ml-1">+{n - 1}</span>
+          <span className="text-sm text-green-500 ml-1">+{n - 1}</span>
         </span>
       )
     }

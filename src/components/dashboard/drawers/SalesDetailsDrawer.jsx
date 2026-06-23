@@ -1,4 +1,8 @@
-import { Drawer, SkeletonBlock } from '../../ui'
+import { useRef, useState } from 'react'
+import html2pdf from 'html2pdf.js'
+import { Drawer, SkeletonBlock, Button } from '../../ui'
+import { FiDownload } from 'react-icons/fi'
+import { BoletaPdf } from '../pdf/BoletaPdf'
 
 const InfoRow = ({ label, value, mono = false, valueClassName = '' }) => (
   <div>
@@ -13,7 +17,28 @@ const fmt = (n) =>
   new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(Number(n) || 0)
 
 export const SalesDetailsDrawer = ({ open, venta, onClose, loading }) => {
+  const boletaRef = useRef(null)
+  const [isExporting, setIsExporting] = useState(false)
+
   if (!venta) return null
+
+  const handleDownloadPdf = async () => {
+    if (!boletaRef.current) return
+    setIsExporting(true)
+    try {
+      await html2pdf().set({
+        margin: 0,
+        filename: `boleta-venta-${venta.id}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+        jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' },
+        // ponytail: 'avoid-all' evita el segundo page en blanco por overflow de 1-2px
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+      }).from(boletaRef.current).save()
+    } finally {
+      setIsExporting(false)
+    }
+  }
 
   // Items: nuevos vienen en venta_items[], ventas viejas solo tienen las columnas legacy
   const items = (venta.venta_items && venta.venta_items.length > 0)
@@ -104,6 +129,22 @@ export const SalesDetailsDrawer = ({ open, venta, onClose, loading }) => {
             <span className="text-xl font-bold text-green-400 font-['DM_Mono']">
               {fmt(venta.monto_total ?? venta.total)}
             </span>
+          </div>
+
+          {/* Acciones */}
+          <Button
+            variant="primary"
+            onClick={handleDownloadPdf}
+            disabled={isExporting}
+            className="w-full flex items-center justify-center gap-2"
+          >
+            <FiDownload size={16} />
+            {isExporting ? 'Generando...' : 'Descargar boleta (PDF)'}
+          </Button>
+
+          {/* ponytail: fuera de pantalla para que html2pdf lo capture sin afectar layout */}
+          <div style={{ position: 'fixed', left: '-10000px', top: 0, pointerEvents: 'none' }} aria-hidden>
+            <BoletaPdf ref={boletaRef} venta={venta} />
           </div>
         </div>
       )}
