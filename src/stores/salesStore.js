@@ -48,18 +48,14 @@ export const useSalesStore = create((set, get) => ({
           lastUpdated: new Date().toISOString(),
         }))
 
-        try {
-          await kardexService.salidaStock({
-            equipo_id: ventaData.equipo_id,
-            cantidad: ventaData.cantidad,
-            motivo: `Venta ${newVenta.id}`,
-            almacen_id: ventaData.almacen_id,
-            referencia_tipo: 'venta',
-            // ponytail: kardex.referencia_id is uuid, ventas.id is bigint — el id va en `motivo`
-          })
-        } catch (kardexErr) {
-          console.error('Error registrando salida en kardex:', kardexErr)
-        }
+        await kardexService.salidaStock({
+          equipo_id: ventaData.equipo_id,
+          cantidad: ventaData.cantidad,
+          motivo: `Venta ${newVenta.id}`,
+          almacen_id: ventaData.almacen_id,
+          referencia_tipo: 'venta',
+          // ponytail: kardex.referencia_id is uuid, ventas.id is bigint — el id va en `motivo`
+        })
       }
       return newVenta
     } catch (err) {
