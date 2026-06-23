@@ -542,16 +542,25 @@ const DeleteConfirmModal = ({ open, venta, isDeleting, onConfirm, onCancel }) =>
 // ────────────────────────────────────────────────────────────────
 
 const matchesSearchTerm = (venta, searchTerm) => {
-  if (!venta || !searchTerm) {
-    return true
-  }
+  if (!venta || !searchTerm) return true
   const term = searchTerm.toLowerCase()
+  const itemMatch = (venta.venta_items || []).some(
+    (it) => it.equipos?.nombre?.toLowerCase().includes(term)
+  )
   return (
+    itemMatch ||
     venta.equipos?.nombre?.toLowerCase().includes(term) ||
     venta.perfiles?.nombre?.toLowerCase().includes(term) ||
+    venta.cliente?.toLowerCase().includes(term) ||
     String(venta.id ?? '').toLowerCase().includes(term)
   )
 }
+
+// items helpers — venta_items es la fuente real; fallback a legacy cantidad
+const itemsOf = (row) => row.venta_items || []
+const itemsCount = (row) => itemsOf(row).length || (row.cantidad ? 1 : 0)
+const totalCantidad = (row) =>
+  itemsOf(row).reduce((s, it) => s + (it.cantidad || 0), 0) || (row.cantidad || 0)
 
 const getTableColumns = () => [
   {
@@ -559,50 +568,40 @@ const getTableColumns = () => [
     label: 'ID Venta',
     mono: true,
     sortable: true,
-    render: (value) => (value != null ? String(value).substring(0, 8) : '')
+    render: (value) => (value != null ? `#${value}` : '')
   },
   {
-    key: 'equipos.nombre',
-    label: 'Equipo',
+    key: 'cliente',
+    label: 'Cliente',
     sortable: true,
-    render: (_, row) => row.equipos?.nombre || 'N/A'
+    render: (_, row) => row.cliente || row.clientes?.nombre || 'Sin cliente'
   },
   {
-    key: 'equipos.imagen_url',
-    label: 'Imagen',
-    render: (_, row) => (
-      row.equipos?.imagen_url ? (
-        <img
-          src={row.equipos.imagen_url}
-          alt="equipo"
-          className="w-10 h-10 object-cover rounded"
-        />
-      ) : (
-        <div className="w-10 h-10 bg-gs-border rounded" />
+    key: 'items_count',
+    label: 'Productos',
+    render: (_, row) => {
+      const n = itemsCount(row)
+      const first = itemsOf(row)[0]?.equipos?.nombre || row.equipos?.nombre
+      if (n <= 1) return first || '—'
+      return (
+        <span>
+          <span className="text-gs-text">{first}</span>
+          <span className="text-gs-muted ml-1">+{n - 1}</span>
+        </span>
       )
-    )
-  },
-  {
-    key: 'cantidad',
-    label: 'Cantidad',
-    sortable: true,
-    render: (value) => `${value} unid.`
-  },
-  {
-    key: 'precio_unitario',
-    label: 'P. Unitario',
-    sortable: true,
-    render: (value) => {
-      const n = Number(value)
-      return Number.isFinite(n) ? `$${n.toFixed(2)}` : '$0.00'
     }
+  },
+  {
+    key: 'cantidad_total',
+    label: 'Cantidad',
+    render: (_, row) => `${totalCantidad(row)} unid.`
   },
   {
     key: 'monto_total',
     label: 'Total',
     sortable: true,
-    render: (value) => {
-      const n = Number(value)
+    render: (_, row) => {
+      const n = Number(row.monto_total ?? row.total)
       const text = Number.isFinite(n) ? `$${n.toFixed(2)}` : '$0.00'
       return <span className="font-semibold text-green-400">{text}</span>
     }

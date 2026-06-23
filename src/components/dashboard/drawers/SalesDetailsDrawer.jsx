@@ -9,17 +9,30 @@ const InfoRow = ({ label, value, mono = false, valueClassName = '' }) => (
   </div>
 )
 
+const fmt = (n) =>
+  new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(Number(n) || 0)
+
 export const SalesDetailsDrawer = ({ open, venta, onClose, loading }) => {
-  if (!venta) {
-    return null
-  }
+  if (!venta) return null
+
+  // Items: nuevos vienen en venta_items[], ventas viejas solo tienen las columnas legacy
+  const items = (venta.venta_items && venta.venta_items.length > 0)
+    ? venta.venta_items
+    : [{
+        id: 'legacy',
+        equipo_id: venta.equipo_id,
+        equipos: venta.equipos,
+        cantidad: venta.cantidad,
+        precio_unitario: venta.precio_unitario,
+        subtotal: venta.monto_total ?? venta.total,
+      }]
 
   return (
     <Drawer
       open={open}
       onClose={onClose}
       title="Detalles de Venta"
-      subtitle={`${venta.id}`}
+      subtitle={`#${venta.id}`}
       side="right"
       size="md"
     >
@@ -28,49 +41,69 @@ export const SalesDetailsDrawer = ({ open, venta, onClose, loading }) => {
           <SkeletonBlock className="w-full h-32 rounded-lg" />
           <SkeletonBlock className="h-8 w-full" />
           <SkeletonBlock className="h-6 w-3/4" />
-          <SkeletonBlock className="h-6 w-2/3" />
         </div>
       ) : (
         <div className="space-y-6">
-          {/* Equipo Image */}
-          {venta.equipos?.imagen_url && (
-            <div className="flex justify-center p-4 bg-gs-bg rounded-lg">
-              <img
-                src={venta.equipos.imagen_url}
-                alt={venta.equipos.nombre}
-                className="max-w-xs max-h-48 object-cover rounded"
-              />
-            </div>
-          )}
-
-          {/* Venta Info */}
-          <div className="space-y-4">
-            <InfoRow label="ID Venta" value={venta.id} mono />
-            <InfoRow label="Equipo" value={venta.equipos?.nombre || 'N/A'} />
-            <InfoRow label="Tipo" value={venta.equipos?.tipo || 'N/A'} />
-            <InfoRow label="Cantidad" value={`${venta.cantidad} unidades`} valueClassName="text-gs-accent" />
+          {/* Master info */}
+          <div className="grid grid-cols-2 gap-4">
+            <InfoRow label="ID Venta" value={`#${venta.id}`} mono />
             <InfoRow
-              label="Precio Unitario"
-              value={`$${parseFloat(venta.precio_unitario).toFixed(2)}`}
+              label="Fecha"
+              value={new Date(venta.created_at).toLocaleString('es-PE')}
             />
-            <InfoRow
-              label="Monto Total"
-              value={`$${parseFloat(venta.monto_total).toFixed(2)}`}
-              valueClassName="text-green-400 text-base font-bold"
-            />
-
-            {venta.descripcion && (
-              <InfoRow label="Descripción" value={venta.descripcion} />
-            )}
-
+            <InfoRow label="Cliente" value={venta.cliente || venta.clientes?.nombre || 'Sin cliente'} />
             {venta.perfiles && (
               <InfoRow label="Vendedor" value={venta.perfiles.nombre || 'Sistema'} />
             )}
+            {venta.descripcion && (
+              <div className="col-span-2">
+                <InfoRow label="Notas" value={venta.descripcion} />
+              </div>
+            )}
+          </div>
 
-            <InfoRow
-              label="Fecha"
-              value={new Date(venta.created_at).toLocaleString('es-MX')}
-            />
+          {/* Items */}
+          <div>
+            <p className="text-[12px] text-gs-soft font-['DM_Mono'] uppercase mb-2">
+              Productos ({items.length})
+            </p>
+            <div className="space-y-2">
+              {items.map((it) => (
+                <div
+                  key={it.id}
+                  className="flex items-center gap-3 p-3 bg-gs-bg border border-gs-border rounded-lg"
+                >
+                  {it.equipos?.imagen_url ? (
+                    <img
+                      src={it.equipos.imagen_url}
+                      alt={it.equipos?.nombre}
+                      className="w-12 h-12 object-cover rounded"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 bg-gs-border rounded" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gs-text truncate">
+                      {it.equipos?.nombre || it.equipo_id || 'Equipo'}
+                    </p>
+                    <p className="text-[11px] text-gs-muted font-['DM_Mono']">
+                      {it.cantidad} × {fmt(it.precio_unitario)}
+                    </p>
+                  </div>
+                  <p className="text-sm font-bold text-green-400 font-['DM_Mono']">
+                    {fmt(it.subtotal ?? (it.cantidad * it.precio_unitario))}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Total */}
+          <div className="flex justify-between items-center p-4 bg-gs-surface border border-gs-border rounded-lg">
+            <span className="text-sm text-gs-soft font-['DM_Mono'] uppercase">Total</span>
+            <span className="text-xl font-bold text-green-400 font-['DM_Mono']">
+              {fmt(venta.monto_total ?? venta.total)}
+            </span>
           </div>
         </div>
       )}
