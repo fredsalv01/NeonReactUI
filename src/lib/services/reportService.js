@@ -88,11 +88,11 @@ export const reportService = {
   // Top N productos con bajo stock (equipos sí tiene `active`)
   async getLowStockProducts(threshold = 10, limit = 5) {
     const { data, error } = await supabase
-      .from('equipos')
-      .select('id, nombre, tipo, stock, imagen_url, precio_venta')
+      .from('v_equipos_con_stock')
+      .select('id, nombre, tipo, stock_total, imagen_url, precio_venta')
       .eq('active', true)
-      .lte('stock', threshold)
-      .order('stock', { ascending: true })
+      .lte('stock_total', threshold)
+      .order('stock_total', { ascending: true })
       .limit(limit)
 
     if (error) throw error
