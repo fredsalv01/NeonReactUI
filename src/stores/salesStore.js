@@ -55,7 +55,7 @@ export const useSalesStore = create((set, get) => ({
             motivo: `Venta ${newVenta.id}`,
             almacen_id: ventaData.almacen_id,
             referencia_tipo: 'venta',
-            referencia_id: newVenta.id,
+            // ponytail: kardex.referencia_id is uuid, ventas.id is bigint — el id va en `motivo`
           })
         } catch (kardexErr) {
           console.error('Error registrando salida en kardex:', kardexErr)
