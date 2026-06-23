@@ -31,7 +31,7 @@ function mapUIDataToInsert(ventaData) {
     equipo_id: ventaData.equipo_id,
     cantidad: ventaData.cantidad,
     precio_venta: ventaData.precio_unitario ?? ventaData.precio_venta,
-    total: ventaData.monto_total ?? ventaData.total,
+    // ponytail: `total` is a generated column (cantidad * precio_venta), DB rejects writes
     notas: ventaData.descripcion ?? ventaData.notas ?? null,
     vendido_por: ventaData.usuario_id ?? ventaData.vendido_por,
     // FKs nuevas (modelo normalizado)
@@ -51,8 +51,7 @@ function mapUIDataToUpdate(ventaData) {
   if (ventaData.cantidad !== undefined) obj.cantidad = ventaData.cantidad
   if (ventaData.precio_unitario !== undefined) obj.precio_venta = ventaData.precio_unitario
   if (ventaData.precio_venta !== undefined) obj.precio_venta = ventaData.precio_venta
-  if (ventaData.monto_total !== undefined) obj.total = ventaData.monto_total
-  if (ventaData.total !== undefined) obj.total = ventaData.total
+  // ponytail: skip `total` — generated column in DB
   if (ventaData.descripcion !== undefined) obj.notas = ventaData.descripcion
   if (ventaData.notas !== undefined) obj.notas = ventaData.notas
   if (ventaData.cliente !== undefined) obj.cliente = ventaData.cliente
