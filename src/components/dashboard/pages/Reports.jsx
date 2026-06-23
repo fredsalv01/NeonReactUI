@@ -111,7 +111,7 @@ export const Reports = () => {
         </div>
       ) : stats ? (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <StatCard label="Total Ventas" value={stats.totalVentas} icon="shopping-cart" />
+          <StatCard label="N° Ventas" value={stats.totalVentas} icon="shopping-cart" />
           <StatCard label="Monto Vendido" value={`$${stats.totalMontoVentas.toFixed(2)}`} icon="dollar" />
           <StatCard label="Cantidad Vendida" value={stats.totalCantidad} icon="box" />
           <StatCard label="Valor Inventario" value={`$${stats.totalInventarioValue.toFixed(2)}`} icon="inbox" />

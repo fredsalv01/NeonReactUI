@@ -108,8 +108,8 @@ export const reportService = {
     if (salesError) throw salesError
 
     const { data: inventoryData, error: inventoryError } = await supabase
-      .from('equipos')
-      .select('stock, precio_venta')
+      .from('v_equipos_con_stock')
+      .select('stock_total, precio_venta')
       .eq('active', true)
 
     if (inventoryError) throw inventoryError
