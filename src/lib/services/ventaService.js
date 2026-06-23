@@ -3,13 +3,15 @@ import { supabase } from '../supabase'
 const VENTA_SELECT_BASE = `
   *,
   equipos!inner(id, nombre, tipo, imagen_url, precio_venta),
-  perfiles(id, nombre, email)
+  perfiles(id, nombre, email),
+  venta_items(id, equipo_id, cantidad, precio_unitario, subtotal, equipos(id, nombre, tipo, imagen_url))
 `
 
 const VENTA_SELECT_DETAIL = `
   *,
   equipos!inner(id, nombre, tipo, imagen_url, precio_venta, serie, estado),
-  perfiles(id, nombre, email)
+  perfiles(id, nombre, email),
+  venta_items(id, equipo_id, cantidad, precio_unitario, subtotal, equipos(id, nombre, tipo, imagen_url))
 `
 
 // MAPEO BD ↔ UI:
@@ -84,15 +86,32 @@ export const ventaService = {
     return data ? mapVentaRowToUI(data) : null
   },
 
-  async addVenta(ventaData) {
-    const { data, error } = await supabase
-      .from('ventas')
-      .insert([mapUIDataToInsert(ventaData)])
-      .select(VENTA_SELECT_BASE)
-      .single()
-
+  // Multi-producto: usa RPC fn_registrar_venta (1 tx: ventas + venta_items + kardex)
+  // ventaPayload = { venta: {...master}, items: [{ equipo_id, cantidad, precio_unitario }, ...] }
+  async addVenta({ venta, items }) {
+    const { data: ventaId, error } = await supabase.rpc('fn_registrar_venta', {
+      p_venta: {
+        cliente_id:  venta.cliente_id  ?? null,
+        almacen_id:  venta.almacen_id  ?? null,
+        vendido_por: venta.usuario_id  ?? venta.vendido_por ?? null,
+        fecha:       venta.fecha       ?? null,
+        notas:       venta.descripcion ?? venta.notas ?? null,
+      },
+      p_items: items.map((it) => ({
+        equipo_id:       it.equipo_id,
+        cantidad:        it.cantidad,
+        precio_unitario: it.precio_unitario ?? it.precio_venta,
+      })),
+    })
     if (error) throw error
-    return data ? mapVentaRowToUI(data) : null
+
+    const { data: full, error: selErr } = await supabase
+      .from('ventas')
+      .select(VENTA_SELECT_BASE)
+      .eq('id', ventaId)
+      .single()
+    if (selErr) throw selErr
+    return full ? mapVentaRowToUI(full) : null
   },
 
   async updateVenta(id, ventaData) {

@@ -17,7 +17,8 @@
  *   className
  */
 
-import { useState, useRef, useEffect, useId } from 'react'
+import { useState, useRef, useEffect, useId, useLayoutEffect } from 'react'
+import { createPortal } from 'react-dom'
 import Icon from './Icon'
 
 // ── Inline chevron (rotates on open) ────────────────────────────
@@ -60,10 +61,30 @@ const Select = ({
   const [query,     setQuery]     = useState('')
   const [activeIdx, setActiveIdx] = useState(-1)
 
-  const wrapRef  = useRef(null)
-  const inputRef = useRef(null)
-  const listRef  = useRef(null)
-  const uid      = useId()
+  const wrapRef     = useRef(null)
+  const triggerRef  = useRef(null)
+  const inputRef    = useRef(null)
+  const listRef     = useRef(null)
+  const dropdownRef = useRef(null)
+  const uid         = useId()
+
+  // ponytail: dropdown se portea a body con position:fixed para escapar
+  // del overflow del Modal. Reposicionamos en scroll/resize mientras esté abierto.
+  const [dropPos, setDropPos] = useState({ top: 0, left: 0, width: 0 })
+  useLayoutEffect(() => {
+    if (!open || !triggerRef.current) return
+    const measure = () => {
+      const r = triggerRef.current.getBoundingClientRect()
+      setDropPos({ top: r.bottom + 6, left: r.left, width: r.width })
+    }
+    measure()
+    window.addEventListener('scroll', measure, true)
+    window.addEventListener('resize', measure)
+    return () => {
+      window.removeEventListener('scroll', measure, true)
+      window.removeEventListener('resize', measure)
+    }
+  }, [open])
 
   // Normalise value
   const selected = multi
@@ -87,7 +108,9 @@ const Select = ({
   useEffect(() => {
     if (!open) return
     const handler = (e) => {
-      if (!wrapRef.current?.contains(e.target)) close()
+      if (wrapRef.current?.contains(e.target)) return
+      if (dropdownRef.current?.contains(e.target)) return
+      close()
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
@@ -171,7 +194,18 @@ const Select = ({
 
   const scrollTo = (idx) => {
     if (idx < 0 || !listRef.current) return
-    listRef.current.children[idx]?.scrollIntoView({ block: 'nearest' })
+    // ponytail: scrollIntoView burbujea hasta el modal y mueve la página;
+    // ajustamos solo el scrollTop del dropdown.
+    const list = listRef.current
+    const opt  = list.children[idx]
+    if (!opt) return
+    const top    = opt.offsetTop
+    const bottom = top + opt.offsetHeight
+    if (top < list.scrollTop) {
+      list.scrollTop = top
+    } else if (bottom > list.scrollTop + list.clientHeight) {
+      list.scrollTop = bottom - list.clientHeight
+    }
   }
 
   // ── Render ───────────────────────────────────────────────────
@@ -195,6 +229,7 @@ const Select = ({
 
       {/* ── Trigger ─────────────────────────────────────────── */}
       <div
+        ref={triggerRef}
         id={triggerId}
         role="combobox"
         aria-expanded={open}
@@ -287,13 +322,19 @@ const Select = ({
         </div>
       </div>
 
-      {/* ── Dropdown ─────────────────────────────────────────── */}
-      {open && (
+      {/* ── Dropdown (portal a body para escapar overflow del Modal) ──── */}
+      {open && createPortal(
         <div
-          className="absolute top-full left-0 right-0 mt-1.5 z-50
+          ref={dropdownRef}
+          className="fixed z-[1000]
                      bg-gs-card border border-gs-border rounded-xl
                      overflow-hidden animate-slide-up"
-          style={{ boxShadow: '0 0 0 1px var(--gs-border), 0 12px 36px rgba(0,0,0,0.45)' }}
+          style={{
+            top: dropPos.top,
+            left: dropPos.left,
+            width: dropPos.width,
+            boxShadow: '0 0 0 1px var(--gs-border), 0 12px 36px rgba(0,0,0,0.45)',
+          }}
         >
           {/* Search hint row when query matches nothing */}
           {filtered.length === 0 && (
@@ -355,7 +396,8 @@ const Select = ({
               })}
             </ul>
           )}
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Error */}

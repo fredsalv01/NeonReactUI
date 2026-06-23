@@ -1,6 +1,5 @@
 import { create } from 'zustand'
 import { ventaService } from '../lib/services/ventaService'
-import { kardexService } from '../lib/services/kardexService'
 
 export const useSalesStore = create((set, get) => ({
   // State
@@ -37,25 +36,17 @@ export const useSalesStore = create((set, get) => ({
     }
   },
 
-  // Add new sale — la salida de stock se hace vía fn_salida_stock RPC
-  // que actualiza stock_almacen + escribe en kardex en una sola transacción
-  addVenta: async (ventaData) => {
+  // Add new sale — fn_registrar_venta hace TODO en una sola transacción:
+  // insert ventas + venta_items + descuento de stock_almacen + escritura en kardex
+  // (1 row de kardex por item).
+  addVenta: async ({ venta, items }) => {
     try {
-      const newVenta = await ventaService.addVenta(ventaData)
+      const newVenta = await ventaService.addVenta({ venta, items })
       if (newVenta) {
         set(state => ({
           ventas: [newVenta, ...state.ventas].filter(Boolean),
           lastUpdated: new Date().toISOString(),
         }))
-
-        await kardexService.salidaStock({
-          equipo_id: ventaData.equipo_id,
-          cantidad: ventaData.cantidad,
-          motivo: `Venta ${newVenta.id}`,
-          almacen_id: ventaData.almacen_id,
-          referencia_tipo: 'venta',
-          // ponytail: kardex.referencia_id is uuid, ventas.id is bigint — el id va en `motivo`
-        })
       }
       return newVenta
     } catch (err) {
