@@ -2,7 +2,6 @@ import { forwardRef } from 'react'
 
 // Layout de impresión para una venta. Estilos inline para que html2pdf
 // no dependa de Tailwind ni de variables CSS del shell oscuro.
-const IGV_RATE = 0.08
 
 const styles = {
   page: {
@@ -66,12 +65,16 @@ const DEFAULT_CONFIG = {
   empresa_telefono: '',
   empresa_email: '',
   boleta_pie: 'Documento generado por GeoStock — gracias por su compra.',
+  igv_pct: '8',
 }
 
 export const BoletaPdf = forwardRef(({ venta, config }, ref) => {
   if (!venta) return null
   const cfg = { ...DEFAULT_CONFIG, ...(config || {}) }
   const contactoLinea = [cfg.empresa_telefono, cfg.empresa_email].filter(Boolean).join(' · ')
+  // ponytail: clamp 0-100 — protege ante valores malos en config; ceiling: si necesitas exenciones por item, mueve IGV a venta_items
+  const igvPct = Math.min(Math.max(Number(cfg.igv_pct) || 0, 0), 100)
+  const igvRate = igvPct / 100
 
   const items = (venta.venta_items && venta.venta_items.length > 0)
     ? venta.venta_items
@@ -89,7 +92,7 @@ export const BoletaPdf = forwardRef(({ venta, config }, ref) => {
       (s, it) => s + Number(it.subtotal ?? (it.cantidad * it.precio_unitario) ?? 0), 0
     )
   )
-  const igv = subtotal * IGV_RATE
+  const igv = subtotal * igvRate
   const totalFinal = subtotal + igv
 
   const cliente = venta.cliente || venta.clientes?.nombre || 'Cliente sin nombre'
@@ -180,7 +183,7 @@ export const BoletaPdf = forwardRef(({ venta, config }, ref) => {
             <span>Subtotal</span><span>{fmt(subtotal)}</span>
           </div>
           <div style={styles.totalsRow}>
-            <span>IGV (8%)</span><span>{fmt(igv)}</span>
+            <span>IGV ({igvPct}%)</span><span>{fmt(igv)}</span>
           </div>
           <div style={styles.totalsGrand}>
             <span>TOTAL</span><span>{fmt(totalFinal)}</span>
