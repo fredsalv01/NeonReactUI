@@ -18,6 +18,7 @@ import {
   EquipmentDetails,
   ScanQRPage,
   Sales,
+  Cotizaciones,
   Reports,
   Settings,
   Users,
@@ -112,6 +113,17 @@ function AppContent() {
               <Sales />
             </DashboardLayout>
           </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/dashboard/cotizaciones"
+        element={
+          <RoleProtectedRoute allowedRoles={['Administrador', 'Ventas']}>
+            <DashboardLayout>
+              <Cotizaciones />
+            </DashboardLayout>
+          </RoleProtectedRoute>
         }
       />
 

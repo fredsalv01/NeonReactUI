@@ -68,7 +68,7 @@ const DEFAULT_CONFIG = {
   igv_pct: '8',
 }
 
-export const BoletaPdf = forwardRef(({ venta, config }, ref) => {
+export const BoletaPdf = forwardRef(({ venta, config, documento = 'BOLETA DE VENTA' }, ref) => {
   if (!venta) return null
   const cfg = { ...DEFAULT_CONFIG, ...(config || {}) }
   const contactoLinea = [cfg.empresa_telefono, cfg.empresa_email].filter(Boolean).join(' · ')
@@ -121,7 +121,7 @@ export const BoletaPdf = forwardRef(({ venta, config }, ref) => {
           )}
         </div>
         <div style={styles.meta}>
-          <div style={{ fontSize: 13, fontWeight: 800, color: '#111' }}>BOLETA DE VENTA</div>
+          <div style={{ fontSize: 13, fontWeight: 800, color: '#111' }}>{documento}</div>
           <div><span style={styles.metaStrong}>N° </span>{venta.id}</div>
           <div><span style={styles.metaStrong}>Fecha </span>
             {new Date(venta.created_at).toLocaleDateString('es-PE')}

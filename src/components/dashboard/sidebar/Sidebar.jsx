@@ -22,6 +22,7 @@ const MENU_GROUPS = [
     label: 'Operaciones',
     items: [
       { id: 'compras', label: 'Compras',     icon: 'cart', path: '/dashboard/compras', allowedRoles: ['Administrador', 'Almacén'] },
+      { id: 'cotizaciones', label: 'Cotizaciones', icon: 'file', path: '/dashboard/cotizaciones', allowedRoles: ['Administrador', 'Ventas'] },
       { id: 'sales',   label: 'Ventas',      icon: 'cart', path: '/dashboard/sales' },
       { id: 'scan',    label: 'Escanear QR', icon: 'qr',   path: '/dashboard/scan',    allowedRoles: ['Almacén', 'Administrador', 'Técnico'] },
     ],
