@@ -43,7 +43,7 @@ export const Dashboard = () => {
       </div>
 
       <div className="mt-8">
-        <div className="bg-gs-surface rounded-xl p-6 border border-gs-border">
+        <div className="bg-gs-surface rounded-xl p-4 md:p-6 border border-gs-border">
           <h2 className="text-lg font-semibold text-gs-text mb-4">
             Guía de Inicio Rápido
           </h2>

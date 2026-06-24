@@ -124,7 +124,7 @@ export const Reports = () => {
         {isLoading ? (
           <SkeletonBlock className="h-80 rounded-lg" />
         ) : (
-          <div className="bg-gs-surface border border-gs-border rounded-lg p-6">
+          <div className="bg-gs-surface border border-gs-border rounded-lg p-4 md:p-6">
             <h2 className="text-xl font-bold text-gs-text mb-4">Ventas Mensual</h2>
             <ResponsiveContainer width="100%" height={300}>
               <AreaChart data={monthlySales}>
@@ -150,7 +150,7 @@ export const Reports = () => {
           {isLoading ? (
             <SkeletonBlock className="h-80 rounded-lg" />
           ) : (
-            <div className="bg-gs-surface border border-gs-border rounded-lg p-6">
+            <div className="bg-gs-surface border border-gs-border rounded-lg p-4 md:p-6">
               <h2 className="text-xl font-bold text-gs-text mb-4">Ventas por Categoría</h2>
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
@@ -178,7 +178,7 @@ export const Reports = () => {
           {isLoading ? (
             <SkeletonBlock className="h-80 rounded-lg" />
           ) : (
-            <div className="bg-gs-surface border border-gs-border rounded-lg p-6">
+            <div className="bg-gs-surface border border-gs-border rounded-lg p-4 md:p-6">
               <h2 className="text-xl font-bold text-gs-text mb-4">Estado Inventario</h2>
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
@@ -210,7 +210,7 @@ export const Reports = () => {
           {isLoading ? (
             <SkeletonBlock className="h-80 rounded-lg" />
           ) : (
-            <div className="bg-gs-surface border-2 border-gs-danger/40 rounded-lg p-6">
+            <div className="bg-gs-surface border-2 border-gs-danger/40 rounded-lg p-4 md:p-6">
               <h2 className="text-xl font-bold text-gs-danger mb-4 flex items-center gap-2">
                 <span aria-hidden>⚠</span> Requiere reposición
               </h2>
@@ -271,7 +271,7 @@ export const Reports = () => {
           {isLoading ? (
             <SkeletonBlock className="h-80 rounded-lg" />
           ) : (
-            <div className="bg-gs-surface border border-gs-border rounded-lg p-6">
+            <div className="bg-gs-surface border border-gs-border rounded-lg p-4 md:p-6">
               <h2 className="text-xl font-bold text-gs-text mb-4">Top 5 Productos Más Vendidos</h2>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -317,7 +317,7 @@ export const Reports = () => {
 }
 
 const StatCard = ({ label, value, icon }) => (
-  <div className="bg-gs-surface border border-gs-border rounded-lg p-6">
+  <div className="bg-gs-surface border border-gs-border rounded-lg p-4 md:p-6">
     <div className="flex items-center justify-between">
       <div>
         <p className="text-gs-soft text-sm font-medium">{label}</p>

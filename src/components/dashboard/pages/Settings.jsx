@@ -58,7 +58,7 @@ export const Settings = () => {
       </h1>
 
       <div className="max-w-2xl space-y-6">
-        <div className="bg-gs-surface rounded-xl p-6 border border-gs-border">
+        <div className="bg-gs-surface rounded-xl p-4 md:p-6 border border-gs-border">
           <h2 className="text-lg font-semibold text-gs-text mb-6">
             Información de la Cuenta
           </h2>
@@ -95,7 +95,7 @@ export const Settings = () => {
           </div>
         </div>
 
-        <div className="bg-gs-surface rounded-xl p-6 border border-gs-border">
+        <div className="bg-gs-surface rounded-xl p-4 md:p-6 border border-gs-border">
           <h2 className="text-lg font-semibold text-gs-text mb-1">
             Datos de la Empresa
           </h2>
