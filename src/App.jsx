@@ -16,6 +16,7 @@ import {
   Dashboard,
   Inventory,
   EquipmentDetails,
+  ScanQRPage,
   Sales,
   Reports,
   Settings,
@@ -87,6 +88,17 @@ function AppContent() {
           <RoleProtectedRoute allowedRoles={['Almacén', 'Administrador', 'Técnico']}>
             <DashboardLayout>
               <EquipmentDetails />
+            </DashboardLayout>
+          </RoleProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/dashboard/scan"
+        element={
+          <RoleProtectedRoute allowedRoles={['Almacén', 'Administrador', 'Técnico']}>
+            <DashboardLayout>
+              <ScanQRPage />
             </DashboardLayout>
           </RoleProtectedRoute>
         }
