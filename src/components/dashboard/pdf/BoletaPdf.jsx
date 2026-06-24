@@ -59,8 +59,19 @@ const styles = {
 const fmt = (n) =>
   new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(Number(n) || 0)
 
-export const BoletaPdf = forwardRef(({ venta }, ref) => {
+const DEFAULT_CONFIG = {
+  empresa_razon_social: 'Geotop Perú S.A.C.',
+  empresa_ruc: '',
+  empresa_direccion: 'Miraflores, Lima',
+  empresa_telefono: '',
+  empresa_email: '',
+  boleta_pie: 'Documento generado por GeoStock — gracias por su compra.',
+}
+
+export const BoletaPdf = forwardRef(({ venta, config }, ref) => {
   if (!venta) return null
+  const cfg = { ...DEFAULT_CONFIG, ...(config || {}) }
+  const contactoLinea = [cfg.empresa_telefono, cfg.empresa_email].filter(Boolean).join(' · ')
 
   const items = (venta.venta_items && venta.venta_items.length > 0)
     ? venta.venta_items
@@ -96,8 +107,15 @@ export const BoletaPdf = forwardRef(({ venta }, ref) => {
         <div>
           <div style={styles.brand}>GEOSTOCK</div>
           <div style={{ fontSize: 10, color: '#666', marginTop: 2 }}>
-            Geotop Perú S.A.C. — Miraflores, Lima
+            {cfg.empresa_razon_social}
+            {cfg.empresa_direccion ? ` — ${cfg.empresa_direccion}` : ''}
           </div>
+          {cfg.empresa_ruc && (
+            <div style={{ fontSize: 10, color: '#666' }}>RUC {cfg.empresa_ruc}</div>
+          )}
+          {contactoLinea && (
+            <div style={{ fontSize: 10, color: '#666' }}>{contactoLinea}</div>
+          )}
         </div>
         <div style={styles.meta}>
           <div style={{ fontSize: 13, fontWeight: 800, color: '#111' }}>BOLETA DE VENTA</div>
@@ -178,7 +196,7 @@ export const BoletaPdf = forwardRef(({ venta }, ref) => {
       )}
 
       <div style={styles.footer}>
-        Documento generado por GeoStock — gracias por su compra.
+        {cfg.boleta_pie}
       </div>
     </div>
   )

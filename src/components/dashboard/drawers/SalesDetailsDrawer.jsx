@@ -1,8 +1,9 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import html2pdf from 'html2pdf.js'
 import { Drawer, SkeletonBlock, Button } from '../../ui'
 import { FiDownload } from 'react-icons/fi'
 import { BoletaPdf } from '../pdf/BoletaPdf'
+import { configService } from '../../../lib/services/configService'
 
 const InfoRow = ({ label, value, mono = false, valueClassName = '' }) => (
   <div>
@@ -19,6 +20,14 @@ const fmt = (n) =>
 export const SalesDetailsDrawer = ({ open, venta, onClose, loading }) => {
   const boletaRef = useRef(null)
   const [isExporting, setIsExporting] = useState(false)
+  const [config, setConfig] = useState(null)
+
+  useEffect(() => {
+    if (!open) return
+    let alive = true
+    configService.getAll().then(c => { if (alive) setConfig(c.map) }).catch(() => {})
+    return () => { alive = false }
+  }, [open])
 
   if (!venta) return null
 
@@ -144,7 +153,7 @@ export const SalesDetailsDrawer = ({ open, venta, onClose, loading }) => {
 
           {/* ponytail: fuera de pantalla para que html2pdf lo capture sin afectar layout */}
           <div style={{ position: 'fixed', left: '-10000px', top: 0, pointerEvents: 'none' }} aria-hidden>
-            <BoletaPdf ref={boletaRef} venta={venta} />
+            <BoletaPdf ref={boletaRef} venta={venta} config={config} />
           </div>
         </div>
       )}
