@@ -1,87 +1,87 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useSalesStore } from '../../../stores/salesStore'
-import { Drawer, Button, SkeletonBlock, useToast } from '../../ui'
+import { Drawer, Button, useToast } from '../../ui'
+import { FiAlertCircle } from 'react-icons/fi'
+
+const fmt = (n) =>
+  new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(Number(n) || 0)
+
+// ponytail: solo edita notas + snapshot legacy de cliente. Editar items toca kardex
+// + stock_almacen y necesita una RPC `fn_actualizar_venta` con transacción.
+// Ceiling: si necesitan corregir cantidades, construir la RPC; mientras tanto,
+// el flujo es "anular venta + reemitir" (ya soportado por deleteVenta + addVenta).
+const EDITABLE = [
+  { key: 'descripcion',      label: 'Notas',           textarea: true },
+  { key: 'cliente',          label: 'Cliente (nombre)' },
+  { key: 'cliente_tipo_doc', label: 'Tipo doc',        placeholder: 'DNI / RUC' },
+  { key: 'cliente_nro_doc',  label: 'N° doc' },
+  { key: 'cliente_telefono', label: 'Teléfono' },
+  { key: 'cliente_email',    label: 'Email',           type: 'email' },
+]
+
+const emptyForm = () =>
+  EDITABLE.reduce((acc, f) => ({ ...acc, [f.key]: '' }), {})
+
+const fromVenta = (venta) => {
+  const out = {}
+  for (const f of EDITABLE) out[f.key] = venta?.[f.key] ?? ''
+  return out
+}
 
 export const EditVentaDrawer = ({ open, venta, onClose, onSuccess }) => {
   const { toast } = useToast()
-  const [formData, setFormData] = useState({
-    cantidad: '',
-    precio_unitario: '',
-    monto_total: '',
-    descripcion: '',
-  })
-  const [isSaving, setIsSaving] = useState(false)
-  const [errors, setErrors] = useState({})
-
   const updateVenta = useSalesStore(state => state.updateVenta)
+  const [form, setForm] = useState(emptyForm)
+  const [initial, setInitial] = useState(emptyForm)
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     if (venta && open) {
-      setFormData({
-        cantidad: venta.cantidad || '',
-        precio_unitario: venta.precio_unitario || '',
-        monto_total: venta.monto_total || '',
-        descripcion: venta.descripcion || '',
-      })
-      setErrors({})
+      const f = fromVenta(venta)
+      setForm(f)
+      setInitial(f)
     }
   }, [venta, open])
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
-    if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }))
-    }
-  }
+  if (!venta) return null
 
-  const validateForm = () => {
-    const newErrors = {}
+  const items = (venta.venta_items && venta.venta_items.length > 0)
+    ? venta.venta_items
+    : [{
+        id: 'legacy',
+        equipo_id: venta.equipo_id,
+        equipos: venta.equipos,
+        cantidad: venta.cantidad,
+        precio_unitario: venta.precio_unitario,
+        subtotal: venta.monto_total ?? venta.total,
+      }]
 
-    if (!formData.cantidad || parseInt(formData.cantidad) <= 0) {
-      newErrors.cantidad = 'La cantidad debe ser mayor a 0'
-    }
+  const total = items.reduce(
+    (s, it) => s + Number(it.subtotal ?? (it.cantidad * it.precio_unitario) ?? 0), 0
+  )
 
-    if (!formData.precio_unitario || parseFloat(formData.precio_unitario) <= 0) {
-      newErrors.precio_unitario = 'El precio unitario debe ser mayor a 0'
-    }
+  const dirty = EDITABLE.some(f => (form[f.key] ?? '') !== (initial[f.key] ?? ''))
 
-    if (!formData.monto_total || parseFloat(formData.monto_total) <= 0) {
-      newErrors.monto_total = 'El monto total debe ser mayor a 0'
-    }
+  const onChange = (key) => (e) => setForm(prev => ({ ...prev, [key]: e.target.value }))
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  const handleSave = async () => {
-    if (!validateForm() || !venta) return
-
-    setIsSaving(true)
+  const onSave = async () => {
+    if (!dirty) return
+    setSaving(true)
     try {
-      await updateVenta(venta.id, {
-        cantidad: parseInt(formData.cantidad),
-        precio_unitario: parseFloat(formData.precio_unitario),
-        monto_total: parseFloat(formData.monto_total),
-        descripcion: formData.descripcion || null,
-      })
-      toast.success('Venta actualizada correctamente')
+      const payload = {}
+      for (const f of EDITABLE) {
+        if ((form[f.key] ?? '') !== (initial[f.key] ?? '')) {
+          payload[f.key] = form[f.key] === '' ? null : form[f.key]
+        }
+      }
+      await updateVenta(venta.id, payload)
+      toast.success('Venta actualizada')
       onSuccess?.()
     } catch (err) {
-      toast.error('Error: ' + err.message)
+      toast.error(err.message || 'No se pudo guardar')
     } finally {
-      setIsSaving(false)
+      setSaving(false)
     }
-  }
-
-  if (!venta) {
-    return null
   }
 
   return (
@@ -89,135 +89,92 @@ export const EditVentaDrawer = ({ open, venta, onClose, onSuccess }) => {
       open={open}
       onClose={onClose}
       title="Editar Venta"
-      subtitle={`${venta.id} · ${venta.equipos?.nombre}`}
+      subtitle={`#${venta.id}`}
       side="right"
       size="md"
     >
       <div className="space-y-6">
-        {/* Equipo Info - Read Only */}
-        <div className="bg-gs-bg rounded-lg p-4 space-y-3">
-          {venta.equipos?.imagen_url && (
-            <img
-              src={venta.equipos.imagen_url}
-              alt={venta.equipos.nombre}
-              className="w-full h-32 object-cover rounded"
-            />
-          )}
+        {/* Aviso */}
+        <div className="flex gap-2 p-3 rounded-lg bg-gs-bg border border-gs-border text-[12px] text-gs-soft">
+          <FiAlertCircle className="shrink-0 mt-0.5 text-gs-accent" size={14} />
           <div>
-            <p className="text-[12px] text-gs-soft font-['DM_Mono'] uppercase">Equipo</p>
-            <p className="text-sm font-semibold text-gs-text">{venta.equipos?.nombre}</p>
-          </div>
-          <div className="grid grid-cols-2 gap-3 text-xs">
-            <div>
-              <p className="text-gs-soft">Tipo</p>
-              <p className="text-gs-text font-semibold">{venta.equipos?.tipo}</p>
-            </div>
+            Items y montos son inmutables. Para corregir cantidades o precios,
+            anula la venta y emite una nueva.
           </div>
         </div>
 
-        {/* Form Fields */}
+        {/* Items readonly */}
+        <div>
+          <p className="text-[12px] text-gs-soft font-['DM_Mono'] uppercase mb-2">
+            Productos ({items.length})
+          </p>
+          <div className="space-y-2">
+            {items.map((it) => (
+              <div
+                key={it.id}
+                className="flex items-center gap-3 p-3 bg-gs-bg border border-gs-border rounded-lg"
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gs-text truncate">
+                    {it.equipos?.nombre || it.equipo_id || 'Equipo'}
+                  </p>
+                  <p className="text-[11px] text-gs-muted font-['DM_Mono']">
+                    {it.cantidad} × {fmt(it.precio_unitario)}
+                  </p>
+                </div>
+                <p className="text-sm font-bold text-green-400 font-['DM_Mono']">
+                  {fmt(it.subtotal ?? (it.cantidad * it.precio_unitario))}
+                </p>
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-between items-center mt-3 p-3 bg-gs-surface border border-gs-border rounded-lg">
+            <span className="text-[12px] text-gs-soft font-['DM_Mono'] uppercase">Total</span>
+            <span className="text-base font-bold text-green-400 font-['DM_Mono']">
+              {fmt(total)}
+            </span>
+          </div>
+        </div>
+
+        {/* Form editable */}
         <div className="space-y-4">
-          {/* Cantidad */}
-          <div>
-            <label className="text-sm text-gs-soft font-['DM_Mono'] uppercase">
-              Cantidad
-            </label>
-            <input
-              type="number"
-              name="cantidad"
-              value={formData.cantidad}
-              onChange={handleInputChange}
-              className={`w-full mt-1 px-3 py-2 bg-gs-bg border rounded-lg text-gs-text ${
-                errors.cantidad ? 'border-gs-danger' : 'border-gs-border'
-              }`}
-              placeholder="Cantidad de unidades"
-            />
-            {errors.cantidad && (
-              <p className="text-xs text-gs-danger mt-1">{errors.cantidad}</p>
-            )}
-          </div>
-
-          {/* Precio Unitario */}
-          <div>
-            <label className="text-sm text-gs-soft font-['DM_Mono'] uppercase">
-              Precio Unitario
-            </label>
-            <input
-              type="number"
-              name="precio_unitario"
-              step="0.01"
-              value={formData.precio_unitario}
-              onChange={handleInputChange}
-              className={`w-full mt-1 px-3 py-2 bg-gs-bg border rounded-lg text-gs-text ${
-                errors.precio_unitario ? 'border-gs-danger' : 'border-gs-border'
-              }`}
-              placeholder="Precio unitario"
-            />
-            {errors.precio_unitario && (
-              <p className="text-xs text-gs-danger mt-1">{errors.precio_unitario}</p>
-            )}
-          </div>
-
-          {/* Monto Total */}
-          <div>
-            <label className="text-sm text-gs-soft font-['DM_Mono'] uppercase">
-              Monto Total
-            </label>
-            <input
-              type="number"
-              name="monto_total"
-              step="0.01"
-              value={formData.monto_total}
-              onChange={handleInputChange}
-              className={`w-full mt-1 px-3 py-2 bg-gs-bg border rounded-lg text-gs-text ${
-                errors.monto_total ? 'border-gs-danger' : 'border-gs-border'
-              }`}
-              placeholder="Monto total"
-            />
-            {errors.monto_total && (
-              <p className="text-xs text-gs-danger mt-1">{errors.monto_total}</p>
-            )}
-          </div>
-
-          {/* Descripción */}
-          <div>
-            <label className="text-sm text-gs-soft font-['DM_Mono'] uppercase">
-              Descripción (Opcional)
-            </label>
-            <textarea
-              name="descripcion"
-              value={formData.descripcion}
-              onChange={handleInputChange}
-              className="w-full mt-1 px-3 py-2 bg-gs-bg border border-gs-border rounded-lg text-gs-text resize-none"
-              rows="3"
-              placeholder="Notas sobre la venta..."
-            />
-          </div>
+          {EDITABLE.map(f => (
+            <div key={f.key}>
+              <label className="block text-[11px] text-gs-soft font-mono uppercase tracking-[0.8px] mb-2">
+                {f.label}
+              </label>
+              {f.textarea ? (
+                <textarea
+                  rows={3}
+                  value={form[f.key] ?? ''}
+                  onChange={onChange(f.key)}
+                  placeholder={f.placeholder || ''}
+                  className="w-full bg-gs-bg border border-gs-border rounded-lg px-3 py-2 text-sm text-gs-text focus:outline-none focus:border-gs-accent"
+                />
+              ) : (
+                <input
+                  type={f.type || 'text'}
+                  value={form[f.key] ?? ''}
+                  onChange={onChange(f.key)}
+                  placeholder={f.placeholder || ''}
+                  className="w-full bg-gs-bg border border-gs-border rounded-lg px-3 py-2 text-sm text-gs-text focus:outline-none focus:border-gs-accent"
+                />
+              )}
+            </div>
+          ))}
         </div>
 
-        {/* Actions */}
+        {/* Acciones */}
         <div className="flex gap-3 justify-end pt-4 border-t border-gs-border">
-          <Button
-            variant="ghost"
-            onClick={onClose}
-            disabled={isSaving}
-          >
+          <Button variant="ghost" onClick={onClose} disabled={saving}>
             Cancelar
           </Button>
           <Button
             variant="primary"
-            onClick={handleSave}
-            disabled={isSaving}
-            className="flex items-center gap-2"
+            onClick={onSave}
+            disabled={saving || !dirty}
           >
-            {isSaving ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                <span>Guardando...</span>
-              </>
-            ) : (
-              <span>Guardar Cambios</span>
-            )}
+            {saving ? 'Guardando…' : 'Guardar cambios'}
           </Button>
         </div>
       </div>
