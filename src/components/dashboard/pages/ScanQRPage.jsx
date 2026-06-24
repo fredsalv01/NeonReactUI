@@ -1,8 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Html5Qrcode } from 'html5-qrcode'
+import { Html5Qrcode, Html5QrcodeScannerState } from 'html5-qrcode'
 import { FiCamera, FiAlertCircle, FiArrowLeft } from 'react-icons/fi'
 import { Button, useToast } from '../../ui'
+
+// ponytail: stop() tira sync si el scanner no está SCANNING. Guardar con getState.
+const safeStop = (scanner) => {
+  try {
+    const s = scanner?.getState?.()
+    if (s === Html5QrcodeScannerState.SCANNING || s === Html5QrcodeScannerState.PAUSED) {
+      return scanner.stop().catch(() => {})
+    }
+  } catch { /* swallow */ }
+  return Promise.resolve()
+}
 
 const REGION_ID = 'gs-qr-region'
 
@@ -29,18 +40,20 @@ export const ScanQRPage = () => {
 
   useEffect(() => {
     let cancelled = false
+    let handled = false
     const scanner = new Html5Qrcode(REGION_ID, { verbose: false })
     scannerRef.current = scanner
 
     const onSuccess = (decoded) => {
+      if (handled) return
       const id = parseEquipoId(decoded)
       if (!id) {
         toast?.error?.('QR no reconocido')
         return
       }
-      // Detener antes de navegar — evita seguir consumiendo cámara
-      scanner.stop().catch(() => {}).finally(() => {
-        navigate(`/dashboard/equipment/${encodeURIComponent(id)}`)
+      handled = true
+      safeStop(scanner).then(() => {
+        navigate(`/dashboard/inventory?selected=${encodeURIComponent(id)}`)
       })
     }
 
@@ -60,8 +73,7 @@ export const ScanQRPage = () => {
 
     return () => {
       cancelled = true
-      // ponytail: stop puede rechazar si no llegó a iniciar — swallow
-      scanner.stop().catch(() => {}).finally(() => scanner.clear?.())
+      safeStop(scanner).then(() => { try { scanner.clear?.() } catch {} })
     }
   }, [navigate, toast])
 
@@ -72,7 +84,7 @@ export const ScanQRPage = () => {
       toast?.error?.('ID inválido')
       return
     }
-    navigate(`/dashboard/equipment/${encodeURIComponent(id)}`)
+    navigate(`/dashboard/inventory?selected=${encodeURIComponent(id)}`)
   }
 
   return (

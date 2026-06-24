@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useInventoryStore } from '../../../stores/inventoryStore'
 import {
   Button,
@@ -29,6 +29,7 @@ import { FiPlus, FiTrash2, FiEye, FiEdit2, FiDownload, FiExternalLink } from 're
 export const Inventory = () => {
   const { toast } = useToast()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
 
   // States
   const [searchTerm, setSearchTerm] = useState('')
@@ -66,6 +67,24 @@ export const Inventory = () => {
   useEffect(() => {
     fetchEquipos()
   }, [fetchEquipos])
+
+  // ?selected=:id (viene del scanner QR): abre el drawer una vez que equipos cargaron
+  useEffect(() => {
+    const selectedId = searchParams.get('selected')
+    if (!selectedId || equipos.length === 0) return
+    // Match flexible: id puede venir como número o como SKU (EQ-037)
+    const eq = equipos.find(e =>
+      String(e?.id) === String(selectedId) || String(e?.sku) === String(selectedId)
+    )
+    if (eq) {
+      setSelectedEquipo(eq)
+      setDetailsDrawerOpen(true)
+    } else {
+      toast?.error?.(`Equipo "${selectedId}" no encontrado`)
+    }
+    // Limpia el param para que no se re-abra al cerrar el drawer
+    setSearchParams({}, { replace: true })
+  }, [equipos, searchParams, setSearchParams, toast])
 
   // Skeleton Loading Effect
   useEffect(() => {
