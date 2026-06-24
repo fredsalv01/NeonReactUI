@@ -1,7 +1,13 @@
+import { useEffect, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../../hooks/useAuth'
 import { Icon, Button } from '../../ui'
 import { FiChevronRight } from 'react-icons/fi'
+import { reportService } from '../../../lib/services/reportService'
+
+// ponytail: polling 60s. Ceiling: Supabase Realtime si Geotop necesita
+// alerta sub-segundo (no es el caso — inventario cambia despacio).
+const LOW_STOCK_POLL_MS = 60_000
 
 const MENU_GROUPS = [
   {
@@ -40,6 +46,17 @@ export const Sidebar = ({ isOpen, onClose }) => {
   const navigate = useNavigate()
   const location = useLocation()
   const { logout, profile, userRole } = useAuth()
+  const [lowStock, setLowStock] = useState(0)
+
+  useEffect(() => {
+    let alive = true
+    const tick = () => reportService.countLowStock()
+      .then(n => { if (alive) setLowStock(n) })
+      .catch(() => {})
+    tick()
+    const id = setInterval(tick, LOW_STOCK_POLL_MS)
+    return () => { alive = false; clearInterval(id) }
+  }, [])
 
   const visibleGroups = MENU_GROUPS
     .map((group) => ({
@@ -106,10 +123,12 @@ export const Sidebar = ({ isOpen, onClose }) => {
                 </p>
                 {group.items.map((item) => {
                   const isActive = location.pathname === item.path
+                  const showBadge = item.id === 'inventory' && lowStock > 0
                   return (
                     <button
                       key={item.id}
                       onClick={() => handleNavigate(item.path)}
+                      title={showBadge ? `${lowStock} equipo(s) con stock bajo` : undefined}
                       className={`
                         w-full flex items-center gap-2.5 px-3 py-2 rounded-lg
                         transition-all duration-200 text-left group relative
@@ -124,6 +143,17 @@ export const Sidebar = ({ isOpen, onClose }) => {
                         <Icon name={item.icon} size={17} color="currentColor" />
                       </div>
                       <span className="text-[13px] font-medium flex-1 truncate">{item.label}</span>
+                      {showBadge && (
+                        <span
+                          className={`text-[10px] font-bold font-['DM_Mono'] px-1.5 py-0.5 rounded-md shrink-0 ${
+                            isActive
+                              ? 'bg-gs-bg/30 text-gs-bg'
+                              : 'bg-gs-danger/20 text-gs-danger'
+                          }`}
+                        >
+                          {lowStock}
+                        </span>
+                      )}
                       {isActive && <FiChevronRight size={15} className="ml-auto shrink-0" />}
                     </button>
                   )

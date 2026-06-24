@@ -206,6 +206,67 @@ export const Reports = () => {
 
         {/* Tables */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Low Stock — primero, es accionable */}
+          {isLoading ? (
+            <SkeletonBlock className="h-80 rounded-lg" />
+          ) : (
+            <div className="bg-gs-surface border-2 border-gs-danger/40 rounded-lg p-6">
+              <h2 className="text-xl font-bold text-gs-danger mb-4 flex items-center gap-2">
+                <span aria-hidden>⚠</span> Requiere reposición
+              </h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gs-border">
+                      <th className="text-left py-2 px-2 font-semibold text-gs-soft">#</th>
+                      <th className="text-left py-2 px-2 font-semibold text-gs-soft">Producto</th>
+                      <th className="text-center py-2 px-2 font-semibold text-gs-soft">Stock</th>
+                      <th className="text-right py-2 px-2 font-semibold text-gs-soft">Valor</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {lowStockProducts.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} className="py-6 text-center text-gs-soft text-sm">
+                          Sin alertas de stock por el momento.
+                        </td>
+                      </tr>
+                    ) : lowStockProducts.map((product, idx) => (
+                      <tr key={product.id} className="border-b border-gs-border hover:bg-gs-bg transition">
+                        <td className="py-3 px-2 text-gs-text font-semibold">{idx + 1}</td>
+                        <td className="py-3 px-2">
+                          <div className="flex items-center gap-2">
+                            {product.imagen_url ? (
+                              <img src={product.imagen_url} alt={product.nombre} className="w-8 h-8 rounded object-cover" />
+                            ) : (
+                              <div className="w-8 h-8 bg-gs-border rounded" />
+                            )}
+                            <div>
+                              <p className="font-medium text-gs-text">{product.nombre}</p>
+                              <p className="text-xs text-gs-soft">{product.tipo}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-3 px-2 text-center">
+                          <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                            product.stock_total <= 3 ? 'bg-gs-danger/20 text-gs-danger' :
+                            product.stock_total <= 5 ? 'bg-yellow-500/20 text-yellow-400' :
+                            'bg-green-500/20 text-green-400'
+                          }`}>
+                            {product.stock_total}
+                          </span>
+                        </td>
+                        <td className="py-3 px-2 text-right text-gs-accent font-bold">
+                          ${(product.stock_total * product.precio_venta).toFixed(2)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
           {/* Top Selling Products */}
           {isLoading ? (
             <SkeletonBlock className="h-80 rounded-lg" />
@@ -249,58 +310,6 @@ export const Reports = () => {
             </div>
           )}
 
-          {/* Low Stock Products */}
-          {isLoading ? (
-            <SkeletonBlock className="h-80 rounded-lg" />
-          ) : (
-            <div className="bg-gs-surface border border-gs-border rounded-lg p-6">
-              <h2 className="text-xl font-bold text-gs-text mb-4">Top 5 Reabastecimiento Necesario</h2>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gs-border">
-                      <th className="text-left py-2 px-2 font-semibold text-gs-soft">#</th>
-                      <th className="text-left py-2 px-2 font-semibold text-gs-soft">Producto</th>
-                      <th className="text-center py-2 px-2 font-semibold text-gs-soft">Stock</th>
-                      <th className="text-right py-2 px-2 font-semibold text-gs-soft">Valor</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {lowStockProducts.map((product, idx) => (
-                      <tr key={product.id} className="border-b border-gs-border hover:bg-gs-bg transition">
-                        <td className="py-3 px-2 text-gs-text font-semibold">{idx + 1}</td>
-                        <td className="py-3 px-2">
-                          <div className="flex items-center gap-2">
-                            {product.imagen_url ? (
-                              <img src={product.imagen_url} alt={product.nombre} className="w-8 h-8 rounded object-cover" />
-                            ) : (
-                              <div className="w-8 h-8 bg-gs-border rounded" />
-                            )}
-                            <div>
-                              <p className="font-medium text-gs-text">{product.nombre}</p>
-                              <p className="text-xs text-gs-soft">{product.tipo}</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-3 px-2 text-center">
-                          <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                            product.stock_total <= 3 ? 'bg-gs-danger/20 text-gs-danger' :
-                            product.stock_total <= 5 ? 'bg-yellow-500/20 text-yellow-400' :
-                            'bg-green-500/20 text-green-400'
-                          }`}>
-                            {product.stock_total}
-                          </span>
-                        </td>
-                        <td className="py-3 px-2 text-right text-gs-accent font-bold">
-                          ${(product.stock_total * product.precio_venta).toFixed(2)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>

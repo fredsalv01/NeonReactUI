@@ -85,6 +85,19 @@ export const reportService = {
       .slice(0, limit)
   },
 
+  // Cuenta equipos con stock <= threshold (badge sidebar, alertas).
+  // Usa head: true → no transfiere filas, solo el count.
+  async countLowStock(threshold = 6) {
+    const { count, error } = await supabase
+      .from('v_equipos_con_stock')
+      .select('id', { count: 'exact', head: true })
+      .eq('active', true)
+      .lte('stock_total', threshold)
+
+    if (error) throw error
+    return count ?? 0
+  },
+
   // Top N productos con bajo stock (equipos sí tiene `active`)
   async getLowStockProducts(threshold = 10, limit = 5) {
     const { data, error } = await supabase

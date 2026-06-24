@@ -19,7 +19,7 @@ import {
 import { AddEquipoModal } from '../modals/AddEquipoModal'
 import { ProductDetailsDrawer } from '../drawers/ProductDetailsDrawer'
 import { EditEquipoDrawer } from '../drawers/EditEquipoDrawer'
-import { STOCK_ESTADO_OPTIONS, PAGE_SIZES, getStockEstado } from '../../../lib/constants/inventoryConstants'
+import { STOCK_ESTADO_OPTIONS, STOCK_THRESHOLDS, PAGE_SIZES, getStockEstado } from '../../../lib/constants/inventoryConstants'
 import { FiPlus, FiTrash2, FiEye, FiEdit2, FiDownload, FiExternalLink } from 'react-icons/fi'
 
 // ────────────────────────────────────────────────────────────────
@@ -34,6 +34,7 @@ export const Inventory = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterEstado, setFilterEstado] = useState('')
   const [filterTipo, setFilterTipo] = useState('')
+  const [onlyAlerta, setOnlyAlerta] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(5)
   const [showSkeleton, setShowSkeleton] = useState(true)
@@ -95,10 +96,16 @@ export const Inventory = () => {
       const matchesSearch = matchesSearchTerm(equipo, searchTerm)
       const matchesEstado = !filterEstado || getStockEstado(equipo.stock_total) === filterEstado
       const matchesTipo = !filterTipo || equipo.tipo === filterTipo
+      // Stock <= BAJO_MAX cubre 'Stock Bajo' + 'Sin Stock' en un solo toggle
+      const matchesAlerta = !onlyAlerta || Number(equipo.stock_total) <= STOCK_THRESHOLDS.BAJO_MAX
 
-      return matchesSearch && matchesEstado && matchesTipo
+      return matchesSearch && matchesEstado && matchesTipo && matchesAlerta
     })
-  }, [equipos, searchTerm, filterEstado, filterTipo])
+  }, [equipos, searchTerm, filterEstado, filterTipo, onlyAlerta])
+
+  const alertaCount = useMemo(() =>
+    equipos.filter(e => e && Number(e.stock_total) <= STOCK_THRESHOLDS.BAJO_MAX).length,
+  [equipos])
 
   const paginatedEquipos = useMemo(() => {
     const start = (currentPage - 1) * pageSize
@@ -235,6 +242,24 @@ export const Inventory = () => {
 
       {/* Main Content */}
       <div className="bg-gs-surface border border-gs-border rounded-lg p-4 md:p-6 space-y-6">
+        {/* Quick filter: alerta de stock */}
+        {!isLoading && alertaCount > 0 && (
+          <button
+            type="button"
+            onClick={() => setOnlyAlerta(v => !v)}
+            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[12px] font-semibold border transition-all ${
+              onlyAlerta
+                ? 'bg-gs-danger/20 border-gs-danger text-gs-danger'
+                : 'bg-gs-bg border-gs-border text-gs-soft hover:text-gs-text hover:border-gs-danger/50'
+            }`}
+            title={onlyAlerta ? 'Quitar filtro' : 'Mostrar solo equipos con stock bajo o agotado'}
+          >
+            <span aria-hidden>⚠</span>
+            Stock bajo
+            <span className="font-['DM_Mono'] bg-black/20 px-1.5 rounded">{alertaCount}</span>
+          </button>
+        )}
+
         {/* Filters */}
         {isLoading ? (
           <FiltersSkeleton />
