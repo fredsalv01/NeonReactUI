@@ -221,7 +221,7 @@ export const CreateCotizacionModal = ({ open, onClose }) => {
             />
           </InputField>
 
-          <InputField label="Notas" className="md:col-span-2">
+          <InputField label="Notas">
             <input
               type="text"
               value={header.notas}

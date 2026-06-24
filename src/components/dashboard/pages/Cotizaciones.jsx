@@ -164,8 +164,9 @@ export const Cotizaciones = () => {
 
         {totalPages > 1 && (
           <Pagination
-            currentPage={page}
+            page={page}
             totalPages={totalPages}
+            total={total}
             onPageChange={setPage}
           />
         )}
