@@ -6,6 +6,7 @@ import { proveedorService } from '../../../lib/services/proveedorService'
 import { almacenService } from '../../../lib/services/almacenService'
 import { equipoService } from '../../../lib/services/equipoService'
 import { ALMACEN_PRINCIPAL_ID } from '../../../lib/constants/almacenConstants'
+import { validateCompra } from '../../../lib/schemas/compraSchema'
 
 const todayIso = () => new Date().toISOString().slice(0, 10)
 
@@ -101,17 +102,20 @@ export const CreateCompraModal = ({ open, onClose }) => {
   )
 
   const validate = () => {
-    const e = {}
-    if (!header.almacen_id) e.almacen_id = 'Almacén requerido'
-    if (!header.fecha)      e.fecha      = 'Fecha requerida'
-    if (items.length === 0) e.items = 'Agrega al menos un item'
-    for (const it of items) {
-      if (!it.equipo_id) { e.items = 'Cada item necesita un equipo'; break }
-      if (!(Number(it.cantidad) > 0)) { e.items = 'Las cantidades deben ser > 0'; break }
-      if (!(Number(it.precio_unitario) >= 0)) { e.items = 'Los precios deben ser >= 0'; break }
+    const payload = {
+      proveedor_id: header.proveedor_id || '',
+      almacen_id:   header.almacen_id,
+      fecha:        header.fecha,
+      notas:        header.notas?.trim() || null,
+      items: items.map((it) => ({
+        equipo_id: it.equipo_id,
+        cantidad: Number(it.cantidad),
+        precio_unitario: Number(it.precio_unitario),
+      })),
     }
-    setErrors(e)
-    return Object.keys(e).length === 0
+    const { success, errors: zodErrors } = validateCompra(payload)
+    setErrors(success ? {} : zodErrors)
+    return success
   }
 
   const handleSubmit = async () => {

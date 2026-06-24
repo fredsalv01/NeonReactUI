@@ -8,6 +8,7 @@ import { almacenService } from '../../../lib/services/almacenService'
 import { clienteService } from '../../../lib/services/clienteService'
 import { equipoService } from '../../../lib/services/equipoService'
 import { ALMACEN_PRINCIPAL_ID } from '../../../lib/constants/almacenConstants'
+import { validateVenta } from '../../../lib/schemas/ventaSchema'
 
 const todayIso = () => new Date().toISOString().slice(0, 10)
 
@@ -125,20 +126,30 @@ export const CreateVentaModal = ({ open, onClose }) => {
   )
 
   const validate = () => {
-    const e = {}
-    if (!header.almacen_id) e.almacen_id = 'Almacén requerido'
-    if (!header.fecha)      e.fecha      = 'Fecha requerida'
-    if (items.length === 0) e.items = 'Agrega al menos un item'
+    // 1) Zod: estructura, tipos, requeridos
+    const payload = {
+      cliente_id: header.cliente_id || '',
+      almacen_id: header.almacen_id,
+      fecha: header.fecha,
+      descripcion: header.notas?.trim() || null,
+      items: items.map((it) => ({
+        equipo_id: it.equipo_id,
+        cantidad: Number(it.cantidad),
+        precio_unitario: Number(it.precio_unitario),
+      })),
+    }
+    const { success, errors: zodErrors } = validateVenta(payload)
+    const e = success ? {} : { ...zodErrors }
 
-    for (const it of items) {
-      if (!it.equipo_id) { e.items = 'Cada item necesita un equipo'; break }
-      if (!(Number(it.cantidad) > 0)) { e.items = 'Las cantidades deben ser > 0'; break }
-      if (!(Number(it.precio_unitario) > 0)) { e.items = 'Los precios deben ser > 0'; break }
-      const eq = equipos.find((x) => x.id === it.equipo_id)
-      const stock = stockEnAlmacen(eq, header.almacen_id)
-      if (stock !== null && Number(it.cantidad) > stock) {
-        e.items = `Stock insuficiente para ${eq?.nombre || it.equipo_id} (disponible: ${stock})`
-        break
+    // 2) Stock: regla de negocio que zod no conoce
+    if (success) {
+      for (const it of items) {
+        const eq = equipos.find((x) => x.id === it.equipo_id)
+        const stock = stockEnAlmacen(eq, header.almacen_id)
+        if (stock !== null && Number(it.cantidad) > stock) {
+          e.items = `Stock insuficiente para ${eq?.nombre || it.equipo_id} (disponible: ${stock})`
+          break
+        }
       }
     }
     setErrors(e)

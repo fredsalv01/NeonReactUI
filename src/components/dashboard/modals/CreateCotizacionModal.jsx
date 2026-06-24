@@ -5,6 +5,7 @@ import { useCotizacionStore } from '../../../stores/cotizacionStore'
 import { useAuth } from '../../../hooks/useAuth'
 import { clienteService } from '../../../lib/services/clienteService'
 import { equipoService } from '../../../lib/services/equipoService'
+import { validateCotizacion } from '../../../lib/schemas/cotizacionSchema'
 
 const todayIso = () => new Date().toISOString().slice(0, 10)
 
@@ -109,17 +110,19 @@ export const CreateCotizacionModal = ({ open, onClose }) => {
   )
 
   const validate = () => {
-    const e = {}
-    if (!header.fecha) e.fecha = 'Fecha requerida'
-    if (items.length === 0) e.items = 'Agrega al menos un item'
-
-    for (const it of items) {
-      if (!it.equipo_id) { e.items = 'Cada item necesita un equipo'; break }
-      if (!(Number(it.cantidad) > 0)) { e.items = 'Las cantidades deben ser > 0'; break }
-      if (!(Number(it.precio_unitario) > 0)) { e.items = 'Los precios deben ser > 0'; break }
+    const payload = {
+      cliente_id: header.cliente_id || '',
+      fecha:      header.fecha,
+      notas:      header.notas?.trim() || null,
+      items: items.map((it) => ({
+        equipo_id: it.equipo_id,
+        cantidad: Number(it.cantidad),
+        precio_unitario: Number(it.precio_unitario),
+      })),
     }
-    setErrors(e)
-    return Object.keys(e).length === 0
+    const { success, errors: zodErrors } = validateCotizacion(payload)
+    setErrors(success ? {} : zodErrors)
+    return success
   }
 
   const handleSubmit = async () => {
