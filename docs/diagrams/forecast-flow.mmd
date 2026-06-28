@@ -1,0 +1,30 @@
+sequenceDiagram
+    autonumber
+    participant U as Admin (manual)
+    participant C as pg_cron (1st @ 09:00)
+    participant F as Edge Function<br/>predict-stock
+    participant DB as Supabase DB
+    participant AI as Claude Haiku 4.5
+    participant R as Resend
+    participant M as Inbox
+
+    alt Manual trigger
+        U->>F: Click "Generate report" in Settings
+    else Scheduled
+        C->>F: Monthly POST
+    end
+
+    F->>DB: SELECT equipos + last 90d ventas
+    DB-->>F: Stock + sales rows
+    Note over F: Compute days_remaining<br/>→ critical / warning / healthy
+
+    F->>AI: System prompt + JSON payload
+    alt AI responds
+        AI-->>F: HTML email body (Spanish)
+    else AI fails / no credits
+        Note over F: Fallback: raw HTML table<br/>(no stalls)
+    end
+
+    F->>R: POST /emails (from, to, subject, html)
+    R->>M: Deliver email
+    F-->>U: { ok, summary: { critico, atencion } }

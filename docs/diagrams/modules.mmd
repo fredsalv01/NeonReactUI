@@ -1,0 +1,52 @@
+graph LR
+    subgraph Principal
+        DASH[Dashboard<br/>home stats]
+        INV[Inventory<br/>equipos + stock]
+        REP[Reports<br/>charts + PDF]
+    end
+
+    subgraph Operations
+        BUY[Purchases]
+        QUO[Quotations]
+        SAL[Sales]
+        QR[QR Scanner]
+    end
+
+    subgraph Masters
+        WH[Warehouses]
+        SUP[Suppliers]
+        CLI[Customers]
+    end
+
+    subgraph Admin
+        USR[Users + Roles]
+        CFG[Settings]
+    end
+
+    subgraph Services["Service Layer (src/lib/services)"]
+        EQS[equipoService]
+        VTS[ventaService]
+        CPS[compraService]
+        CTS[cotizacionService]
+        RPS[reportService]
+        ALS[almacenService]
+        CLS[clienteService]
+        PVS[proveedorService]
+        UZS[usuariosService]
+        CGS[configService]
+        KXS[kardexService]
+    end
+
+    INV --> EQS
+    SAL --> VTS
+    BUY --> CPS
+    QUO --> CTS
+    REP --> RPS
+    WH --> ALS
+    CLI --> CLS
+    SUP --> PVS
+    USR --> UZS
+    CFG --> CGS
+    INV --> KXS
+
+    Services -->|@supabase/supabase-js| Supabase[(Supabase)]

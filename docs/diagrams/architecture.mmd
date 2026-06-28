@@ -1,0 +1,42 @@
+graph TB
+    subgraph Client["Client (Browser / Mobile)"]
+        UI["React 18 + Vite SPA<br/>Tailwind · Zustand · TanStack Query"]
+        QR["Public QR View<br/>/p/equipo/:id (no auth)"]
+    end
+
+    subgraph Vercel["Vercel Edge"]
+        CDN["Static hosting<br/>+ Speed Insights"]
+    end
+
+    subgraph Supabase["Supabase Platform"]
+        Auth["Auth<br/>Email + Microsoft OAuth"]
+        DB[("PostgreSQL<br/>equipos · ventas · kardex<br/>cotizaciones · perfiles · roles")]
+        Storage["Storage<br/>Equipment images / QR PDFs"]
+        Edge["Edge Functions (Deno)<br/>predict-stock"]
+        Cron["pg_cron + pg_net<br/>Monthly trigger"]
+    end
+
+    subgraph External["External Services"]
+        Claude["Anthropic Claude<br/>Haiku 4.5"]
+        Resend["Resend API<br/>Transactional email"]
+        Azure["Microsoft Azure AD<br/>OAuth provider"]
+    end
+
+    UI --> CDN
+    QR --> CDN
+    UI -->|REST + Realtime| DB
+    UI -->|Sign-in| Auth
+    Auth -->|OAuth handshake| Azure
+    UI -->|invoke| Edge
+    Cron --> Edge
+    Edge --> DB
+    Edge -->|HTTPS| Claude
+    Edge -->|HTTPS| Resend
+    UI -->|Upload / read| Storage
+
+    classDef vercel fill:#000,stroke:#fff,color:#fff
+    classDef supa fill:#3ECF8E,stroke:#1a1a1a,color:#000
+    classDef ext fill:#f59e0b,stroke:#92400e,color:#000
+    class CDN vercel
+    class Auth,DB,Storage,Edge,Cron supa
+    class Claude,Resend,Azure ext
