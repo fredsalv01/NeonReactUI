@@ -14,14 +14,17 @@ export const PublicEquipoPage = () => {
     let cancelled = false
     const load = async () => {
       setLoading(true)
+      // ponytail: select explícito — la vista pública NO debe filtrar
+      // precio_venta, costo ni notas internas. Solo lo que un técnico
+      // necesita ver al escanear el QR en campo.
       const { data, error } = await supabase
         .from('v_equipos_con_stock')
-        .select('*')
+        .select('id, nombre, tipo, estado, imagen_url, descripcion, serie, stock_total, stock_por_almacen')
         .eq('id', id)
         .eq('active', true)
         .maybeSingle()
       if (cancelled) return
-      if (error) setError(error.message)
+      if (error) setError('No se pudo cargar la ficha del equipo')
       else setEquipo(data)
       setLoading(false)
     }

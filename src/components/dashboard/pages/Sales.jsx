@@ -20,6 +20,7 @@ import { EditVentaDrawer } from '../drawers/EditVentaDrawer'
 import { CreateVentaModal } from '../modals/CreateVentaModal'
 import { PAGE_SIZES } from '../../../lib/constants/inventoryConstants'
 import { FiPlus, FiTrash2, FiEye, FiEdit2 } from 'react-icons/fi'
+import { humanizeError } from '../../../lib/utils/errors'
 
 export const Sales = () => {
   const { toast } = useToast()
@@ -150,7 +151,7 @@ export const Sales = () => {
       setDeleteConfirmOpen(false)
       setSelectedVenta(null)
     } catch (err) {
-      toast.error('Error: ' + err.message)
+      toast.error(humanizeError(err, 'No se pudo completar la operación'))
     } finally {
       setIsDeleting(false)
     }

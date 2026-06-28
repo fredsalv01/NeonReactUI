@@ -43,7 +43,7 @@ export const USUARIO_STATUS_OPTIONS = [
 // ─────────────────────────────────────────────────────────────────
 // Validación de contraseña
 // ─────────────────────────────────────────────────────────────────
-export const PASSWORD_MIN_LENGTH = 8
+export const PASSWORD_MIN_LENGTH = 6
 
 export const passwordChecks = (password = '') => ({
   length:    password.length >= PASSWORD_MIN_LENGTH,

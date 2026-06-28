@@ -3,6 +3,7 @@ import { useEquipoForm } from '../../../hooks/useEquipoForm'
 import { useInventoryStore } from '../../../stores/inventoryStore'
 import { useToast } from '../../ui'
 import { useRef } from 'react'
+import { humanizeError } from '../../../lib/utils/errors'
 
 export const AddEquipoModal = ({ open, onClose }) => {
   const { toast } = useToast()
@@ -47,7 +48,7 @@ export const AddEquipoModal = ({ open, onClose }) => {
       toast.success('Equipo agregado correctamente' + (imagenUrl ? ' con imagen' : ''))
       handleClose()
     } catch (err) {
-      toast.error('Error: ' + err.message)
+      toast.error(humanizeError(err, 'No se pudo crear el equipo'))
     } finally {
       setIsSubmitting(false)
     }

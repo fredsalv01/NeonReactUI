@@ -7,6 +7,11 @@ import { Button, InputField, Alert, Spinner } from '../../ui'
 import Icon from '../../ui/Icon'
 import { FiMail, FiEye, FiEyeOff } from 'react-icons/fi'
 import { ROLE_LANDING } from '../../../lib/constants/permissions'
+import { humanizeError } from '../../../lib/utils/errors'
+
+// ponytail: solo aceptamos paths internos del dashboard. Bloquea
+// open-redirect via localStorage envenenado.
+const isSafeInternalPath = (p) => typeof p === 'string' && /^\/dashboard(\/|$|\?)/.test(p)
 
 const MicrosoftLogo = () => (
   <svg width="18" height="18" viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg">
@@ -37,15 +42,11 @@ export const Login = () => {
   useEffect(() => {
     if (!user) return
     const intendedRoute = localStorage.getItem('intended_route')
-    if (intendedRoute) {
-      localStorage.removeItem('intended_route')
-      navigate(intendedRoute, { replace: true })
-      return
-    }
-    // ponytail: landing por rol. Si el perfil aún no cargó, espera al próximo tick.
+    localStorage.removeItem('intended_route')
     const role = profile?.roles?.nombre
-    const target = ROLE_LANDING[role] || '/dashboard/inventory'
-    navigate(target, { replace: true })
+    const fallback = ROLE_LANDING[role] || '/dashboard/inventory'
+    // ponytail: landing por rol. intended_route solo si pasa whitelist interna.
+    navigate(isSafeInternalPath(intendedRoute) ? intendedRoute : fallback, { replace: true })
   }, [user, profile, navigate])
 
   const validateForm = () => {
@@ -57,10 +58,12 @@ export const Login = () => {
       newErrors.email = 'Por favor ingresa un correo válido'
     }
 
+    // ponytail: en login solo exigimos presencia. La política de fortaleza
+    // (8+ chars, mayúscula, número) vive en CreateUserModal/EditUserDrawer
+    // donde se SETEA la contraseña. Reforzarla aquí filtraría info del
+    // formato exacto y bloquearía a usuarios legítimos con passwords legacy.
     if (!formData.password) {
       newErrors.password = 'La contraseña es obligatoria'
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'La contraseña debe tener al menos 6 caracteres'
     }
 
     setErrors(newErrors)
@@ -102,8 +105,9 @@ export const Login = () => {
       // No navegar aquí, dejar que el useEffect se encargue
       // Esto permite que use la ruta intended si existe
     } catch (error) {
-      setServerError(error.message)
-      toast.error(error.message)
+      const friendly = humanizeError(error, 'No se pudo iniciar sesión')
+      setServerError(friendly)
+      toast.error(friendly)
     } finally {
       setIsLoading(false)
     }

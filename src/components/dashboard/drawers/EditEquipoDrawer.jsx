@@ -4,6 +4,7 @@ import { useEquipoForm } from '../../../hooks/useEquipoForm'
 import { useInventoryStore } from '../../../stores/inventoryStore'
 import { useToast } from '../../ui'
 import { equipoService } from '../../../lib/services/equipoService'
+import { humanizeError } from '../../../lib/utils/errors'
 
 export const EditEquipoDrawer = ({ open, equipo, onClose, onSuccess }) => {
   const { toast } = useToast()
@@ -110,7 +111,7 @@ export const EditEquipoDrawer = ({ open, equipo, onClose, onSuccess }) => {
       onSuccess?.()
     } catch (err) {
       console.error('Error updating equipo:', err)
-      toast.error('Error: ' + err.message)
+      toast.error(humanizeError(err, 'No se pudo actualizar el equipo'))
     } finally {
       setIsSubmitting(false)
     }
@@ -129,7 +130,7 @@ export const EditEquipoDrawer = ({ open, equipo, onClose, onSuccess }) => {
       handleClose()
       onSuccess?.()
     } catch (err) {
-      toast.error('Error al eliminar: ' + err.message)
+      toast.error(humanizeError(err, 'No se pudo eliminar el equipo'))
     } finally {
       setIsDeleting(false)
     }

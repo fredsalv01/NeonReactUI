@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useToast, Drawer, Switch, Badge } from '../../ui'
 import { equipoService } from '../../../lib/services/equipoService'
+import { humanizeError } from '../../../lib/utils/errors'
 
 const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?w=400&h=400&fit=crop'
 
@@ -30,7 +31,7 @@ export const ProductDetailsDrawer = ({ open, equipo, onClose }) => {
       toast.success(message)
     } catch (err) {
       setIsActive(!newStatus)
-      toast.error('Error: ' + err.message)
+      toast.error(humanizeError(err, 'No se pudo actualizar el equipo'))
     } finally {
       setIsLoading(false)
     }

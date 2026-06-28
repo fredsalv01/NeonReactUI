@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { humanizeError } from '../../../lib/utils/errors'
 import {
   AreaChart, Area, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
@@ -55,7 +56,7 @@ export const Reports = () => {
       setLowStockProducts(lowStock)
     } catch (err) {
       setError(err.message)
-      toast.error('Error cargando reportes: ' + err.message)
+      toast.error(humanizeError(err, 'No se pudieron cargar los reportes'))
     } finally {
       setIsLoading(false)
     }
@@ -74,7 +75,7 @@ export const Reports = () => {
       html2pdf().set(opt).from(element).save()
       toast.success('Reporte exportado a PDF')
     } catch (err) {
-      toast.error('Error exportando PDF: ' + err.message)
+      toast.error(humanizeError(err, 'No se pudo exportar el PDF'))
     }
   }
 

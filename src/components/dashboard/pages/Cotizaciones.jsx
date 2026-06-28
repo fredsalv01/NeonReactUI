@@ -5,6 +5,7 @@ import { useCotizacionStore } from '../../../stores/cotizacionStore'
 import { cotizacionService } from '../../../lib/services/cotizacionService'
 import { CreateCotizacionModal } from '../modals/CreateCotizacionModal'
 import { CotizacionDetailsDrawer } from '../drawers/CotizacionDetailsDrawer'
+import { humanizeError } from '../../../lib/utils/errors'
 
 const ESTADO_OPTIONS = [
   { value: '',           label: 'Todos los estados' },
@@ -51,7 +52,7 @@ export const Cotizaciones = () => {
       const full = await cotizacionService.getCotizacionById(cotResumida.id)
       setSelected(full)
     } catch (err) {
-      toast.error('Error: ' + err.message)
+      toast.error(humanizeError(err, 'No se pudo completar la operación'))
     } finally {
       setDetailLoading(false)
     }

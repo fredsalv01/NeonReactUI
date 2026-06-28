@@ -21,6 +21,7 @@ import { ProductDetailsDrawer } from '../drawers/ProductDetailsDrawer'
 import { EditEquipoDrawer } from '../drawers/EditEquipoDrawer'
 import { STOCK_ESTADO_OPTIONS, STOCK_THRESHOLDS, PAGE_SIZES, getStockEstado } from '../../../lib/constants/inventoryConstants'
 import { CAN_WRITE, can } from '../../../lib/constants/permissions'
+import { humanizeError } from '../../../lib/utils/errors'
 import { useAuth } from '../../../hooks/useAuth'
 import { FiPlus, FiTrash2, FiEye, FiEdit2, FiDownload, FiExternalLink } from 'react-icons/fi'
 
@@ -173,7 +174,7 @@ export const Inventory = () => {
       setDeleteConfirmOpen(false)
       setSelectedEquipo(null)
     } catch (err) {
-      toast.error('Error: ' + err.message)
+      toast.error(humanizeError(err, 'No se pudo eliminar el equipo'))
     } finally {
       setIsDeleting(false)
     }
