@@ -7,9 +7,10 @@ import {
 } from 'recharts'
 import { Button, useToast, SkeletonBlock, Icon } from '../../ui'
 import { reportService } from '../../../lib/services/reportService'
+import { kardexReportService } from '../../../lib/services/kardexReportService'
 import { useAuth } from '../../../hooks/useAuth'
 import { REPORT_SECTIONS, can } from '../../../lib/constants/permissions'
-import { FiDownload, FiFileText } from 'react-icons/fi'
+import { FiDownload, FiFileText, FiFileMinus } from 'react-icons/fi'
 import html2pdf from 'html2pdf.js'
 
 const COLORS = ['#00C49F', '#0088FE', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#ff7c7c']
@@ -329,6 +330,11 @@ export const Reports = () => {
           )
           )}
 
+          {/* Reporte Kardex (Excel/CSV) — Admin + Almacén */}
+          {show('kardexReport') && (
+            <KardexReportCard />
+          )}
+
           {/* Cotizaciones — acceso rápido para Ventas */}
           {show('cotizaciones') && (
             <div className="bg-gs-surface border border-gs-border rounded-lg p-4 md:p-6 flex flex-col justify-between">
@@ -352,6 +358,97 @@ export const Reports = () => {
 
         </div>
       </div>
+    </div>
+  )
+}
+
+const KardexReportCard = () => {
+  const { toast } = useToast()
+  const today = new Date().toISOString().slice(0, 10)
+  const monthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+  const [from, setFrom] = useState(monthAgo)
+  const [to, setTo] = useState(today)
+  const [generating, setGenerating] = useState(null) // 'xlsx' | 'csv' | null
+
+  const handleGenerate = async (format) => {
+    setGenerating(format)
+    try {
+      const result = await kardexReportService.generate({ from, to, format })
+      toast.success(`Reporte generado (${result.rowCount} movimientos). Descarga iniciada.`)
+    } catch (err) {
+      toast.error(humanizeError(err, 'No se pudo generar el reporte'))
+    } finally {
+      setGenerating(null)
+    }
+  }
+
+  const invalid = !from || !to || from > to
+
+  return (
+    <div className="bg-gs-surface border border-gs-border rounded-lg p-4 md:p-6 flex flex-col gap-4 lg:col-span-2">
+      <div>
+        <h2 className="text-xl font-bold text-gs-text mb-1 flex items-center gap-2">
+          <FiFileMinus size={20} /> Reporte de Kardex
+        </h2>
+        <p className="text-sm text-gs-soft">
+          Exporta los movimientos del kardex (compras, ventas y movimientos manuales) por almacén
+          en formato Excel o CSV. El archivo queda guardado en el bucket privado de reportes y
+          se descarga al instante.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label className="block text-[11px] text-gs-soft font-mono uppercase tracking-[0.8px] mb-1">
+            Desde
+          </label>
+          <input
+            type="date"
+            value={from}
+            max={to || undefined}
+            onChange={(e) => setFrom(e.target.value)}
+            className="w-full bg-gs-bg border border-gs-border rounded-lg px-3 py-2 text-sm text-gs-text focus:outline-none focus:border-gs-accent"
+          />
+        </div>
+        <div>
+          <label className="block text-[11px] text-gs-soft font-mono uppercase tracking-[0.8px] mb-1">
+            Hasta
+          </label>
+          <input
+            type="date"
+            value={to}
+            min={from || undefined}
+            max={today}
+            onChange={(e) => setTo(e.target.value)}
+            className="w-full bg-gs-bg border border-gs-border rounded-lg px-3 py-2 text-sm text-gs-text focus:outline-none focus:border-gs-accent"
+          />
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <Button
+          variant="primary"
+          onClick={() => handleGenerate('xlsx')}
+          disabled={invalid || generating !== null}
+          className="flex items-center gap-2"
+        >
+          <FiDownload size={16} />
+          {generating === 'xlsx' ? 'Generando…' : 'Descargar Excel (.xlsx)'}
+        </Button>
+        <Button
+          variant="ghost"
+          onClick={() => handleGenerate('csv')}
+          disabled={invalid || generating !== null}
+          className="flex items-center gap-2 border border-gs-border"
+        >
+          <FiDownload size={16} />
+          {generating === 'csv' ? 'Generando…' : 'Descargar CSV'}
+        </Button>
+      </div>
+
+      {invalid && (
+        <p className="text-[12px] text-gs-danger">El rango de fechas es inválido.</p>
+      )}
     </div>
   )
 }

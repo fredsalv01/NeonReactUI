@@ -42,6 +42,7 @@ export const REPORT_SECTIONS = {
   lowStockTable:   [A, W],          // Tabla "Requiere reposición"
   topSelling:      [A, V],          // Tabla "Top 5 más vendidos"
   cotizaciones:    [A, V],          // Acceso rápido a cotizaciones
+  kardexReport:    [A, W],          // Generador de reporte Excel/CSV de kardex
   statValor:       [A, W],          // Card "Valor Inventario"
   statCantidad:    [A, V],          // Card "Cantidad Vendida"
   statMonto:       [A, V],          // Card "Monto Vendido"
