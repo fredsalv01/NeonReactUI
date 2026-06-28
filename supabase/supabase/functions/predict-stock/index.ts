@@ -6,7 +6,7 @@ const SUPABASE_URL          = Deno.env.get('SUPABASE_URL')!
 const SERVICE_ROLE_KEY      = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const ANTHROPIC_API_KEY     = Deno.env.get('ANTHROPIC_API_KEY')!
 const RESEND_API_KEY        = Deno.env.get('RESEND_API_KEY')!
-const REPORT_TO             = Deno.env.get('REPORT_TO') ?? 'f.morales@geotop.com'
+const REPORT_TO             = Deno.env.get('REPORT_TO') ?? 'freddy.morales@usil.pe'
 const REPORT_FROM           = Deno.env.get('REPORT_FROM') ?? 'GeoStock <onboarding@resend.dev>'
 
 const CRITICAL_DAYS = 30
@@ -21,6 +21,7 @@ const corsHeaders = {
 type Row = {
   id: string
   nombre: string
+  sku: string | null
   tipo: string | null
   stock_actual: number
   vendido_90d: number
@@ -61,7 +62,7 @@ async function loadInventoryRows(sb: any): Promise<Row[]> {
 
   const [{ data: equipos, error: e1 }, { data: ventas, error: e2 }] = await Promise.all([
     sb.from('v_equipos_con_stock')
-      .select('id, nombre, tipo, stock_total')
+      .select('id, nombre, sku, tipo, stock_total')
       .eq('active', true),
     sb.from('ventas')
       .select('equipo_id, cantidad, created_at')
@@ -88,6 +89,7 @@ async function loadInventoryRows(sb: any): Promise<Row[]> {
     return {
       id: eq.id,
       nombre: eq.nombre,
+      sku: eq.sku ?? null,
       tipo: eq.tipo ?? null,
       stock_actual: eq.stock_total ?? 0,
       vendido_90d: vendido,
@@ -146,6 +148,7 @@ async function tryClaude(buckets: { critico: Row[]; atencion: Row[]; saludable: 
 function stripForPrompt(r: Row) {
   return {
     nombre: r.nombre,
+    sku: r.sku,
     tipo: r.tipo,
     stock_actual: r.stock_actual,
     vendido_ultimos_90d: r.vendido_90d,
@@ -156,7 +159,7 @@ function stripForPrompt(r: Row) {
 
 function fallbackBody({ critico, atencion, saludable }: { critico: Row[]; atencion: Row[]; saludable: Row[] }) {
   const rowList = (rs: Row[]) => rs.map(r =>
-    `<li><strong>${escapeHtml(r.nombre)}</strong>${r.tipo ? ` <em>(${escapeHtml(r.tipo)})</em>` : ''} — stock: ${r.stock_actual}, vendido 90d: ${r.vendido_90d}, días estimados: ${r.dias_restantes ?? 'n/d'}</li>`
+    `<li><strong>${escapeHtml(r.nombre)}</strong>${r.sku ? ` (${escapeHtml(r.sku)})` : ''} — stock: ${r.stock_actual}, vendido 90d: ${r.vendido_90d}, días estimados: ${r.dias_restantes ?? 'n/d'}</li>`
   ).join('')
   return `
     <h2>Reporte mensual de reposición</h2>
