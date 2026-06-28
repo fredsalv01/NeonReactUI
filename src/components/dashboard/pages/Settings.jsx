@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../../../hooks/useAuth'
 import { configService } from '../../../lib/services/configService'
+import { supabase } from '../../../lib/supabase'
 import { Button, useToast } from '../../ui'
 
 const FIELDS = [
@@ -22,6 +23,22 @@ export const Settings = () => {
   const [initial, setInitial] = useState({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [sendingReport, setSendingReport] = useState(false)
+
+  const onSendReport = async () => {
+    setSendingReport(true)
+    try {
+      const { data, error } = await supabase.functions.invoke('predict-stock')
+      if (error) throw error
+      if (!data?.ok) throw new Error(data?.error || 'Falló el envío')
+      const { critico = 0, atencion = 0 } = data.summary || {}
+      toast?.success?.(`Reporte enviado a ${data.sent_to} (${critico} críticos, ${atencion} en atención)`)
+    } catch (e) {
+      toast?.error?.(e.message || 'No se pudo enviar el reporte')
+    } finally {
+      setSendingReport(false)
+    }
+  }
 
   useEffect(() => {
     configService.getAll()
@@ -94,6 +111,24 @@ export const Settings = () => {
             </div>
           </div>
         </div>
+
+        {isAdmin && (
+          <div className="bg-gs-surface rounded-xl p-4 md:p-6 border border-gs-border">
+            <h2 className="text-lg font-semibold text-gs-text mb-1">
+              Reporte de Reposición
+            </h2>
+            <p className="text-[12px] text-gs-soft mb-4">
+              Genera y envía por correo un análisis de stock con IA. El cron mensual lo dispara solo el día 1; este botón es para pruebas o un envío manual.
+            </p>
+            <Button
+              variant="primary"
+              onClick={onSendReport}
+              disabled={sendingReport}
+            >
+              {sendingReport ? 'Generando…' : 'Generar y enviar reporte'}
+            </Button>
+          </div>
+        )}
 
         <div className="bg-gs-surface rounded-xl p-4 md:p-6 border border-gs-border">
           <h2 className="text-lg font-semibold text-gs-text mb-1">
