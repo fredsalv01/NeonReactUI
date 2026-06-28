@@ -1,0 +1,5 @@
+# Ignora todo lo que caiga acá (dumps con datos / schema)
+*
+# Excepto el ignore y el README del propio folder
+!.gitignore
+!README.md
