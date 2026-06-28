@@ -18,6 +18,30 @@ const PAGE_CONFIG = {
     title: 'Sales - GeoStock',
     description: 'Track and manage your sales transactions.',
   },
+  '/dashboard/cotizaciones': {
+    title: 'Quotations - GeoStock',
+    description: 'Create, follow up and convert quotations into sales.',
+  },
+  '/dashboard/compras': {
+    title: 'Purchases - GeoStock',
+    description: 'Register stock-in purchases from suppliers.',
+  },
+  '/dashboard/clientes': {
+    title: 'Customers - GeoStock',
+    description: 'Manage your customer directory.',
+  },
+  '/dashboard/proveedores': {
+    title: 'Suppliers - GeoStock',
+    description: 'Manage your supplier directory.',
+  },
+  '/dashboard/almacenes': {
+    title: 'Warehouses - GeoStock',
+    description: 'Manage warehouses and their stock distribution.',
+  },
+  '/dashboard/scan': {
+    title: 'QR Scanner - GeoStock',
+    description: 'Scan QR codes to look up equipment in the field.',
+  },
   '/dashboard/reports': {
     title: 'Reports - GeoStock',
     description: 'View detailed reports and analytics.',
@@ -44,12 +68,35 @@ const PAGE_CONFIG = {
   },
 }
 
+// Matchers para rutas con parámetros dinámicos (no podemos indexar por path exacto)
+const PREFIX_CONFIG = [
+  {
+    prefix: '/dashboard/equipment/',
+    config: {
+      title: 'Equipment Details - GeoStock',
+      description: 'Detailed view of a single equipment unit.',
+    },
+  },
+  {
+    prefix: '/p/equipo/',
+    config: {
+      title: 'Public Equipment View - GeoStock',
+      description: 'Public mobile view of an equipment unit.',
+    },
+  },
+]
+
+const resolveConfig = (pathname) =>
+  PAGE_CONFIG[pathname] ||
+  PREFIX_CONFIG.find((p) => pathname.startsWith(p.prefix))?.config ||
+  PAGE_CONFIG['/404']
+
 export const usePageTitle = () => {
   const location = useLocation()
 
   useEffect(() => {
-    // Get page config for current route
-    const pageConfig = PAGE_CONFIG[location.pathname] || PAGE_CONFIG['/404']
+    // Get page config for current route (exact match → prefix → 404 fallback)
+    const pageConfig = resolveConfig(location.pathname)
 
     // Update document title
     document.title = pageConfig.title
