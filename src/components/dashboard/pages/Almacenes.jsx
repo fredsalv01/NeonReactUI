@@ -19,11 +19,15 @@ import {
   ALMACEN_STATUS_OPTIONS,
   ALMACEN_PRINCIPAL_ID,
 } from '../../../lib/constants/almacenConstants'
+import { CAN_WRITE, can } from '../../../lib/constants/permissions'
+import { useAuth } from '../../../hooks/useAuth'
 
 const PAGE_SIZE = 10
 
 export const Almacenes = () => {
   const { toast } = useToast()
+  const { userRole } = useAuth()
+  const canWrite = can(userRole, CAN_WRITE.almacenes)
 
   const almacenes         = useAlmacenesStore((s) => s.almacenes)
   const total             = useAlmacenesStore((s) => s.total)
@@ -83,14 +87,16 @@ export const Almacenes = () => {
             )}
           </p>
         </div>
-        <Button
-          variant="primary"
-          onClick={() => setCreateOpen(true)}
-          className="flex items-center gap-2"
-        >
-          <FiPlus size={16} />
-          Nuevo Almacén
-        </Button>
+        {canWrite && (
+          <Button
+            variant="primary"
+            onClick={() => setCreateOpen(true)}
+            className="flex items-center gap-2"
+          >
+            <FiPlus size={16} />
+            Nuevo Almacén
+          </Button>
+        )}
       </div>
 
       {error && (
@@ -128,7 +134,7 @@ export const Almacenes = () => {
               columns={columns}
               data={almacenes}
               emptyMessage="No hay almacenes"
-              actions={(row) => (
+              actions={canWrite ? (row) => (
                 <div className="flex items-center gap-1">
                   <Tooltip content="Editar almacén">
                     <button
@@ -152,7 +158,7 @@ export const Almacenes = () => {
                     </button>
                   </Tooltip>
                 </div>
-              )}
+              ) : undefined}
             />
 
             <Pagination

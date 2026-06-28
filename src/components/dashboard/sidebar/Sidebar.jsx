@@ -4,6 +4,7 @@ import { useAuth } from '../../../hooks/useAuth'
 import { Icon, Button } from '../../ui'
 import { FiChevronRight } from 'react-icons/fi'
 import { reportService } from '../../../lib/services/reportService'
+import { ROUTE_ROLES } from '../../../lib/constants/permissions'
 
 // ponytail: polling 60s. Ceiling: Supabase Realtime si Geotop necesita
 // alerta sub-segundo (no es el caso — inventario cambia despacio).
@@ -13,33 +14,33 @@ const MENU_GROUPS = [
   {
     label: 'Principal',
     items: [
-      { id: 'dashboard',  label: 'Panel',      icon: 'chart', path: '/dashboard' },
-      { id: 'inventory',  label: 'Inventario', icon: 'box',   path: '/dashboard/inventory' },
-      { id: 'reports',    label: 'Reportes',   icon: 'file',  path: '/dashboard/reports' },
+      { id: 'dashboard',  label: 'Panel',      icon: 'chart', path: '/dashboard',           allowedRoles: ROUTE_ROLES.dashboard },
+      { id: 'inventory',  label: 'Inventario', icon: 'box',   path: '/dashboard/inventory', allowedRoles: ROUTE_ROLES.inventory },
+      { id: 'reports',    label: 'Reportes',   icon: 'file',  path: '/dashboard/reports',   allowedRoles: ROUTE_ROLES.reports },
     ],
   },
   {
     label: 'Operaciones',
     items: [
-      { id: 'compras', label: 'Compras',     icon: 'cart', path: '/dashboard/compras', allowedRoles: ['Administrador', 'Almacén'] },
-      { id: 'cotizaciones', label: 'Cotizaciones', icon: 'file', path: '/dashboard/cotizaciones', allowedRoles: ['Administrador', 'Ventas'] },
-      { id: 'sales',   label: 'Ventas',      icon: 'cart', path: '/dashboard/sales' },
-      { id: 'scan',    label: 'Escanear QR', icon: 'qr',   path: '/dashboard/scan',    allowedRoles: ['Almacén', 'Administrador', 'Técnico'] },
+      { id: 'compras',      label: 'Compras',      icon: 'cart', path: '/dashboard/compras',      allowedRoles: ROUTE_ROLES.compras },
+      { id: 'cotizaciones', label: 'Cotizaciones', icon: 'file', path: '/dashboard/cotizaciones', allowedRoles: ROUTE_ROLES.cotizaciones },
+      { id: 'sales',        label: 'Ventas',       icon: 'cart', path: '/dashboard/sales',        allowedRoles: ROUTE_ROLES.sales },
+      { id: 'scan',         label: 'Escanear QR',  icon: 'qr',   path: '/dashboard/scan',         allowedRoles: ROUTE_ROLES.scan },
     ],
   },
   {
     label: 'Maestros',
     items: [
-      { id: 'almacenes',   label: 'Almacenes',   icon: 'box',   path: '/dashboard/almacenes',   allowedRoles: ['Administrador', 'Almacén'] },
-      { id: 'proveedores', label: 'Proveedores', icon: 'users', path: '/dashboard/proveedores', allowedRoles: ['Administrador', 'Almacén'] },
-      { id: 'clientes',    label: 'Clientes',    icon: 'users', path: '/dashboard/clientes',    allowedRoles: ['Administrador', 'Ventas'] },
+      { id: 'almacenes',   label: 'Almacenes',   icon: 'box',   path: '/dashboard/almacenes',   allowedRoles: ROUTE_ROLES.almacenes },
+      { id: 'proveedores', label: 'Proveedores', icon: 'users', path: '/dashboard/proveedores', allowedRoles: ROUTE_ROLES.proveedores },
+      { id: 'clientes',    label: 'Clientes',    icon: 'users', path: '/dashboard/clientes',    allowedRoles: ROUTE_ROLES.clientes },
     ],
   },
   {
     label: 'Admin',
     items: [
-      { id: 'users',    label: 'Usuarios',      icon: 'users',    path: '/dashboard/users',    allowedRoles: ['Administrador'] },
-      { id: 'settings', label: 'Configuración', icon: 'settings', path: '/dashboard/settings' },
+      { id: 'users',    label: 'Usuarios',      icon: 'users',    path: '/dashboard/users',    allowedRoles: ROUTE_ROLES.users },
+      { id: 'settings', label: 'Configuración', icon: 'settings', path: '/dashboard/settings', allowedRoles: ROUTE_ROLES.settings },
     ],
   },
 ]

@@ -1,17 +1,23 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   AreaChart, Area, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts'
 import { Button, useToast, SkeletonBlock, Icon } from '../../ui'
 import { reportService } from '../../../lib/services/reportService'
-import { FiDownload } from 'react-icons/fi'
+import { useAuth } from '../../../hooks/useAuth'
+import { REPORT_SECTIONS, can } from '../../../lib/constants/permissions'
+import { FiDownload, FiFileText } from 'react-icons/fi'
 import html2pdf from 'html2pdf.js'
 
 const COLORS = ['#00C49F', '#0088FE', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#ff7c7c']
 
 export const Reports = () => {
   const { toast } = useToast()
+  const navigate = useNavigate()
+  const { userRole } = useAuth()
+  const show = (key) => can(userRole, REPORT_SECTIONS[key])
 
   // States
   const [isLoading, setIsLoading] = useState(true)
@@ -91,15 +97,17 @@ export const Reports = () => {
           <h1 className="text-3xl md:text-4xl font-bold text-gs-text mb-2">Reportes</h1>
           <p className="text-gs-soft">Análisis completo de ventas e inventario</p>
         </div>
-        <Button
-          variant="primary"
-          onClick={exportToPDF}
-          disabled={isLoading}
-          className="flex items-center gap-2 w-full md:w-auto h-fit"
-        >
-          <FiDownload size={18} />
-          Exportar a PDF
-        </Button>
+        {show('exportPdf') && (
+          <Button
+            variant="primary"
+            onClick={exportToPDF}
+            disabled={isLoading}
+            className="flex items-center gap-2 w-full md:w-auto h-fit"
+          >
+            <FiDownload size={18} />
+            Exportar a PDF
+          </Button>
+        )}
       </div>
 
       {/* Stats Cards */}
@@ -111,103 +119,110 @@ export const Reports = () => {
         </div>
       ) : stats ? (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <StatCard label="N° Ventas" value={stats.totalVentas} icon="shopping-cart" />
-          <StatCard label="Monto Vendido" value={`$${stats.totalMontoVentas.toFixed(2)}`} icon="dollar" />
-          <StatCard label="Cantidad Vendida" value={stats.totalCantidad} icon="box" />
-          <StatCard label="Valor Inventario" value={`$${stats.totalInventarioValue.toFixed(2)}`} icon="inbox" />
+          {show('statVentas')   && <StatCard label="N° Ventas"        value={stats.totalVentas} icon="shopping-cart" />}
+          {show('statMonto')    && <StatCard label="Monto Vendido"    value={`$${stats.totalMontoVentas.toFixed(2)}`} icon="dollar" />}
+          {show('statCantidad') && <StatCard label="Cantidad Vendida" value={stats.totalCantidad} icon="box" />}
+          {show('statValor')    && <StatCard label="Valor Inventario" value={`$${stats.totalInventarioValue.toFixed(2)}`} icon="inbox" />}
         </div>
       ) : null}
 
       {/* Charts */}
       <div className="space-y-6">
         {/* Area Chart - Monthly Sales */}
-        {isLoading ? (
-          <SkeletonBlock className="h-80 rounded-lg" />
-        ) : (
-          <div className="bg-gs-surface border border-gs-border rounded-lg p-4 md:p-6">
-            <h2 className="text-xl font-bold text-gs-text mb-4">Ventas Mensual</h2>
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={monthlySales}>
-                <defs>
-                  <linearGradient id="colorMonto" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis dataKey="mes" stroke="#6B7280" />
-                <YAxis stroke="#6B7280" />
-                <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151', borderRadius: '8px' }} />
-                <Area type="monotone" dataKey="monto" stroke="#8884d8" fillOpacity={1} fill="url(#colorMonto)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+        {show('monthlySales') && (
+          isLoading ? (
+            <SkeletonBlock className="h-80 rounded-lg" />
+          ) : (
+            <div className="bg-gs-surface border border-gs-border rounded-lg p-4 md:p-6">
+              <h2 className="text-xl font-bold text-gs-text mb-4">Ventas Mensual</h2>
+              <ResponsiveContainer width="100%" height={300}>
+                <AreaChart data={monthlySales}>
+                  <defs>
+                    <linearGradient id="colorMonto" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <XAxis dataKey="mes" stroke="#6B7280" />
+                  <YAxis stroke="#6B7280" />
+                  <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151', borderRadius: '8px' }} />
+                  <Area type="monotone" dataKey="monto" stroke="#8884d8" fillOpacity={1} fill="url(#colorMonto)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          )
         )}
 
         {/* Two Column Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Categories Breakdown - Pie */}
-          {isLoading ? (
-            <SkeletonBlock className="h-80 rounded-lg" />
-          ) : (
-            <div className="bg-gs-surface border border-gs-border rounded-lg p-4 md:p-6">
-              <h2 className="text-xl font-bold text-gs-text mb-4">Ventas por Categoría</h2>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={categoriesBreakdown}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, value }) => `${name}: $${value.toFixed(0)}`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {categoriesBreakdown.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value) => `$${value.toFixed(2)}`} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
+          {show('categoriesPie') && (
+            isLoading ? (
+              <SkeletonBlock className="h-80 rounded-lg" />
+            ) : (
+              <div className="bg-gs-surface border border-gs-border rounded-lg p-4 md:p-6">
+                <h2 className="text-xl font-bold text-gs-text mb-4">Ventas por Categoría</h2>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={categoriesBreakdown}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, value }) => `${name}: $${value.toFixed(0)}`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {categoriesBreakdown.map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => `$${value.toFixed(2)}`} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            )
           )}
 
           {/* Inventory Status - Donut */}
-          {isLoading ? (
-            <SkeletonBlock className="h-80 rounded-lg" />
-          ) : (
-            <div className="bg-gs-surface border border-gs-border rounded-lg p-4 md:p-6">
-              <h2 className="text-xl font-bold text-gs-text mb-4">Estado Inventario</h2>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={inventoryStatus}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, value }) => `${name}: ${value}`}
-                    outerRadius={80}
-                    innerRadius={50}
-                    fill="#82ca9d"
-                    dataKey="value"
-                  >
-                    {inventoryStatus.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
+          {show('inventoryStatus') && (
+            isLoading ? (
+              <SkeletonBlock className="h-80 rounded-lg" />
+            ) : (
+              <div className="bg-gs-surface border border-gs-border rounded-lg p-4 md:p-6">
+                <h2 className="text-xl font-bold text-gs-text mb-4">Estado Inventario</h2>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={inventoryStatus}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, value }) => `${name}: ${value}`}
+                      outerRadius={80}
+                      innerRadius={50}
+                      fill="#82ca9d"
+                      dataKey="value"
+                    >
+                      {inventoryStatus.map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            )
           )}
         </div>
 
         {/* Tables */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Low Stock — primero, es accionable */}
-          {isLoading ? (
+          {show('lowStockTable') && (
+          isLoading ? (
             <SkeletonBlock className="h-80 rounded-lg" />
           ) : (
             <div className="bg-gs-surface border-2 border-gs-danger/40 rounded-lg p-4 md:p-6">
@@ -265,10 +280,12 @@ export const Reports = () => {
                 </table>
               </div>
             </div>
+          )
           )}
 
           {/* Top Selling Products */}
-          {isLoading ? (
+          {show('topSelling') && (
+          isLoading ? (
             <SkeletonBlock className="h-80 rounded-lg" />
           ) : (
             <div className="bg-gs-surface border border-gs-border rounded-lg p-4 md:p-6">
@@ -307,6 +324,28 @@ export const Reports = () => {
                   </tbody>
                 </table>
               </div>
+            </div>
+          )
+          )}
+
+          {/* Cotizaciones — acceso rápido para Ventas */}
+          {show('cotizaciones') && (
+            <div className="bg-gs-surface border border-gs-border rounded-lg p-4 md:p-6 flex flex-col justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-gs-text mb-2 flex items-center gap-2">
+                  <FiFileText size={20} /> Cotizaciones
+                </h2>
+                <p className="text-sm text-gs-soft mb-4">
+                  Revisa el estado de las cotizaciones recientes y conviértelas en ventas.
+                </p>
+              </div>
+              <Button
+                variant="primary"
+                onClick={() => navigate('/dashboard/cotizaciones')}
+                className="flex items-center gap-2 w-fit"
+              >
+                Ir a Cotizaciones
+              </Button>
             </div>
           )}
 

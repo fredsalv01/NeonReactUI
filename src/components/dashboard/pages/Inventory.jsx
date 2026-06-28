@@ -20,6 +20,8 @@ import { AddEquipoModal } from '../modals/AddEquipoModal'
 import { ProductDetailsDrawer } from '../drawers/ProductDetailsDrawer'
 import { EditEquipoDrawer } from '../drawers/EditEquipoDrawer'
 import { STOCK_ESTADO_OPTIONS, STOCK_THRESHOLDS, PAGE_SIZES, getStockEstado } from '../../../lib/constants/inventoryConstants'
+import { CAN_WRITE, can } from '../../../lib/constants/permissions'
+import { useAuth } from '../../../hooks/useAuth'
 import { FiPlus, FiTrash2, FiEye, FiEdit2, FiDownload, FiExternalLink } from 'react-icons/fi'
 
 // ────────────────────────────────────────────────────────────────
@@ -30,6 +32,8 @@ export const Inventory = () => {
   const { toast } = useToast()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
+  const { userRole } = useAuth()
+  const canWrite = can(userRole, CAN_WRITE.inventory)
 
   // States
   const [searchTerm, setSearchTerm] = useState('')
@@ -208,6 +212,7 @@ export const Inventory = () => {
           actions={(row) => (
             <ActionButtons
               equipo={row}
+              canWrite={canWrite}
               onQRClick={handleOpenQR}
               onDetailsClick={handleOpenDetails}
               onEditClick={handleOpenEdit}
@@ -256,6 +261,7 @@ export const Inventory = () => {
           totalEquipos={equipos.length}
           totalStock={equipos.reduce((sum, e) => sum + (e?.stock_total ?? 0), 0)}
           onAddClick={() => setAddModalOpen(true)}
+          canWrite={canWrite}
         />
       )}
 
@@ -342,7 +348,7 @@ export const Inventory = () => {
 // Sub-components
 // ────────────────────────────────────────────────────────────────
 
-const Header = ({ totalEquipos, totalStock, onAddClick }) => (
+const Header = ({ totalEquipos, totalStock, onAddClick, canWrite }) => (
   <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-8">
     <div>
       <h1 className="text-3xl md:text-4xl font-bold text-gs-text mb-2">
@@ -355,14 +361,16 @@ const Header = ({ totalEquipos, totalStock, onAddClick }) => (
         Stock Total: <span className="font-semibold text-gs-accent">{totalStock}</span>
       </p>
     </div>
-    <Button
-      variant="primary"
-      onClick={onAddClick}
-      className="flex items-center gap-2 w-full md:w-auto h-fit"
-    >
-      <FiPlus size={18} />
-      Agregar Equipo
-    </Button>
+    {canWrite && (
+      <Button
+        variant="primary"
+        onClick={onAddClick}
+        className="flex items-center gap-2 w-full md:w-auto h-fit"
+      >
+        <FiPlus size={18} />
+        Agregar Equipo
+      </Button>
+    )}
   </div>
 )
 
@@ -457,7 +465,7 @@ const EmptyState = ({ hasFilters }) => (
   </div>
 )
 
-const ActionButtons = ({ equipo, onQRClick, onDetailsClick, onEditClick, onDeleteClick, onViewFullDetailsClick }) => (
+const ActionButtons = ({ equipo, canWrite, onQRClick, onDetailsClick, onEditClick, onDeleteClick, onViewFullDetailsClick }) => (
   <div className="flex items-center gap-2">
     <Tooltip content="Ver código QR">
       <button
@@ -483,22 +491,26 @@ const ActionButtons = ({ equipo, onQRClick, onDetailsClick, onEditClick, onDelet
         <FiExternalLink size={16} />
       </button>
     </Tooltip>
-    <Tooltip content="Editar equipo">
-      <button
-        onClick={() => onEditClick(equipo)}
-        className="p-1.5 text-gs-soft hover:text-amber-400 hover:bg-gs-border rounded transition-colors"
-      >
-        <FiEdit2 size={16} />
-      </button>
-    </Tooltip>
-    <Tooltip content="Eliminar equipo">
-      <button
-        onClick={() => onDeleteClick(equipo)}
-        className="p-1.5 text-gs-soft hover:text-gs-danger hover:bg-gs-border rounded transition-colors"
-      >
-        <FiTrash2 size={16} />
-      </button>
-    </Tooltip>
+    {canWrite && (
+      <>
+        <Tooltip content="Editar equipo">
+          <button
+            onClick={() => onEditClick(equipo)}
+            className="p-1.5 text-gs-soft hover:text-amber-400 hover:bg-gs-border rounded transition-colors"
+          >
+            <FiEdit2 size={16} />
+          </button>
+        </Tooltip>
+        <Tooltip content="Eliminar equipo">
+          <button
+            onClick={() => onDeleteClick(equipo)}
+            className="p-1.5 text-gs-soft hover:text-gs-danger hover:bg-gs-border rounded transition-colors"
+          >
+            <FiTrash2 size={16} />
+          </button>
+        </Tooltip>
+      </>
+    )}
   </div>
 )
 

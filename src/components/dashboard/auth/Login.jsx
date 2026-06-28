@@ -6,6 +6,7 @@ import { useToast } from '../../ui'
 import { Button, InputField, Alert, Spinner } from '../../ui'
 import Icon from '../../ui/Icon'
 import { FiMail, FiEye, FiEyeOff } from 'react-icons/fi'
+import { ROLE_LANDING } from '../../../lib/constants/permissions'
 
 const MicrosoftLogo = () => (
   <svg width="18" height="18" viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg">
@@ -31,22 +32,21 @@ export const Login = () => {
 
   const initializeAuth = useAuthStore((state) => state.initializeAuth)
   const user = useAuthStore((state) => state.user)
+  const profile = useAuthStore((state) => state.profile)
 
   useEffect(() => {
-    if (user) {
-      // Verificar si hay una ruta intended en localStorage
-      const intendedRoute = localStorage.getItem('intended_route')
-      if (intendedRoute) {
-        // Limpiar localStorage
-        localStorage.removeItem('intended_route')
-        // Redirigir a la ruta intended
-        navigate(intendedRoute, { replace: true })
-      } else {
-        // Si no hay ruta intended, redirigir al dashboard normal
-        navigate('/dashboard', { replace: true })
-      }
+    if (!user) return
+    const intendedRoute = localStorage.getItem('intended_route')
+    if (intendedRoute) {
+      localStorage.removeItem('intended_route')
+      navigate(intendedRoute, { replace: true })
+      return
     }
-  }, [user, navigate])
+    // ponytail: landing por rol. Si el perfil aún no cargó, espera al próximo tick.
+    const role = profile?.roles?.nombre
+    const target = ROLE_LANDING[role] || '/dashboard/inventory'
+    navigate(target, { replace: true })
+  }, [user, profile, navigate])
 
   const validateForm = () => {
     const newErrors = {}

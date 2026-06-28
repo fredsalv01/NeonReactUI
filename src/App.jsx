@@ -9,7 +9,6 @@ import { ModalDebugPage } from './pages/ModalDebugPage'
 import { NotFound } from './pages/NotFound'
 import { PublicEquipoPage } from './pages/PublicEquipoPage'
 import {
-  ProtectedRoute,
   RoleProtectedRoute,
   Login,
   DashboardLayout,
@@ -28,6 +27,7 @@ import {
   Compras,
   AuthCallback,
 } from './components/dashboard'
+import { ROUTE_ROLES } from './lib/constants/permissions'
 import './App.css'
 
 const queryClient = new QueryClient()
@@ -64,29 +64,29 @@ function AppContent() {
       <Route
         path="/dashboard"
         element={
-          <ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={ROUTE_ROLES.dashboard}>
             <DashboardLayout>
               <Dashboard />
             </DashboardLayout>
-          </ProtectedRoute>
+          </RoleProtectedRoute>
         }
       />
 
       <Route
         path="/dashboard/inventory"
         element={
-          <ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={ROUTE_ROLES.inventory}>
             <DashboardLayout>
               <Inventory />
             </DashboardLayout>
-          </ProtectedRoute>
+          </RoleProtectedRoute>
         }
       />
 
       <Route
         path="/dashboard/equipment/:equipoId"
         element={
-          <RoleProtectedRoute allowedRoles={['Almacén', 'Administrador', 'Técnico']}>
+          <RoleProtectedRoute allowedRoles={ROUTE_ROLES.equipment}>
             <DashboardLayout>
               <EquipmentDetails />
             </DashboardLayout>
@@ -97,7 +97,7 @@ function AppContent() {
       <Route
         path="/dashboard/scan"
         element={
-          <RoleProtectedRoute allowedRoles={['Almacén', 'Administrador', 'Técnico']}>
+          <RoleProtectedRoute allowedRoles={ROUTE_ROLES.scan}>
             <DashboardLayout>
               <ScanQRPage />
             </DashboardLayout>
@@ -108,18 +108,18 @@ function AppContent() {
       <Route
         path="/dashboard/sales"
         element={
-          <ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={ROUTE_ROLES.sales}>
             <DashboardLayout>
               <Sales />
             </DashboardLayout>
-          </ProtectedRoute>
+          </RoleProtectedRoute>
         }
       />
 
       <Route
         path="/dashboard/cotizaciones"
         element={
-          <RoleProtectedRoute allowedRoles={['Administrador', 'Ventas']}>
+          <RoleProtectedRoute allowedRoles={ROUTE_ROLES.cotizaciones}>
             <DashboardLayout>
               <Cotizaciones />
             </DashboardLayout>
@@ -130,18 +130,18 @@ function AppContent() {
       <Route
         path="/dashboard/reports"
         element={
-          <ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={ROUTE_ROLES.reports}>
             <DashboardLayout>
               <Reports />
             </DashboardLayout>
-          </ProtectedRoute>
+          </RoleProtectedRoute>
         }
       />
 
       <Route
         path="/dashboard/users"
         element={
-          <RoleProtectedRoute allowedRoles={['Administrador']}>
+          <RoleProtectedRoute allowedRoles={ROUTE_ROLES.users}>
             <DashboardLayout>
               <Users />
             </DashboardLayout>
@@ -152,7 +152,7 @@ function AppContent() {
       <Route
         path="/dashboard/proveedores"
         element={
-          <RoleProtectedRoute allowedRoles={['Administrador', 'Almacén']}>
+          <RoleProtectedRoute allowedRoles={ROUTE_ROLES.proveedores}>
             <DashboardLayout>
               <Proveedores />
             </DashboardLayout>
@@ -163,7 +163,7 @@ function AppContent() {
       <Route
         path="/dashboard/clientes"
         element={
-          <RoleProtectedRoute allowedRoles={['Administrador', 'Ventas']}>
+          <RoleProtectedRoute allowedRoles={ROUTE_ROLES.clientes}>
             <DashboardLayout>
               <Clientes />
             </DashboardLayout>
@@ -174,7 +174,7 @@ function AppContent() {
       <Route
         path="/dashboard/almacenes"
         element={
-          <RoleProtectedRoute allowedRoles={['Administrador', 'Almacén']}>
+          <RoleProtectedRoute allowedRoles={ROUTE_ROLES.almacenes}>
             <DashboardLayout>
               <Almacenes />
             </DashboardLayout>
@@ -185,7 +185,7 @@ function AppContent() {
       <Route
         path="/dashboard/compras"
         element={
-          <RoleProtectedRoute allowedRoles={['Administrador', 'Almacén']}>
+          <RoleProtectedRoute allowedRoles={ROUTE_ROLES.compras}>
             <DashboardLayout>
               <Compras />
             </DashboardLayout>
@@ -196,11 +196,11 @@ function AppContent() {
       <Route
         path="/dashboard/settings"
         element={
-          <ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={ROUTE_ROLES.settings}>
             <DashboardLayout>
               <Settings />
             </DashboardLayout>
-          </ProtectedRoute>
+          </RoleProtectedRoute>
         }
       />
 
