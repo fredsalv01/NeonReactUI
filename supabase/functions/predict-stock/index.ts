@@ -34,6 +34,16 @@ Deno.serve(async (req) => {
 
   try {
     const sb = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
+
+    // ponytail: doble guardia.
+    // 1) verify_jwt=true (default al deploy sin --no-verify-jwt) garantiza
+    //    que Supabase rechaza tokens invalidos antes de invocarnos.
+    // 2) Aqui distinguimos service_role (cron) vs user JWT (boton manual):
+    //    el usuario debe ser Administrador. Sin esto, cualquier usuario
+    //    logueado podria spamear envios y drenar la API de Claude.
+    const authz = await checkAuthorization(req, sb)
+    if (!authz.ok) return json({ error: authz.reason }, authz.status)
+
     const rows = await loadInventoryRows(sb)
 
     const critico  = rows.filter(r => r.severidad === 'critico')
@@ -203,6 +213,43 @@ function json(body: unknown, status = 200) {
     status,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   })
+}
+
+function decodeJwtPayload(token: string): Record<string, unknown> | null {
+  try {
+    const part = token.split('.')[1]
+    if (!part) return null
+    const padded = part.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((part.length + 3) % 4)
+    return JSON.parse(atob(padded))
+  } catch {
+    return null
+  }
+}
+
+async function checkAuthorization(
+  req: Request,
+  sb: any,
+): Promise<{ ok: true } | { ok: false; status: number; reason: string }> {
+  const header = req.headers.get('Authorization') ?? req.headers.get('authorization') ?? ''
+  const token = header.replace(/^Bearer\s+/i, '').trim()
+  if (!token) return { ok: false, status: 401, reason: 'missing_token' }
+
+  const payload = decodeJwtPayload(token)
+  // pg_cron + Vault llama con service_role: lo permitimos sin chequear perfil.
+  if (payload?.role === 'service_role') return { ok: true }
+
+  const { data, error } = await sb.auth.getUser(token)
+  if (error || !data?.user) return { ok: false, status: 401, reason: 'invalid_token' }
+
+  const { data: profile } = await sb
+    .from('perfiles')
+    .select('roles(nombre)')
+    .eq('id', data.user.id)
+    .maybeSingle()
+
+  const roleName = profile?.roles?.nombre
+  if (roleName !== 'Administrador') return { ok: false, status: 403, reason: 'forbidden_role' }
+  return { ok: true }
 }
 
 // ponytail: heurística días_restantes en TS, Claude solo redacta arriba.
