@@ -167,29 +167,41 @@ describe('reportService', () => {
   })
 
   describe('getInventoryStatusBreakdown', () => {
-    it('cuenta equipos por estado', async () => {
+    it('agrupa por disponibilidad de stock segun umbrales BAJO=6 / MEDIO=12', async () => {
       supabase.from.mockReturnValue(makeQuery({
         data: [
-          { estado: 'Operativo' },
-          { estado: 'Operativo' },
-          { estado: 'En reparación' },
+          { id: 'EQ-1', stock_total: 0 },   // Sin Stock
+          { id: 'EQ-2', stock_total: 3 },   // Stock Bajo
+          { id: 'EQ-3', stock_total: 6 },   // Stock Bajo (<=6)
+          { id: 'EQ-4', stock_total: 10 },  // Stock Medio
+          { id: 'EQ-5', stock_total: 12 },  // Stock Medio (<=12)
+          { id: 'EQ-6', stock_total: 20 },  // Disponible
         ],
         error: null,
       }))
       const result = await reportService.getInventoryStatusBreakdown()
-      const op = result.find(r => r.name === 'Operativo')
-      const rep = result.find(r => r.name === 'En reparación')
-      expect(op.value).toBe(2)
-      expect(rep.value).toBe(1)
+      const byName = Object.fromEntries(result.map(r => [r.name, r]))
+      expect(byName['Sin Stock'].value).toBe(1)
+      expect(byName['Stock Bajo'].value).toBe(2)
+      expect(byName['Stock Medio'].value).toBe(2)
+      expect(byName['Disponible'].value).toBe(1)
     })
 
-    it('usa "Sin especificar" cuando estado es null', async () => {
+    it('incluye porcentaje calculado sobre el total de equipos activos', async () => {
       supabase.from.mockReturnValue(makeQuery({
-        data: [{ estado: null }, { estado: null }],
+        data: [
+          { id: 'EQ-1', stock_total: 0 },
+          { id: 'EQ-2', stock_total: 0 },
+          { id: 'EQ-3', stock_total: 20 },
+          { id: 'EQ-4', stock_total: 20 },
+        ],
         error: null,
       }))
       const result = await reportService.getInventoryStatusBreakdown()
-      expect(result[0]).toEqual({ name: 'Sin especificar', value: 2 })
+      const sinStock = result.find(r => r.name === 'Sin Stock')
+      const disp = result.find(r => r.name === 'Disponible')
+      expect(sinStock.percent).toBe(50)
+      expect(disp.percent).toBe(50)
     })
   })
 })

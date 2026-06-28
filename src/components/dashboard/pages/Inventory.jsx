@@ -804,7 +804,7 @@ const getTableColumns = () => [
   },
   {
     key: 'stock_estado',
-    label: 'Estado',
+    label: 'Disponibilidad stock',
     render: (_value, row) => <Badge estado={getStockEstado(row.stock_total)} />
   },
   {

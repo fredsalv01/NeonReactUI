@@ -193,7 +193,7 @@ export const Reports = () => {
               <SkeletonBlock className="h-80 rounded-lg" />
             ) : (
               <div className="bg-gs-surface border border-gs-border rounded-lg p-4 md:p-6">
-                <h2 className="text-xl font-bold text-gs-text mb-4">Estado Inventario</h2>
+                <h2 className="text-xl font-bold text-gs-text mb-4">Porcentaje de disponibilidad de stock</h2>
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie
@@ -201,7 +201,7 @@ export const Reports = () => {
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ name, value }) => `${name}: ${value}`}
+                      label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(1)}%)`}
                       outerRadius={80}
                       innerRadius={50}
                       fill="#82ca9d"
@@ -211,7 +211,7 @@ export const Reports = () => {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip />
+                    <Tooltip formatter={(value, _name, item) => [`${value} equipo(s) — ${item?.payload?.percent ?? 0}%`, item?.payload?.name]} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>

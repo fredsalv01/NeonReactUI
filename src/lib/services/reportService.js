@@ -1,4 +1,5 @@
 import { supabase } from '../supabase'
+import { getStockEstado } from '../constants/inventoryConstants'
 
 // ─────────────────────────────────────────────────────────────────────────
 // NOTAS SOBRE LA TABLA `ventas`
@@ -170,22 +171,30 @@ export const reportService = {
     return Object.entries(grouped).map(([name, value]) => ({ name, value }))
   },
 
-  // Breakdown de estados de inventario
+  // Distribución por disponibilidad de stock — agrupa cada equipo en
+  // Sin Stock / Stock Bajo / Stock Medio / Disponible aplicando los
+  // umbrales globales de inventoryConstants.js. Devuelve también el %
+  // (sumado al total de equipos activos) listo para mostrar en charts.
   async getInventoryStatusBreakdown() {
     const { data, error } = await supabase
-      .from('equipos')
-      .select('estado, stock')
+      .from('v_equipos_con_stock')
+      .select('id, stock_total')
       .eq('active', true)
 
     if (error) throw error
 
     const grouped = {}
-    ;(data || []).forEach((equipo) => {
-      const estado = equipo.estado || 'Sin especificar'
+    ;(data || []).forEach((eq) => {
+      const estado = getStockEstado(eq.stock_total ?? 0)
       grouped[estado] = (grouped[estado] || 0) + 1
     })
 
-    return Object.entries(grouped).map(([name, value]) => ({ name, value }))
+    const total = (data || []).length
+    return Object.entries(grouped).map(([name, value]) => ({
+      name,
+      value,
+      percent: total > 0 ? +((value / total) * 100).toFixed(1) : 0,
+    }))
   },
 
   // Datos mensuales para gráfico de área
