@@ -23,35 +23,49 @@ const TIPO_LABEL = {
 
 export const kardexReportService = {
   /**
-   * @param {{ from: string, to: string, format: 'xlsx' | 'csv' }} args
+   * @param {{
+   *   from: string,
+   *   to: string,
+   *   format: 'xlsx' | 'csv',
+   *   onProgress?: (s: { step: string, label: string, percent: number }) => void
+   * }} args
    * @returns {Promise<{ fileName, signedUrl, rowCount, path }>}
    */
-  async generate({ from, to, format }) {
+  async generate({ from, to, format, onProgress }) {
     if (!from || !to) throw new Error('Selecciona un rango de fechas')
     if (!['xlsx', 'csv'].includes(format)) throw new Error('Formato no soportado')
 
-    const rows = await fetchRows(from, to)
-    const sheetRows = rows.map(toSheetRow)
+    const report = (step, label, percent) => onProgress?.({ step, label, percent })
 
+    report('query', 'Consultando movimientos…', 10)
+    const rows = await fetchRows(from, to)
+    report('query', `${rows.length} movimientos encontrados`, 35)
+
+    const sheetRows = rows.map(toSheetRow)
+    report('build', `Generando archivo ${format.toUpperCase()}…`, 50)
     const blob = format === 'xlsx'
       ? await toXlsxBlob(sheetRows)
       : toCsvBlob(sheetRows)
+    report('build', 'Archivo listo', 70)
 
     const fileName = buildFileName(format)
     const path     = `${FOLDER}/${fileName}`
 
+    report('upload', 'Subiendo a Storage…', 80)
     const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, blob, {
       contentType: blob.type,
       upsert: false,
     })
     if (upErr) throw upErr
 
+    report('sign', 'Firmando URL temporal…', 95)
     const { data: signed, error: sErr } = await supabase.storage
       .from(BUCKET)
       .createSignedUrl(path, SIGN_TTL_SECONDS)
     if (sErr) throw sErr
 
     triggerBrowserDownload(blob, fileName)
+    report('done', 'Descarga iniciada', 100)
 
     return { fileName, signedUrl: signed.signedUrl, path, rowCount: sheetRows.length }
   },

@@ -5,7 +5,7 @@ import {
   AreaChart, Area, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts'
-import { Button, useToast, SkeletonBlock, Icon, DatePicker, Spinner } from '../../ui'
+import { Button, useToast, SkeletonBlock, Icon, DatePicker, Progress } from '../../ui'
 import { reportService } from '../../../lib/services/reportService'
 import { kardexReportService } from '../../../lib/services/kardexReportService'
 import { useAuth } from '../../../hooks/useAuth'
@@ -372,6 +372,7 @@ const KardexReportCard = () => {
 
   const [range, setRange] = useState({ from: daysAgo(30), to: maxDate })
   const [generating, setGenerating] = useState(null) // 'xlsx' | 'csv' | null
+  const [progress, setProgress] = useState({ percent: 0, label: '' })
 
   const invalid =
     !range?.from || !range?.to || range.from > range.to
@@ -379,17 +380,20 @@ const KardexReportCard = () => {
   const handleGenerate = async (format) => {
     if (invalid || generating) return
     setGenerating(format)
+    setProgress({ percent: 0, label: 'Iniciando…' })
     try {
       const result = await kardexReportService.generate({
         from: toIsoDate(range.from),
         to:   toIsoDate(range.to),
         format,
+        onProgress: ({ label, percent }) => setProgress({ label, percent }),
       })
       toast.success(`Reporte generado: ${result.rowCount} movimientos. Descarga iniciada.`)
     } catch (err) {
       toast.error(humanizeError(err, 'No se pudo generar el reporte'))
     } finally {
-      setGenerating(null)
+      // Pequeño delay para que el 100% sea visible antes de desmontar el overlay
+      setTimeout(() => { setGenerating(null); setProgress({ percent: 0, label: '' }) }, 400)
     }
   }
 
@@ -445,15 +449,21 @@ const KardexReportCard = () => {
         <div
           role="status"
           aria-live="polite"
-          className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-lg bg-gs-bg/75 backdrop-blur-sm"
+          className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 rounded-lg bg-gs-bg/80 backdrop-blur-sm px-6"
         >
-          <Spinner variant="orbit" size={36} color="#00C9A7" />
           <p className="text-sm text-gs-text font-semibold">
-            Generando reporte {generating.toUpperCase()}…
+            Generando reporte {generating.toUpperCase()}
           </p>
-          <p className="text-[11px] text-gs-muted font-['DM_Mono']">
-            Consultando kardex · Subiendo a Storage · Firmando URL
-          </p>
+          <div className="w-full max-w-sm">
+            <Progress
+              variant="bar"
+              value={progress.percent}
+              color="#00C9A7"
+              size="md"
+              showValue
+              label={progress.label}
+            />
+          </div>
         </div>
       )}
     </div>
