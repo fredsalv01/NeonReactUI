@@ -1,52 +1,48 @@
-graph LR
-    subgraph Principal
-        DASH[Dashboard<br/>home stats]
-        INV[Inventory<br/>equipos + stock]
-        REP[Reports<br/>charts + PDF]
+graph TB
+    subgraph L1["UI Modules (src/components/dashboard/pages)"]
+        direction LR
+        subgraph G1["Principal"]
+            direction TB
+            DASH[Dashboard]
+            INV[Inventory]
+            REP[Reports]
+        end
+        subgraph G2["Operations"]
+            direction TB
+            BUY[Purchases]
+            QUO[Quotations]
+            SAL[Sales]
+            SCN[QR Scanner]
+        end
+        subgraph G3["Masters"]
+            direction TB
+            WH[Warehouses]
+            SUP[Suppliers]
+            CLI[Customers]
+        end
+        subgraph G4["Admin"]
+            direction TB
+            USR[Users + Roles]
+            CFG[Settings]
+        end
     end
 
-    subgraph Operations
-        BUY[Purchases]
-        QUO[Quotations]
-        SAL[Sales]
-        QR[QR Scanner]
+    subgraph L2["Service Layer (src/lib/services)"]
+        direction LR
+        SVCS["equipoService · ventaService · compraService<br/>cotizacionService · reportService · almacenService<br/>clienteService · proveedorService · usuariosService<br/>configService · kardexService"]
     end
 
-    subgraph Masters
-        WH[Warehouses]
-        SUP[Suppliers]
-        CLI[Customers]
+    subgraph L3["Data & Auth"]
+        direction LR
+        SB[("Supabase<br/>PostgreSQL · Auth · Storage · Edge Functions")]
     end
 
-    subgraph Admin
-        USR[Users + Roles]
-        CFG[Settings]
-    end
+    L1 -->|consumes| L2
+    L2 -->|@supabase/supabase-js| L3
 
-    subgraph Services["Service Layer (src/lib/services)"]
-        EQS[equipoService]
-        VTS[ventaService]
-        CPS[compraService]
-        CTS[cotizacionService]
-        RPS[reportService]
-        ALS[almacenService]
-        CLS[clienteService]
-        PVS[proveedorService]
-        UZS[usuariosService]
-        CGS[configService]
-        KXS[kardexService]
-    end
-
-    INV --> EQS
-    SAL --> VTS
-    BUY --> CPS
-    QUO --> CTS
-    REP --> RPS
-    WH --> ALS
-    CLI --> CLS
-    SUP --> PVS
-    USR --> UZS
-    CFG --> CGS
-    INV --> KXS
-
-    Services -->|@supabase/supabase-js| Supabase[(Supabase)]
+    classDef ui   fill:#0EA5E9,stroke:#0c4a6e,color:#fff
+    classDef svc  fill:#00C9A7,stroke:#064e3b,color:#000
+    classDef data fill:#3ECF8E,stroke:#064e3b,color:#000
+    class DASH,INV,REP,BUY,QUO,SAL,SCN,WH,SUP,CLI,USR,CFG ui
+    class SVCS svc
+    class SB data
