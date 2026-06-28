@@ -80,7 +80,7 @@ graph TB
     Edge --> DB
     Edge -->|HTTPS| Claude
     Edge -->|HTTPS| Resend
-    UI -->|Upload / read| Storage
+    UI -->|"Upload / read"| Storage
 ```
 
 > Source: [`docs/diagrams/architecture.mmd`](./docs/diagrams/architecture.mmd)
@@ -130,7 +130,7 @@ graph TB
     end
 
     L1 -->|consumes| L2
-    L2 -->|@supabase/supabase-js| L3
+    L2 -->|"@supabase/supabase-js"| L3
 
     classDef ui   fill:#0EA5E9,stroke:#0c4a6e,color:#fff
     classDef svc  fill:#00C9A7,stroke:#064e3b,color:#000
