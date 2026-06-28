@@ -5,7 +5,7 @@ import {
   AreaChart, Area, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts'
-import { Button, useToast, SkeletonBlock, Icon } from '../../ui'
+import { Button, useToast, SkeletonBlock, Icon, DatePicker, Spinner } from '../../ui'
 import { reportService } from '../../../lib/services/reportService'
 import { kardexReportService } from '../../../lib/services/kardexReportService'
 import { useAuth } from '../../../hooks/useAuth'
@@ -362,19 +362,30 @@ export const Reports = () => {
   )
 }
 
+const toIsoDate = (d) => (d instanceof Date ? d.toISOString().slice(0, 10) : null)
+const startOfToday = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d }
+const daysAgo = (n) => { const d = startOfToday(); d.setDate(d.getDate() - n); return d }
+
 const KardexReportCard = () => {
   const { toast } = useToast()
-  const today = new Date().toISOString().slice(0, 10)
-  const monthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
-  const [from, setFrom] = useState(monthAgo)
-  const [to, setTo] = useState(today)
+  const maxDate = startOfToday()
+
+  const [range, setRange] = useState({ from: daysAgo(30), to: maxDate })
   const [generating, setGenerating] = useState(null) // 'xlsx' | 'csv' | null
 
+  const invalid =
+    !range?.from || !range?.to || range.from > range.to
+
   const handleGenerate = async (format) => {
+    if (invalid || generating) return
     setGenerating(format)
     try {
-      const result = await kardexReportService.generate({ from, to, format })
-      toast.success(`Reporte generado (${result.rowCount} movimientos). Descarga iniciada.`)
+      const result = await kardexReportService.generate({
+        from: toIsoDate(range.from),
+        to:   toIsoDate(range.to),
+        format,
+      })
+      toast.success(`Reporte generado: ${result.rowCount} movimientos. Descarga iniciada.`)
     } catch (err) {
       toast.error(humanizeError(err, 'No se pudo generar el reporte'))
     } finally {
@@ -382,72 +393,68 @@ const KardexReportCard = () => {
     }
   }
 
-  const invalid = !from || !to || from > to
-
   return (
-    <div className="bg-gs-surface border border-gs-border rounded-lg p-4 md:p-6 flex flex-col gap-4 lg:col-span-2">
-      <div>
+    <div className="relative bg-gs-surface border border-gs-border rounded-lg p-4 md:p-6 flex flex-col gap-4 lg:col-span-2" aria-busy={!!generating}>
+      <header>
         <h2 className="text-xl font-bold text-gs-text mb-1 flex items-center gap-2">
           <FiFileMinus size={20} /> Reporte de Kardex
         </h2>
         <p className="text-sm text-gs-soft">
-          Exporta los movimientos del kardex (compras, ventas y movimientos manuales) por almacén
-          en formato Excel o CSV. El archivo queda guardado en el bucket privado de reportes y
+          Exporta los movimientos del kardex (compras, ventas y movimientos manuales) por almacén.
+          El archivo se guarda en el bucket privado <code className="text-gs-accent">reportes/kardex</code> y
           se descarga al instante.
         </p>
-      </div>
+      </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <label className="block text-[11px] text-gs-soft font-mono uppercase tracking-[0.8px] mb-1">
-            Desde
-          </label>
-          <input
-            type="date"
-            value={from}
-            max={to || undefined}
-            onChange={(e) => setFrom(e.target.value)}
-            className="w-full bg-gs-bg border border-gs-border rounded-lg px-3 py-2 text-sm text-gs-text focus:outline-none focus:border-gs-accent"
-          />
-        </div>
-        <div>
-          <label className="block text-[11px] text-gs-soft font-mono uppercase tracking-[0.8px] mb-1">
-            Hasta
-          </label>
-          <input
-            type="date"
-            value={to}
-            min={from || undefined}
-            max={today}
-            onChange={(e) => setTo(e.target.value)}
-            className="w-full bg-gs-bg border border-gs-border rounded-lg px-3 py-2 text-sm text-gs-text focus:outline-none focus:border-gs-accent"
-          />
-        </div>
+      <div className="max-w-md">
+        <DatePicker
+          mode="range"
+          label="Rango de fechas"
+          value={range}
+          onChange={setRange}
+          maxDate={maxDate}
+          placeholder="Selecciona un rango…"
+          error={invalid ? 'Rango inválido' : undefined}
+        />
       </div>
 
       <div className="flex flex-wrap gap-2">
         <Button
           variant="primary"
           onClick={() => handleGenerate('xlsx')}
-          disabled={invalid || generating !== null}
+          disabled={invalid || !!generating}
           className="flex items-center gap-2"
+          aria-label="Descargar reporte en formato Excel"
         >
-          <FiDownload size={16} />
-          {generating === 'xlsx' ? 'Generando…' : 'Descargar Excel (.xlsx)'}
+          <FiDownload size={16} aria-hidden />
+          Descargar Excel (.xlsx)
         </Button>
         <Button
           variant="ghost"
           onClick={() => handleGenerate('csv')}
-          disabled={invalid || generating !== null}
+          disabled={invalid || !!generating}
           className="flex items-center gap-2 border border-gs-border"
+          aria-label="Descargar reporte en formato CSV"
         >
-          <FiDownload size={16} />
-          {generating === 'csv' ? 'Generando…' : 'Descargar CSV'}
+          <FiDownload size={16} aria-hidden />
+          Descargar CSV
         </Button>
       </div>
 
-      {invalid && (
-        <p className="text-[12px] text-gs-danger">El rango de fechas es inválido.</p>
+      {generating && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-lg bg-gs-bg/75 backdrop-blur-sm"
+        >
+          <Spinner variant="orbit" size={36} color="#00C9A7" />
+          <p className="text-sm text-gs-text font-semibold">
+            Generando reporte {generating.toUpperCase()}…
+          </p>
+          <p className="text-[11px] text-gs-muted font-['DM_Mono']">
+            Consultando kardex · Subiendo a Storage · Firmando URL
+          </p>
+        </div>
       )}
     </div>
   )
