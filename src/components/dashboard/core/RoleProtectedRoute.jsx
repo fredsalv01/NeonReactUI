@@ -38,17 +38,9 @@ export const RoleProtectedRoute = ({ children, allowedRoles = [] }) => {
   }
 
   if (!hasPermission) {
-    const landing = ROLE_LANDING[userRole] || '/dashboard/inventory'
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gs-bg">
-        <div className="text-center p-8">
-          <h1 className="text-3xl font-bold text-gs-danger mb-4">Acceso Denegado</h1>
-          <p className="text-gs-soft mb-6">Tu rol ('{userRole}') no tiene permiso para acceder a esta página.</p>
-          <p className="text-sm text-gs-muted mb-6">Roles permitidos: {allowedRoles.join(', ')}</p>
-          <a href={landing} className="text-gs-accent hover:underline">Volver a mi inicio</a>
-        </div>
-      </div>
-    )
+    // ponytail: auto-redirect al landing del rol. El toast del useEffect
+    // ya informa al usuario; mostrar una pantalla intermedia es fricción.
+    return <Navigate to={ROLE_LANDING[userRole] || '/dashboard/inventory'} replace />
   }
 
   return children
