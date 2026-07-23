@@ -197,6 +197,22 @@ export const reportService = {
     }))
   },
 
+  // Stats para el Dashboard (4 StatCards). Reusa getSalesStatistics para
+  // ventas/stock y agrega counts head:true de equipos y usuarios activos.
+  async getDashboardStats() {
+    const [sales, equipos, usuarios] = await Promise.all([
+      this.getSalesStatistics(),
+      supabase.from('equipos').select('id', { count: 'exact', head: true }).eq('active', true),
+      supabase.from('perfiles').select('id', { count: 'exact', head: true }).eq('active', true),
+    ])
+    return {
+      totalEquipos:  equipos.count ?? 0,
+      totalVentas:   sales.totalVentas,
+      totalStock:    sales.totalStock,
+      totalUsuarios: usuarios.count ?? 0,
+    }
+  },
+
   // Datos mensuales para gráfico de área
   async getMonthlySalesData(months = 12) {
     const { data, error } = await supabase
