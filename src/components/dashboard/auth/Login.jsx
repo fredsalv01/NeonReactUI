@@ -6,7 +6,7 @@ import { useToast } from '../../ui'
 import { Button, InputField, Alert, Spinner } from '../../ui'
 import Icon from '../../ui/Icon'
 import { FiMail, FiEye, FiEyeOff } from 'react-icons/fi'
-import { ROLE_LANDING } from '../../../lib/constants/permissions'
+import { ROLE_LANDING, canAccessPath } from '../../../lib/constants/permissions'
 import { humanizeError } from '../../../lib/utils/errors'
 
 // ponytail: solo aceptamos paths internos del dashboard. Bloquea
@@ -45,8 +45,13 @@ export const Login = () => {
     localStorage.removeItem('intended_route')
     const role = profile?.roles?.nombre
     const fallback = ROLE_LANDING[role] || '/dashboard/inventory'
-    // ponytail: landing por rol. intended_route solo si pasa whitelist interna.
-    navigate(isSafeInternalPath(intendedRoute) ? intendedRoute : fallback, { replace: true })
+    // ponytail: intended_route solo si (a) es interna y (b) el rol tiene permiso.
+    // Bloquea el caso técnico → /dashboard (admin-only) que caía en Acceso Denegado.
+    const target =
+      isSafeInternalPath(intendedRoute) && canAccessPath(role, intendedRoute)
+        ? intendedRoute
+        : fallback
+    navigate(target, { replace: true })
   }, [user, profile, navigate])
 
   const validateForm = () => {

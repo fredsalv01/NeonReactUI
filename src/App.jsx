@@ -27,10 +27,26 @@ import {
   Compras,
   AuthCallback,
 } from './components/dashboard'
-import { ROUTE_ROLES } from './lib/constants/permissions'
+import { ROUTE_ROLES, ROLE_LANDING } from './lib/constants/permissions'
+import { useAuth } from './hooks/useAuth'
 import './App.css'
 
 const queryClient = new QueryClient()
+
+// ponytail: root "/" redirige por rol. Si no auth, cae a /login vía ProtectedRoute
+// del landing por defecto.
+function RootRedirect() {
+  const { isAuthenticated, isLoading, userRole } = useAuth()
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gs-bg">
+        <Spinner variant="orbit" size={40} color="#00C9A7" label="Cargando" />
+      </div>
+    )
+  }
+  if (!isAuthenticated) return <Navigate to="/login" replace />
+  return <Navigate to={ROLE_LANDING[userRole] || '/dashboard/inventory'} replace />
+}
 
 function AppContent() {
   const initializeAuth = useAuthStore((state) => state.initializeAuth)
@@ -204,7 +220,7 @@ function AppContent() {
         }
       />
 
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/" element={<RootRedirect />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   )

@@ -60,3 +60,30 @@ export const ROLE_LANDING = {
 
 export const can = (userRole, allowedRoles) =>
   Array.isArray(allowedRoles) && allowedRoles.includes(userRole)
+
+// ponytail: prefix match para resolver pathname → section key.
+// Orden importa: prefijos específicos primero, /dashboard exacto al final.
+const PATH_TO_SECTION = [
+  ['/dashboard/inventory',    'inventory'],
+  ['/dashboard/equipment',    'equipment'],
+  ['/dashboard/scan',         'scan'],
+  ['/dashboard/sales',        'sales'],
+  ['/dashboard/cotizaciones', 'cotizaciones'],
+  ['/dashboard/reports',      'reports'],
+  ['/dashboard/users',        'users'],
+  ['/dashboard/proveedores',  'proveedores'],
+  ['/dashboard/clientes',     'clientes'],
+  ['/dashboard/almacenes',    'almacenes'],
+  ['/dashboard/compras',      'compras'],
+  ['/dashboard/settings',     'settings'],
+  ['/dashboard',              'dashboard'],
+]
+
+export const canAccessPath = (role, path) => {
+  if (!role || typeof path !== 'string') return false
+  const clean = path.split('?')[0]
+  const entry = PATH_TO_SECTION.find(
+    ([prefix]) => clean === prefix || clean.startsWith(prefix + '/')
+  )
+  return entry ? can(role, ROUTE_ROLES[entry[1]]) : false
+}
