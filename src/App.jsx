@@ -1,35 +1,45 @@
-import { useEffect } from 'react'
+import { useEffect, lazy, Suspense } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { SpeedInsights } from '@vercel/speed-insights/react'
 import { ToastProvider, QueryLoader, Spinner } from './components/ui'
 import { useAuthStore } from './stores/authStore'
 import { usePageTitle } from './hooks/usePageTitle'
-import { ModalDebugPage } from './pages/ModalDebugPage'
 import { NotFound } from './pages/NotFound'
-import { PublicEquipoPage } from './pages/PublicEquipoPage'
+// ponytail: eager para lo que se necesita SIEMPRE (guards, layout, login/callback).
+// Todo lo demás va lazy para partir el bundle por ruta.
 import {
   RoleProtectedRoute,
   Login,
   DashboardLayout,
-  Dashboard,
-  Inventory,
-  EquipmentDetails,
-  ScanQRPage,
-  Sales,
-  Cotizaciones,
-  Reports,
-  Settings,
-  Users,
-  Proveedores,
-  Clientes,
-  Almacenes,
-  Compras,
   AuthCallback,
 } from './components/dashboard'
+
+const PublicEquipoPage    = lazy(() => import('./pages/PublicEquipoPage').then(m => ({ default: m.PublicEquipoPage })))
+const ModalDebugPage      = lazy(() => import('./pages/ModalDebugPage').then(m => ({ default: m.ModalDebugPage })))
+const Dashboard           = lazy(() => import('./components/dashboard/pages/Dashboard').then(m => ({ default: m.Dashboard })))
+const Inventory           = lazy(() => import('./components/dashboard/pages/Inventory').then(m => ({ default: m.Inventory })))
+const EquipmentDetails    = lazy(() => import('./components/dashboard/pages/EquipmentDetails').then(m => ({ default: m.EquipmentDetails })))
+const ScanQRPage          = lazy(() => import('./components/dashboard/pages/ScanQRPage').then(m => ({ default: m.ScanQRPage })))
+const Sales               = lazy(() => import('./components/dashboard/pages/Sales').then(m => ({ default: m.Sales })))
+const Cotizaciones        = lazy(() => import('./components/dashboard/pages/Cotizaciones').then(m => ({ default: m.Cotizaciones })))
+const Reports             = lazy(() => import('./components/dashboard/pages/Reports').then(m => ({ default: m.Reports })))
+const Settings            = lazy(() => import('./components/dashboard/pages/Settings').then(m => ({ default: m.Settings })))
+const Users               = lazy(() => import('./components/dashboard/pages/Users').then(m => ({ default: m.Users })))
+const Proveedores         = lazy(() => import('./components/dashboard/pages/Proveedores').then(m => ({ default: m.Proveedores })))
+const Clientes            = lazy(() => import('./components/dashboard/pages/Clientes').then(m => ({ default: m.Clientes })))
+const Almacenes           = lazy(() => import('./components/dashboard/pages/Almacenes').then(m => ({ default: m.Almacenes })))
+const Compras             = lazy(() => import('./components/dashboard/pages/Compras').then(m => ({ default: m.Compras })))
+
 import { ROUTE_ROLES, ROLE_LANDING } from './lib/constants/permissions'
 import { useAuth } from './hooks/useAuth'
 import './App.css'
+
+const RouteFallback = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gs-bg">
+    <Spinner variant="orbit" size={40} color="#00C9A7" label="Cargando" />
+  </div>
+)
 
 const queryClient = new QueryClient()
 
@@ -68,6 +78,7 @@ function AppContent() {
   }
 
   return (
+    <Suspense fallback={<RouteFallback />}>
     <Routes>
       <Route path="/debug/modal" element={<ModalDebugPage />} />
 
@@ -223,6 +234,7 @@ function AppContent() {
       <Route path="/" element={<RootRedirect />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
+    </Suspense>
   )
 }
 

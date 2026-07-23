@@ -7,9 +7,13 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          'vendor-nivo': ['@nivo/core', '@nivo/bar', '@nivo/line', '@nivo/pie'],
-          'vendor-charts': ['recharts'],
-          'vendor-utils': ['zod', 'zustand'],
+          'vendor-react':    ['react', 'react-dom', 'react-router-dom'],
+          'vendor-supabase': ['@supabase/supabase-js'],
+          'vendor-query':    ['@tanstack/react-query'],
+          'vendor-pdf':      ['html2pdf.js', 'jspdf', 'html2canvas'],
+          'vendor-nivo':     ['@nivo/core', '@nivo/bar', '@nivo/line', '@nivo/pie'],
+          'vendor-charts':   ['recharts'],
+          'vendor-utils':    ['zod', 'zustand'],
         },
       },
     },
