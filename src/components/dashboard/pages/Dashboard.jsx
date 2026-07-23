@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import {
+  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
+} from 'recharts'
 import { useAuth } from '../../../hooks/useAuth'
-import { StatCard, Spinner, useToast } from '../../ui'
+import { StatCard, useToast } from '../../ui'
+import { SkeletonStat, SkeletonBlock } from '../../ui/Skeleton'
 import { reportService } from '../../../lib/services/reportService'
 import { ROLE_LANDING } from '../../../lib/constants/permissions'
 import { humanizeError } from '../../../lib/utils/errors'
@@ -56,6 +60,8 @@ export const Dashboard = () => {
 
   const links = QUICK_LINKS[role] || []
   const landing = ROLE_LANDING[role] || '/dashboard/inventory'
+  const monthlySales = stats?.monthlySales || []
+  const hasSalesTrend = monthlySales.some((m) => (m.monto ?? 0) > 0)
 
   return (
     <div>
@@ -68,41 +74,63 @@ export const Dashboard = () => {
         </p>
       </div>
 
-      {isLoading ? (
-        <div className="flex justify-center py-12">
-          <Spinner variant="orbit" size={40} color="#00C9A7" label="Cargando estadísticas" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {isLoading ? (
+          <>
+            <SkeletonStat />
+            <SkeletonStat />
+            <SkeletonStat />
+            <SkeletonStat />
+          </>
+        ) : (
+          <>
+            <StatCard label="Total Equipos"    value={stats?.totalEquipos ?? 0}                         icon="box"   color="#00C9A7" />
+            <StatCard label="Total Ventas"     value={(stats?.totalVentas ?? 0).toLocaleString('es-PE')} icon="chart" color="#0EA5E9" />
+            <StatCard label="En Stock"         value={(stats?.totalStock ?? 0).toLocaleString('es-PE')} icon="inbox" color="#22C55E" />
+            <StatCard label="Usuarios Activos" value={stats?.totalUsuarios ?? 0}                        icon="users" color="#A855F7" />
+          </>
+        )}
+      </div>
+
+      <div className="mt-6 bg-gs-surface border border-gs-border rounded-xl p-4 md:p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-semibold text-gs-text">Tendencia de ventas</h2>
+            <p className="text-xs text-gs-muted">Últimos 6 meses</p>
+          </div>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard
-            label="Total Equipos"
-            value={stats?.totalEquipos ?? 0}
-            icon="box"
-            color="#00C9A7"
-          />
-          <StatCard
-            label="Total Ventas"
-            value={(stats?.totalVentas ?? 0).toLocaleString('es-PE')}
-            icon="chart"
-            color="#0EA5E9"
-          />
-          <StatCard
-            label="En Stock"
-            value={(stats?.totalStock ?? 0).toLocaleString('es-PE')}
-            icon="inbox"
-            color="#22C55E"
-          />
-          <StatCard
-            label="Usuarios Activos"
-            value={stats?.totalUsuarios ?? 0}
-            icon="users"
-            color="#A855F7"
-          />
-        </div>
-      )}
+        {isLoading ? (
+          <SkeletonBlock className="h-52 w-full" />
+        ) : hasSalesTrend ? (
+          <ResponsiveContainer width="100%" height={220}>
+            <AreaChart data={monthlySales} margin={{ top: 8, right: 8, bottom: 0, left: -12 }}>
+              <defs>
+                <linearGradient id="gsDashboardArea" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%"   stopColor="#00C9A7" stopOpacity={0.55} />
+                  <stop offset="100%" stopColor="#00C9A7" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" vertical={false} />
+              <XAxis dataKey="mes" stroke="#6B7280" fontSize={11} tickLine={false} axisLine={false} />
+              <YAxis stroke="#6B7280" fontSize={11} tickLine={false} axisLine={false} width={44} />
+              <Tooltip
+                contentStyle={{ backgroundColor: '#0d0f14', border: '1px solid #1f2937', borderRadius: 8, fontSize: 12 }}
+                labelStyle={{ color: '#9ca3af' }}
+                formatter={(v) => [`S/ ${Number(v).toLocaleString('es-PE')}`, 'Monto']}
+              />
+              <Area type="monotone" dataKey="monto" stroke="#00C9A7" strokeWidth={2} fill="url(#gsDashboardArea)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="h-52 flex flex-col items-center justify-center text-gs-muted text-sm">
+            <p className="mb-1">Aún no hay ventas registradas.</p>
+            <Link to="/dashboard/sales" className="text-gs-accent hover:underline">Registrar una venta →</Link>
+          </div>
+        )}
+      </div>
 
       {links.length > 0 && (
-        <div className="mt-8">
+        <div className="mt-6">
           <div className="bg-gs-surface rounded-xl p-4 md:p-6 border border-gs-border">
             <h2 className="text-lg font-semibold text-gs-text mb-4">
               Accesos rápidos
