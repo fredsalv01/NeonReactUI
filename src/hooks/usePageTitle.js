@@ -78,6 +78,13 @@ const PREFIX_CONFIG = [
     },
   },
   {
+    prefix: '/p/boleta/',
+    config: {
+      title: 'Comprobante - GeoStock',
+      description: 'Consulta pública de una boleta de venta.',
+    },
+  },
+  {
     prefix: '/p/equipo/',
     config: {
       title: 'Public Equipment View - GeoStock',

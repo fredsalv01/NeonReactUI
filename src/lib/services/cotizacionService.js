@@ -4,6 +4,7 @@ const COT_SELECT = `
   id, fecha, total, estado, notas, venta_id, created_at, updated_at,
   cliente_id, cliente, cliente_tipo_doc, cliente_nro_doc, cliente_telefono, cliente_email,
   perfiles:usuario_id(id, nombre, email),
+  clientes:cliente_id(direccion),
   cotizaciones_items(
     id, equipo_id, cantidad, precio_unitario, subtotal, created_at,
     equipos:equipo_id(id, nombre, tipo, imagen_url)

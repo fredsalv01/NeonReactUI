@@ -1,6 +1,7 @@
 import { supabase } from '../supabase'
 
 // Los productos viven en venta_items; la venta es solo la cabecera.
+// cliente_* (incl. cliente_direccion) son copia del cliente al emitir: la boleta no cambia.
 const VENTA_SELECT = `
   *,
   perfiles(id, nombre, email),
@@ -31,6 +32,7 @@ function mapUIDataToUpdate(ventaData) {
   if (ventaData.cliente_nro_doc !== undefined) obj.cliente_nro_doc = ventaData.cliente_nro_doc
   if (ventaData.cliente_telefono !== undefined) obj.cliente_telefono = ventaData.cliente_telefono
   if (ventaData.cliente_email !== undefined) obj.cliente_email = ventaData.cliente_email
+  if (ventaData.cliente_direccion !== undefined) obj.cliente_direccion = ventaData.cliente_direccion
   return obj
 }
 

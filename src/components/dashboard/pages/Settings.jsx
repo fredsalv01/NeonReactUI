@@ -10,6 +10,7 @@ const FIELDS = [
   { key: 'empresa_direccion',    label: 'Dirección' },
   { key: 'empresa_telefono',     label: 'Teléfono comercial' },
   { key: 'empresa_email',        label: 'Email comercial', type: 'email' },
+  { key: 'lugar_emision',        label: 'Lugar de emisión (boletas)' },
   { key: 'boleta_pie',           label: 'Pie de boleta', textarea: true },
   { key: 'igv_pct',              label: 'IGV % (sin símbolo)', type: 'number' },
 ]

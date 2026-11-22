@@ -97,6 +97,7 @@ export const CotizacionDetailsDrawer = ({ open, cotizacion, onClose, loading }) 
     cliente: clienteNombre,
     cliente_tipo_doc: cotizacion.cliente_tipo_doc,
     cliente_nro_doc: cotizacion.cliente_nro_doc,
+    clientes: cotizacion.clientes,
     perfiles: cotizacion.perfiles,
     descripcion: cotizacion.notas,
   }

@@ -106,9 +106,10 @@ describe('ventaService', () => {
         monto_total: 99999,
         descripcion: 'cambiada',
         cliente: 'ACME',
+        cliente_direccion: 'Av. Larco 123',
       })
 
-      expect(q.update.mock.calls[0][0]).toEqual({ notas: 'cambiada', cliente: 'ACME' })
+      expect(q.update.mock.calls[0][0]).toEqual({ notas: 'cambiada', cliente: 'ACME', cliente_direccion: 'Av. Larco 123' })
     })
 
     it('lanza cuando hay error', async () => {

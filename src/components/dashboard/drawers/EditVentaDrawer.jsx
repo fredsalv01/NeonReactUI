@@ -17,6 +17,7 @@ const EDITABLE = [
   { key: 'cliente_nro_doc',  label: 'N° doc' },
   { key: 'cliente_telefono', label: 'Teléfono' },
   { key: 'cliente_email',    label: 'Email',           type: 'email' },
+  { key: 'cliente_direccion', label: 'Dirección' },
 ]
 
 const emptyForm = () =>

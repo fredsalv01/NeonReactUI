@@ -16,6 +16,7 @@ import {
 } from './components/dashboard'
 
 const PublicEquipoPage    = lazy(() => import('./pages/PublicEquipoPage').then(m => ({ default: m.PublicEquipoPage })))
+const PublicBoletaPage    = lazy(() => import('./pages/PublicBoletaPage').then(m => ({ default: m.PublicBoletaPage })))
 const ModalDebugPage      = lazy(() => import('./pages/ModalDebugPage').then(m => ({ default: m.ModalDebugPage })))
 const Dashboard           = lazy(() => import('./components/dashboard/pages/Dashboard').then(m => ({ default: m.Dashboard })))
 const Inventory           = lazy(() => import('./components/dashboard/pages/Inventory').then(m => ({ default: m.Inventory })))
@@ -84,6 +85,7 @@ function AppContent() {
 
       {/* Vista pública del QR — sin auth, mobile-first */}
       <Route path="/p/equipo/:id" element={<PublicEquipoPage />} />
+      <Route path="/p/boleta/:token" element={<PublicBoletaPage />} />
 
       <Route path="/login" element={<Login />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
