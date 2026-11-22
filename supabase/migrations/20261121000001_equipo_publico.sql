@@ -8,25 +8,27 @@
 BEGIN;
 
 CREATE OR REPLACE FUNCTION fn_equipo_publico(p_id text)
-RETURNS TABLE (id text, nombre text, tipo text, descripcion text, imagen_url text)
+RETURNS TABLE (id text, nombre text, tipo text, imagen_url text)
 LANGUAGE sql
 STABLE
 SECURITY DEFINER
 SET search_path = public
 AS $$
-  SELECT e.id::text, e.nombre::text, e.tipo::text, e.descripcion::text, e.imagen_url::text
+  SELECT e.id, e.nombre, e.tipo, e.imagen_url
     FROM equipos e
    WHERE e.id = p_id
      AND e.active IS TRUE
 $$;
 
+ALTER FUNCTION fn_equipo_publico(text) OWNER TO postgres;  -- SECURITY DEFINER: corre como su dueño
 REVOKE ALL ON FUNCTION fn_equipo_publico(text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION fn_equipo_publico(text) TO anon, authenticated;
 
--- Sin sesión no se lee stock ni precios directo. `authenticated` no se toca.
+-- Sin sesión no se lee ni se escribe stock/precios directo. `authenticated` no se toca.
+-- (stock_almacen no tiene RLS: con el grant por defecto, anon podía hasta borrar stock)
 -- ponytail: solo objetos de inventario; el resto de tablas sigue con el grant
 -- por defecto de Supabase a anon → cerrar en bloque cuando entre RLS.
-REVOKE SELECT ON v_equipos_con_stock, equipos, stock_almacen, kardex FROM anon;
+REVOKE ALL ON v_equipos_con_stock, equipos, stock_almacen, kardex FROM anon;
 
 COMMIT;
 

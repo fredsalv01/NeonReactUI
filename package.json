@@ -13,6 +13,7 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
     "test:e2e": "playwright test",
+    "db:migrate": "node scripts/seed.mjs && npx supabase db push --remote --include-seed",
     "prepare": "husky install",
     "commit": "cz commit",
     "commitlint": "commitlint",

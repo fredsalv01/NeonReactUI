@@ -27,6 +27,8 @@ dist-ssr
 .env
 .env.local
 .env.*.local
+# Generado por scripts/seed.mjs con el password del admin
+supabase/seed.sql
 
 # Unlighthouse
 .unlighthouse/
@@ -86,3 +88,7 @@ TASK_*.md
 
 # Working notes — privadas entre Freddy y Claude
 NEXT_STEPS_TO_IMPLEMENT.md
+
+supabase
+scripts
+supabase/.temp
