@@ -22,7 +22,7 @@ const ClearFiltersButton = ({ onClear, active, className = '' }) => {
       variant="ghost"
       onClick={handleClick}
       disabled={!active}
-      className={`inline-flex items-center justify-center gap-2 whitespace-nowrap disabled:opacity-40 disabled:pointer-events-none ${className}`}
+      className={`inline-flex items-center justify-center gap-2 whitespace-nowrap ${className}`}
     >
       <Icon name="x" size={14} />
       Limpiar filtros

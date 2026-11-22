@@ -303,7 +303,7 @@ const Select = ({
           className="flex items-center gap-0.5 shrink-0 ml-auto pl-1"
           onMouseDown={e => e.preventDefault()}   // keep input focus
         >
-          {clearable && hasValue && !open && (
+          {clearable && hasValue && !open && !disabled && (
             <button
               type="button"
               onMouseDown={clearValue}

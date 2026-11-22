@@ -60,7 +60,7 @@
     @apply bg-gs-accent text-gs-bg font-bold rounded-lg px-5 py-2.5 text-sm
            transition-all duration-200 cursor-pointer border-none
            hover:brightness-110 hover:-translate-y-px hover:shadow-lg hover:shadow-gs-accent/20
-           active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed;
+           active:translate-y-0;
   }
   .btn-ghost {
     @apply bg-transparent text-gs-soft font-semibold rounded-lg px-4 py-2.5 text-sm
@@ -71,6 +71,13 @@
     @apply bg-gs-danger/10 text-gs-danger font-semibold rounded-lg px-4 py-2
            border border-gs-danger/25 text-sm transition-all duration-200 cursor-pointer
            hover:bg-gs-danger/20;
+  }
+  /* Deshabilitado: atenuado y sin hover — antes ghost/danger reaccionaban al
+     mouse y un botón bloqueado parecía usable. Va después para ganar la cascada. */
+  .btn-primary:disabled,
+  .btn-ghost:disabled,
+  .btn-danger:disabled {
+    @apply opacity-50 pointer-events-none;
   }
   .badge {
     @apply inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px]
