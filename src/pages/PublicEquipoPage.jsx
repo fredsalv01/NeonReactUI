@@ -86,15 +86,6 @@ export const PublicEquipoPage = () => {
               </p>
               <h1 className="text-2xl font-bold text-gs-text leading-tight">{equipo.nombre}</h1>
             </div>
-
-            {equipo.descripcion && (
-              <div>
-                <p className="text-[11px] font-['DM_Mono'] uppercase text-gs-soft mb-2 tracking-wider">
-                  Descripción
-                </p>
-                <p className="text-sm text-gs-text/90 leading-relaxed">{equipo.descripcion}</p>
-              </div>
-            )}
           </div>
         )}
       </main>

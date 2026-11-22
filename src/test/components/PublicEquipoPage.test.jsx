@@ -15,7 +15,7 @@ import { PublicEquipoPage } from '../../pages/PublicEquipoPage'
 describe('PublicEquipoPage', () => {
   it('usa la RPC pública y no muestra stock aunque llegue en la respuesta', async () => {
     supabase.rpc.mockReturnValue(makeQuery({
-      data: { id: 'EQ-001', nombre: 'Estación Total', tipo: 'Topografía', descripcion: 'Precisión 2"', imagen_url: null, stock_total: 99 },
+      data: { id: 'EQ-001', nombre: 'Estación Total', tipo: 'Topografía', imagen_url: null, stock_total: 99 },
       error: null,
     }))
 
