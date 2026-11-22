@@ -8,7 +8,7 @@ import { supabase } from '../supabase'
 // Para cambiar contraseña desde el cliente, agregar esta RPC en Supabase
 // → SQL Editor (sigue el mismo patrón SECURITY DEFINER):
 //
-//   CREATE OR REPLACE FUNCTION public.fn_cambiar_password(
+//   CREATE OR REPLACE FUNCTION public.fn_cambiar_password_admin(
 //     p_user_id uuid,
 //     p_password text
 //   )
@@ -25,7 +25,7 @@ import { supabase } from '../supabase'
 //   END;
 //   $$;
 //
-//   GRANT EXECUTE ON FUNCTION public.fn_cambiar_password TO authenticated;
+//   GRANT EXECUTE ON FUNCTION public.fn_cambiar_password_admin TO authenticated;
 //
 // IMPORTANTE: restringir con RLS o checking dentro de la función para
 // que solo Administradores puedan llamarla. Ejemplo:
@@ -126,7 +126,7 @@ export const actualizarUsuario = async ({ id, nombre, rol_id }) => {
 
 // Cambio de contraseña via RPC (ver SQL al inicio del archivo)
 export const cambiarPassword = async ({ id, password }) => {
-  const { error } = await supabase.rpc('fn_cambiar_password', {
+  const { error } = await supabase.rpc('fn_cambiar_password_admin', {
     p_user_id:  id,
     p_password: password,
   })
