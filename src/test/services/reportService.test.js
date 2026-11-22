@@ -217,8 +217,10 @@ describe('reportService', () => {
       const result = await reportService.getInventoryStatusBreakdown()
       const sinStock = result.find(r => r.name === 'Sin Stock')
       const disp = result.find(r => r.name === 'Disponible')
-      expect(sinStock.percent).toBe(50)
-      expect(disp.percent).toBe(50)
+      expect(sinStock.porcentaje).toBe(50)
+      expect(disp.porcentaje).toBe(50)
+      // no colisionar con el `percent` (0-1) que Recharts inyecta en label/tooltip
+      expect(sinStock).not.toHaveProperty('percent')
     })
   })
 })

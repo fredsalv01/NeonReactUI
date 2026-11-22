@@ -201,7 +201,8 @@ export const reportService = {
     return Object.entries(grouped).map(([name, value]) => ({
       name,
       value,
-      percent: total > 0 ? +((value / total) * 100).toFixed(1) : 0,
+      // `porcentaje` y no `percent`: Recharts usa `percent` (0-1) y el nuestro lo pisaba (→ 10000%)
+      porcentaje: total > 0 ? +((value / total) * 100).toFixed(1) : 0,
     }))
   },
 

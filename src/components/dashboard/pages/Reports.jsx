@@ -202,7 +202,7 @@ export const Reports = () => {
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(1)}%)`}
+                      label={({ name, value, porcentaje }) => `${name}: ${value} (${porcentaje}%)`}
                       outerRadius={80}
                       innerRadius={50}
                       fill="#82ca9d"
@@ -212,7 +212,7 @@ export const Reports = () => {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value, _name, item) => [`${value} equipo(s) — ${item?.payload?.percent ?? 0}%`, item?.payload?.name]} />
+                    <Tooltip formatter={(value, _name, item) => [`${value} equipo(s) — ${item?.payload?.porcentaje ?? 0}%`, item?.payload?.name]} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
