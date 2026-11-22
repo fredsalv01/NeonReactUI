@@ -68,6 +68,16 @@ export const SalesDetailsDrawer = ({ open, venta, onClose, loading }) => {
         </div>
       ) : (
         <div className="space-y-6">
+          {venta.estado === 'anulada' && (
+            <div className="p-3 rounded-lg border border-gs-danger/30 bg-gs-danger/10 text-sm space-y-1">
+              <p className="font-semibold text-gs-danger">Venta anulada</p>
+              <p className="text-gs-soft">
+                {new Date(venta.anulada_at).toLocaleString('es-PE')} · {venta.anulador?.nombre || '—'}
+              </p>
+              <p className="text-gs-text">Motivo: {venta.motivo_anulacion}</p>
+            </div>
+          )}
+
           {/* Master info */}
           <div className="grid grid-cols-2 gap-4">
             <InfoRow label="ID Venta" value={`#${venta.id}`} mono />

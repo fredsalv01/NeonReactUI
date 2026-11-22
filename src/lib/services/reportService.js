@@ -40,6 +40,7 @@ export const reportService = {
     const { data, error } = await supabase
       .from('ventas')
       .select('total, created_at')
+      .neq('estado', 'anulada')
       .gte('created_at', startDate)
       .lte('created_at', endDate)
       .order('created_at', { ascending: true })
@@ -55,7 +56,8 @@ export const reportService = {
   async getTopSellingProducts(limit = 5) {
     const { data, error } = await supabase
       .from('venta_items')
-      .select('venta_id, equipo_id, cantidad')
+      .select('venta_id, equipo_id, cantidad, ventas!inner(estado)')
+      .neq('ventas.estado', 'anulada')
 
     if (error) throw error
 
@@ -118,6 +120,7 @@ export const reportService = {
     const { data: salesData, error: salesError } = await supabase
       .from('ventas')
       .select('total, created_at, venta_items(cantidad)')
+      .neq('estado', 'anulada')
 
     if (salesError) throw salesError
 
@@ -157,7 +160,8 @@ export const reportService = {
   async getCategoriesBreakdown() {
     const { data, error } = await supabase
       .from('venta_items')
-      .select('subtotal, equipo_id')
+      .select('subtotal, equipo_id, ventas!inner(estado)')
+      .neq('ventas.estado', 'anulada')
 
     if (error) throw error
 
@@ -223,6 +227,7 @@ export const reportService = {
     const { data, error } = await supabase
       .from('ventas')
       .select('total, created_at')
+      .neq('estado', 'anulada')
       .order('created_at', { ascending: true })
 
     if (error) throw error

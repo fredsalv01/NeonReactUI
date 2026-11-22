@@ -95,43 +95,43 @@ describe('ventaService', () => {
     })
   })
 
-  describe('updateVenta', () => {
-    it('solo escribe cabecera: ignora ítems y `total` (lo calcula el trigger)', async () => {
-      const q = makeQuery({ data: { id: 5, total: 100 }, error: null })
-      supabase.from.mockReturnValue(q)
+  describe('ventas inmutables', () => {
+    it('no expone update ni delete: una boleta emitida solo se anula', () => {
+      expect(ventaService.updateVenta).toBeUndefined()
+      expect(ventaService.deleteVenta).toBeUndefined()
+    })
 
-      await ventaService.updateVenta(5, {
-        cantidad: 2,          // ítems no se editan desde aquí
-        precio_unitario: 50,
-        monto_total: 99999,
-        descripcion: 'cambiada',
-        cliente: 'ACME',
-        cliente_direccion: 'Av. Larco 123',
+    it('embeds de perfiles por columna (ventas tiene 2 FKs a perfiles; sin hint PostgREST falla)', async () => {
+      const q = makeQuery({ data: [], error: null })
+      supabase.from.mockReturnValue(q)
+      await ventaService.getVentas()
+      const select = q.select.mock.calls[0][0]
+      expect(select).toMatch(/perfiles:vendido_por\(/)
+      expect(select).toMatch(/anulador:anulada_por\(/)
+      expect(select).not.toMatch(/(^|[\s,])perfiles\(/)
+    })
+  })
+
+  describe('anularVenta (RPC fn_anular_venta)', () => {
+    it('llama al RPC con id y motivo y devuelve la venta re-fetcheada', async () => {
+      supabase.rpc.mockResolvedValue({ data: null, error: null })
+      supabase.from.mockReturnValue(makeQuery({
+        data: { id: 5, total: 100, estado: 'anulada' },
+        error: null,
+      }))
+
+      const result = await ventaService.anularVenta(5, 'Datos del cliente incorrectos')
+
+      expect(supabase.rpc).toHaveBeenCalledWith('fn_anular_venta', {
+        p_venta_id: 5,
+        p_motivo: 'Datos del cliente incorrectos',
       })
-
-      expect(q.update.mock.calls[0][0]).toEqual({ notas: 'cambiada', cliente: 'ACME', cliente_direccion: 'Av. Larco 123' })
+      expect(result.estado).toBe('anulada')
     })
 
-    it('lanza cuando hay error', async () => {
-      supabase.from.mockReturnValue(makeQuery({ data: null, error: { message: 'fail' } }))
-      await expect(ventaService.updateVenta(1, { descripcion: 'x' })).rejects.toBeTruthy()
-    })
-  })
-
-  describe('deleteVenta', () => {
-    it('borra por id', async () => {
-      const q = makeQuery({ data: null, error: null })
-      supabase.from.mockReturnValue(q)
-      await ventaService.deleteVenta(5)
-      expect(q.delete).toHaveBeenCalled()
-      expect(q.eq).toHaveBeenCalledWith('id', 5)
-    })
-  })
-
-  describe('updateVentaStatus', () => {
-    it('es no-op (tabla ventas no tiene columna active)', async () => {
-      const result = await ventaService.updateVentaStatus(1, false)
-      expect(result).toBeUndefined()
+    it('lanza si el RPC falla (p.ej. ya anulada)', async () => {
+      supabase.rpc.mockResolvedValue({ data: null, error: { message: 'La venta 5 ya está anulada' } })
+      await expect(ventaService.anularVenta(5, 'motivo')).rejects.toBeTruthy()
       expect(supabase.from).not.toHaveBeenCalled()
     })
   })

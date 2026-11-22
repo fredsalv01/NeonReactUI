@@ -2,9 +2,11 @@ import { supabase } from '../supabase'
 
 // Los productos viven en venta_items; la venta es solo la cabecera.
 // cliente_* (incl. cliente_direccion) son copia del cliente al emitir: la boleta no cambia.
+// Embeds por columna: ventas tiene 2 FKs a perfiles (vendido_por, anulada_por) y sin hint PostgREST falla.
 const VENTA_SELECT = `
   *,
-  perfiles(id, nombre, email),
+  perfiles:vendido_por(id, nombre, email),
+  anulador:anulada_por(nombre),
   venta_items(id, equipo_id, cantidad, precio_unitario, subtotal, equipos(id, nombre, tipo, imagen_url))
 `
 
@@ -21,21 +23,8 @@ function mapVentaRowToUI(venta) {
   }
 }
 
-// Solo cabecera: los ítems no se editan (tocarían kardex/stock).
-// `total` lo recalcula el trigger desde venta_items.
-function mapUIDataToUpdate(ventaData) {
-  const obj = {}
-  if (ventaData.descripcion !== undefined) obj.notas = ventaData.descripcion
-  if (ventaData.notas !== undefined) obj.notas = ventaData.notas
-  if (ventaData.cliente !== undefined) obj.cliente = ventaData.cliente
-  if (ventaData.cliente_tipo_doc !== undefined) obj.cliente_tipo_doc = ventaData.cliente_tipo_doc
-  if (ventaData.cliente_nro_doc !== undefined) obj.cliente_nro_doc = ventaData.cliente_nro_doc
-  if (ventaData.cliente_telefono !== undefined) obj.cliente_telefono = ventaData.cliente_telefono
-  if (ventaData.cliente_email !== undefined) obj.cliente_email = ventaData.cliente_email
-  if (ventaData.cliente_direccion !== undefined) obj.cliente_direccion = ventaData.cliente_direccion
-  return obj
-}
-
+// Ventas inmutables: no hay update ni delete (la base tampoco los permite).
+// Para corregir una boleta se anula y se emite otra.
 export const ventaService = {
   async getVentas() {
     const { data, error } = await supabase
@@ -86,29 +75,10 @@ export const ventaService = {
     return full ? mapVentaRowToUI(full) : null
   },
 
-  async updateVenta(id, ventaData) {
-    const { data, error } = await supabase
-      .from('ventas')
-      .update(mapUIDataToUpdate(ventaData))
-      .eq('id', id)
-      .select(VENTA_SELECT)
-      .single()
-
+  // RPC fn_anular_venta (1 tx): marca 'anulada' + devuelve stock con entrada en kardex.
+  async anularVenta(id, motivo) {
+    const { error } = await supabase.rpc('fn_anular_venta', { p_venta_id: id, p_motivo: motivo })
     if (error) throw error
-    return data ? mapVentaRowToUI(data) : null
-  },
-
-  async deleteVenta(id) {
-    const { error } = await supabase
-      .from('ventas')
-      .delete()
-      .eq('id', id)
-
-    if (error) throw error
-  },
-
-  // NOTA: la tabla `ventas` no tiene columna `active`. No-op hasta definir estrategia de status.
-  async updateVentaStatus(_id, _active) {
-    return
+    return this.getVentaById(id)
   },
 }

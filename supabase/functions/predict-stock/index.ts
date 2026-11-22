@@ -74,7 +74,8 @@ async function loadInventoryRows(sb: any): Promise<Row[]> {
       .select('id, nombre, tipo, stock_total')
       .eq('active', true),
     sb.from('venta_items')
-      .select('equipo_id, cantidad, created_at')
+      .select('equipo_id, cantidad, created_at, ventas!inner(estado)')
+      .neq('ventas.estado', 'anulada')
       .gte('created_at', since),
   ])
   if (e1) throw e1

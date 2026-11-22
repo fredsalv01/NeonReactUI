@@ -17,10 +17,9 @@ import {
   useToast
 } from '../../ui'
 import { SalesDetailsDrawer } from '../drawers/SalesDetailsDrawer'
-import { EditVentaDrawer } from '../drawers/EditVentaDrawer'
 import { CreateVentaModal } from '../modals/CreateVentaModal'
 import { PAGE_SIZES } from '../../../lib/constants/inventoryConstants'
-import { FiPlus, FiTrash2, FiEye, FiEdit2 } from 'react-icons/fi'
+import { FiPlus, FiSlash, FiEye } from 'react-icons/fi'
 import { humanizeError } from '../../../lib/utils/errors'
 
 export const Sales = () => {
@@ -39,22 +38,20 @@ export const Sales = () => {
   // Modal States
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [detailsDrawerOpen, setDetailsDrawerOpen] = useState(false)
-  const [editDrawerOpen, setEditDrawerOpen] = useState(false)
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [anularOpen, setAnularOpen] = useState(false)
   const [selectedVenta, setSelectedVenta] = useState(null)
-  const [isDeleting, setIsDeleting] = useState(false)
+  const [isAnulando, setIsAnulando] = useState(false)
 
   // Stable callbacks
   const handleCloseCreateModal = useCallback(() => setCreateModalOpen(false), [])
   const handleCloseDetailsDrawer = useCallback(() => setDetailsDrawerOpen(false), [])
-  const handleCloseEditDrawer = useCallback(() => setEditDrawerOpen(false), [])
 
   // Data from store
   const ventas = useSalesStore(state => state.ventas)
   const isLoading = useSalesStore(state => state.isLoading)
   const error = useSalesStore(state => state.error)
   const fetchVentas = useSalesStore(state => state.fetchVentas)
-  const deleteVenta = useSalesStore(state => state.deleteVenta)
+  const anularVenta = useSalesStore(state => state.anularVenta)
 
   // Load ventas on mount
   useEffect(() => {
@@ -115,6 +112,9 @@ export const Sales = () => {
     })
   }, [ventas, searchTerm, filterCategoria, filterTipo, filterDate])
 
+  // Totales del header: las anuladas no suman (siguen visibles en la tabla)
+  const ventasEmitidas = useMemo(() => ventas.filter((v) => v && !isAnulada(v)), [ventas])
+
   const hasFilters = !!searchTerm || !!filterCategoria || !!filterTipo || filterDate instanceof Date
   const clearFilters = () => {
     setSearchTerm('')
@@ -141,34 +141,30 @@ export const Sales = () => {
     setDetailsDrawerOpen(true)
   }
 
-  const handleOpenEdit = (venta) => {
+  // Ventas inmutables: no se editan ni se borran, solo se anulan.
+  const handleAnularClick = (venta) => {
     setSelectedVenta(venta)
-    setEditDrawerOpen(true)
+    setAnularOpen(true)
   }
 
-  const handleDeleteClick = (venta) => {
-    setSelectedVenta(venta)
-    setDeleteConfirmOpen(true)
-  }
-
-  const handleConfirmDelete = async () => {
+  const handleConfirmAnular = async (motivo) => {
     if (!selectedVenta) return
 
-    setIsDeleting(true)
+    setIsAnulando(true)
     try {
-      await deleteVenta(selectedVenta.id)
-      toast.success('Venta eliminada correctamente')
-      setDeleteConfirmOpen(false)
+      await anularVenta(selectedVenta.id, motivo)
+      toast.success(`Venta #${selectedVenta.id} anulada; el stock volvió al almacén`)
+      setAnularOpen(false)
       setSelectedVenta(null)
     } catch (err) {
-      toast.error(humanizeError(err, 'No se pudo completar la operación'))
+      toast.error(humanizeError(err, 'No se pudo anular la venta'))
     } finally {
-      setIsDeleting(false)
+      setIsAnulando(false)
     }
   }
 
-  const handleCancelDelete = () => {
-    setDeleteConfirmOpen(false)
+  const handleCancelAnular = () => {
+    setAnularOpen(false)
     setSelectedVenta(null)
   }
 
@@ -199,8 +195,7 @@ export const Sales = () => {
             <ActionButtons
               venta={row}
               onDetailsClick={handleOpenDetails}
-              onEditClick={handleOpenEdit}
-              onDeleteClick={handleDeleteClick}
+              onAnularClick={handleAnularClick}
             />
           )}
         />
@@ -241,8 +236,8 @@ export const Sales = () => {
         <HeaderSkeleton />
       ) : (
         <Header
-          totalVentas={ventas.length}
-          totalMonto={ventas.reduce((sum, v) => sum + (v.monto_total || 0), 0)}
+          totalVentas={ventasEmitidas.length}
+          totalMonto={ventasEmitidas.reduce((sum, v) => sum + (Number(v.monto_total) || 0), 0)}
           onAddClick={() => setCreateModalOpen(true)}
         />
       )}
@@ -286,22 +281,12 @@ export const Sales = () => {
         onClose={handleCloseDetailsDrawer}
       />
 
-      <EditVentaDrawer
-        open={editDrawerOpen}
+      <AnularVentaModal
+        open={anularOpen}
         venta={selectedVenta}
-        onClose={handleCloseEditDrawer}
-        onSuccess={() => {
-          setEditDrawerOpen(false)
-          setSelectedVenta(null)
-        }}
-      />
-
-      <DeleteConfirmModal
-        open={deleteConfirmOpen}
-        venta={selectedVenta}
-        isDeleting={isDeleting}
-        onConfirm={handleConfirmDelete}
-        onCancel={handleCancelDelete}
+        isAnulando={isAnulando}
+        onConfirm={handleConfirmAnular}
+        onCancel={handleCancelAnular}
       />
     </div>
   )
@@ -444,7 +429,7 @@ const EmptyState = ({ hasFilters }) => (
   </div>
 )
 
-const ActionButtons = ({ venta, onDetailsClick, onEditClick, onDeleteClick }) => (
+const ActionButtons = ({ venta, onDetailsClick, onAnularClick }) => (
   <div className="flex items-center gap-2">
     <Tooltip content="Ver detalles">
       <button
@@ -454,22 +439,17 @@ const ActionButtons = ({ venta, onDetailsClick, onEditClick, onDeleteClick }) =>
         <FiEye size={16} />
       </button>
     </Tooltip>
-    <Tooltip content="Editar venta">
-      <button
-        onClick={() => onEditClick(venta)}
-        className="p-1.5 text-gs-soft hover:text-amber-400 hover:bg-gs-border rounded transition-colors"
-      >
-        <FiEdit2 size={16} />
-      </button>
-    </Tooltip>
-    <Tooltip content="Eliminar venta">
-      <button
-        onClick={() => onDeleteClick(venta)}
-        className="p-1.5 text-gs-soft hover:text-gs-danger hover:bg-gs-border rounded transition-colors"
-      >
-        <FiTrash2 size={16} />
-      </button>
-    </Tooltip>
+    {!isAnulada(venta) && (
+      <Tooltip content="Anular venta">
+        <button
+          onClick={() => onAnularClick(venta)}
+          className="p-1.5 text-gs-soft hover:text-gs-danger hover:bg-gs-border rounded transition-colors"
+          aria-label={`Anular venta #${venta.id}`}
+        >
+          <FiSlash size={16} />
+        </button>
+      </Tooltip>
+    )}
   </div>
 )
 
@@ -503,49 +483,69 @@ const PaginationSection = ({
   </div>
 )
 
-const DeleteConfirmModal = ({ open, venta, isDeleting, onConfirm, onCancel }) => {
+const MOTIVO_MIN = 5
+
+const AnularVentaModal = ({ open, venta, isAnulando, onConfirm, onCancel }) => {
+  const [motivo, setMotivo] = useState('')
+  useEffect(() => { if (open) setMotivo('') }, [open])
+
   if (!open || !venta) return null
+  const motivoValido = motivo.trim().length >= MOTIVO_MIN
 
   return (
     <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
-      <div className="bg-gs-card border border-gs-border rounded-lg shadow-xl max-w-sm w-full p-6 space-y-4">
+      <div className="bg-gs-card border border-gs-border rounded-lg shadow-xl max-w-md w-full p-6 space-y-4">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-gs-danger/10 rounded-lg">
-            <Icon name="warning" size={20} color="var(--gs-danger)" />
+            <Icon name="alert" size={20} color="var(--gs-danger)" />
           </div>
           <div>
-            <h3 className="font-semibold text-gs-text">Eliminar Venta</h3>
+            <h3 className="font-semibold text-gs-text">Anular venta #{venta.id}</h3>
             <p className="text-sm text-gs-soft">Esta acción no se puede deshacer</p>
           </div>
         </div>
 
         <p className="text-sm text-gs-text">
-          ¿Estás seguro de que deseas eliminar la venta <strong>#{venta.id}</strong>?
+          La boleta quedará registrada como <strong>ANULADA</strong> (no se borra) y el
+          stock de sus productos volverá al almacén. Para corregirla, emite una venta nueva.
         </p>
 
+        <label className="block space-y-1.5">
+          <span className="text-xs text-gs-soft font-['DM_Mono'] uppercase">Motivo de anulación *</span>
+          <textarea
+            value={motivo}
+            onChange={(e) => setMotivo(e.target.value)}
+            rows={3}
+            maxLength={300}
+            placeholder="Ej.: datos del cliente incorrectos, se reemite como venta #…"
+            className="w-full px-3 py-2 bg-gs-bg border border-gs-border rounded-lg text-gs-text text-sm"
+            disabled={isAnulando}
+            autoFocus
+          />
+          {!motivoValido && motivo.length > 0 && (
+            <span className="text-xs text-gs-danger">Mínimo {MOTIVO_MIN} caracteres</span>
+          )}
+        </label>
+
         <div className="flex gap-3 justify-end pt-2">
-          <Button
-            variant="ghost"
-            onClick={onCancel}
-            disabled={isDeleting}
-          >
+          <Button variant="ghost" onClick={onCancel} disabled={isAnulando}>
             Cancelar
           </Button>
           <Button
             variant="danger"
-            onClick={onConfirm}
-            disabled={isDeleting}
+            onClick={() => onConfirm(motivo.trim())}
+            disabled={isAnulando || !motivoValido}
             className="flex items-center gap-2"
           >
-            {isDeleting ? (
+            {isAnulando ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                <span>Eliminando...</span>
+                <span>Anulando...</span>
               </>
             ) : (
               <>
-                <Icon name="trash" size={16} />
-                <span>Sí, Eliminar</span>
+                <FiSlash size={16} />
+                <span>Sí, anular</span>
               </>
             )}
           </Button>
@@ -572,6 +572,8 @@ const matchesSearchTerm = (venta, searchTerm) => {
     String(venta.id ?? '').toLowerCase().includes(term)
   )
 }
+
+const isAnulada = (venta) => venta?.estado === 'anulada'
 
 // items helpers — los productos de una venta viven en venta_items
 const itemsOf = (row) => row.venta_items || []
@@ -620,8 +622,17 @@ const getTableColumns = () => [
     render: (_, row) => {
       const n = Number(row.monto_total ?? row.total)
       const text = Number.isFinite(n) ? `$${n.toFixed(2)}` : '$0.00'
-      return <span className="font-semibold text-green-400">{text}</span>
+      return isAnulada(row)
+        ? <span className="text-gs-muted line-through">{text}</span>
+        : <span className="font-semibold text-green-400">{text}</span>
     }
+  },
+  {
+    key: 'estado',
+    label: 'Estado',
+    render: (_, row) => isAnulada(row)
+      ? <span className="badge badge-err">Anulada</span>
+      : <span className="badge badge-ok">Emitida</span>
   },
   {
     key: 'created_at',

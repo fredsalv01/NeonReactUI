@@ -1,6 +1,7 @@
 import { forwardRef, useEffect, useState } from 'react'
 import QRCodeLib from 'qrcode'
 import { montoEnLetras } from '../../../lib/utils/montoEnLetras'
+import logoGeostock from '../../../assets/logo-geostock.png'
 
 // Layout de impresión para una venta. Estilos inline para que html2pdf
 // no dependa de Tailwind ni de variables CSS del shell oscuro.
@@ -12,16 +13,12 @@ const C = {
   soft: '#EEF8F6',
   text: '#111',
   muted: '#555',
+  danger: '#C62828',
 }
 
-// Mismo logo que public/favicon.svg, embebido para que html2canvas no dependa de la red
-const LOGO = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
-  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
-  + '<rect width="32" height="32" rx="8" fill="#00C9A7"/>'
-  + '<circle cx="16" cy="16" r="10" fill="none" stroke="#0D0F14" stroke-width="2"/>'
-  + '<path d="M20.2 11.8l-2.8 8.4-8.4 2.8 2.8-8.4 8.4-2.8z" fill="#0D0F14"/>'
-  + '</svg>'
-)}`
+// PNG (rasterizado de public/favicon.svg), no SVG: html2canvas dibuja un SVG sin
+// tamaño intrínseco como 300×150 y lo recorta — en el PDF salía solo una esquina.
+const LOGO = logoGeostock
 
 const S = {
   page: {
@@ -128,6 +125,7 @@ export const BoletaPdf = forwardRef(({ venta, config, documento = 'BOLETA DE VEN
   const nroDoc = venta.cliente_nro_doc || venta.clientes?.nro_doc
   const direccion = venta.cliente_direccion || venta.clientes?.direccion
   const vendedor = venta.perfiles?.nombre || 'Sistema'
+  const anulada = venta.estado === 'anulada'
 
   return (
     <div ref={ref} style={S.page}>
@@ -169,7 +167,18 @@ export const BoletaPdf = forwardRef(({ venta, config, documento = 'BOLETA DE VEN
       </div>
 
       {/* Detalle — el minHeight deja el aire de la hoja aunque haya pocos items */}
-      <div style={{ ...S.box, overflow: 'hidden', minHeight: '124mm', marginBottom: 8 }}>
+      <div style={{ ...S.box, overflow: 'hidden', minHeight: '124mm', marginBottom: 8, position: 'relative' }}>
+        {/* Sello en absoluto: no agrega alto, la hoja sigue siendo una sola */}
+        {anulada && (
+          <div style={{
+            position: 'absolute', top: '52%', left: '50%',
+            transform: 'translate(-50%, -50%) rotate(-18deg)',
+            border: `5px solid ${C.danger}`, borderRadius: 10, color: C.danger, opacity: 0.4,
+            fontSize: 66, fontWeight: 800, letterSpacing: 10, padding: '2px 26px', whiteSpace: 'nowrap',
+          }}>
+            ANULADA
+          </div>
+        )}
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ background: C.dark }}>
@@ -230,6 +239,11 @@ export const BoletaPdf = forwardRef(({ venta, config, documento = 'BOLETA DE VEN
           ...S.box, flex: 1, minHeight: 132, padding: 12, textAlign: 'center',
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4,
         }}>
+          {anulada && (
+            <div style={{ fontSize: 12, fontWeight: 800, color: C.danger }}>
+              COMPROBANTE ANULADO EL {new Date(venta.anulada_at).toLocaleDateString('es-PE')}
+            </div>
+          )}
           <div style={{ fontSize: 12 }}>
             Representación impresa de la <strong>{documento}</strong>.
           </div>

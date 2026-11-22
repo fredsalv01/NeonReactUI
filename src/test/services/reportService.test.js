@@ -136,6 +136,20 @@ describe('reportService', () => {
       expect(stats.totalStock).toBe(8)
     })
 
+    it('excluye ventas anuladas del total y del top de vendidos', async () => {
+      const ventasQ = makeQuery({ data: [], error: null })
+      supabase.from
+        .mockReturnValueOnce(ventasQ)
+        .mockReturnValueOnce(makeQuery({ data: [], error: null }))
+      await reportService.getSalesStatistics()
+      expect(ventasQ.neq).toHaveBeenCalledWith('estado', 'anulada')
+
+      const itemsQ = makeQuery({ data: [], error: null })
+      supabase.from.mockReturnValueOnce(itemsQ)
+      await reportService.getTopSellingProducts()
+      expect(itemsQ.neq).toHaveBeenCalledWith('ventas.estado', 'anulada')
+    })
+
     it('promedioVenta = 0 cuando no hay ventas', async () => {
       supabase.from
         .mockReturnValueOnce(makeQuery({ data: [], error: null }))
