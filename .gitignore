@@ -92,3 +92,6 @@ NEXT_STEPS_TO_IMPLEMENT.md
 supabase
 scripts
 supabase/.temp
+.agents
+.codex
+AGENTS.md
