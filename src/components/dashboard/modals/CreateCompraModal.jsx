@@ -89,6 +89,13 @@ export const CreateCompraModal = ({ open, onClose }) => {
     if (errors.items) setErrors((p) => ({ ...p, items: '' }))
   }
 
+  // Al elegir el equipo se precarga su precio de compra registrado (editable).
+  const selectEquipo = (idx, equipoId) => {
+    const eq = equipos.find((e) => e.id === equipoId)
+    updateItem(idx, 'equipo_id', equipoId)
+    if (eq) updateItem(idx, 'precio_unitario', Number(eq.precio_compra) || 0)
+  }
+
   const addItem = () => setItems((prev) => [...prev, newItem()])
   const removeItem = (idx) =>
     setItems((prev) => (prev.length === 1 ? prev : prev.filter((_, i) => i !== idx)))
@@ -282,7 +289,7 @@ export const CreateCompraModal = ({ open, onClose }) => {
                   <div className="col-span-12 md:col-span-3">
                     <Select
                       value={it.equipo_id}
-                      onChange={(v) => updateItem(idx, 'equipo_id', v)}
+                      onChange={(v) => selectEquipo(idx, v)}
                       options={equipoOptions}
                       placeholder="Equipo…"
                     />

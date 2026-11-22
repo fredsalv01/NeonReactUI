@@ -76,22 +76,19 @@ export const CompraDetailDrawer = ({ open, onClose, compra }) => {
               {items.map((it) => (
                 <div
                   key={it.id}
-                  className="grid grid-cols-12 gap-2 items-center p-3 bg-gs-bg border border-gs-border rounded-lg text-sm"
+                  className="flex items-center justify-between gap-3 p-3 bg-gs-bg border border-gs-border rounded-lg text-sm"
                 >
-                  <div className="col-span-6 min-w-0">
+                  <div className="min-w-0">
                     <p className="font-semibold text-gs-text truncate">
                       {it.equipos?.nombre || it.equipo_id}
                     </p>
                     <p className="text-xs text-gs-muted font-['DM_Mono']">{it.equipo_id}</p>
                   </div>
-                  <div className="col-span-2 text-right font-['DM_Mono'] text-gs-soft">
-                    {it.cantidad}×
-                  </div>
-                  <div className="col-span-2 text-right font-['DM_Mono'] text-gs-soft">
-                    {formatCurrency(it.precio_unitario)}
-                  </div>
-                  <div className="col-span-2 text-right font-['DM_Mono'] font-bold text-gs-text">
-                    {formatCurrency(it.subtotal)}
+                  <div className="shrink-0 text-right font-['DM_Mono']">
+                    <p className="font-bold text-gs-text">{formatCurrency(it.subtotal)}</p>
+                    <p className="text-xs text-gs-soft whitespace-nowrap">
+                      {it.cantidad} × {formatCurrency(it.precio_unitario)}
+                    </p>
                   </div>
                 </div>
               ))}
