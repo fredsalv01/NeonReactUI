@@ -7,6 +7,7 @@ import {
   Button,
   Tabs,
   Badge,
+  ClearFiltersButton,
   DatePicker,
   Icon,
   InputField,
@@ -536,14 +537,10 @@ const KardexTab = ({
           clearable
         />
       </div>
-      {(dateRange.from || dateRange.to) && (
-        <button
-          onClick={() => onDateRangeChange({ from: null, to: null })}
-          className="text-sm text-gs-accent hover:text-gs-accent/80 transition-colors"
-        >
-          Limpiar filtros
-        </button>
-      )}
+      <ClearFiltersButton
+        active={!!(dateRange.from || dateRange.to)}
+        onClear={() => onDateRangeChange({ from: null, to: null })}
+      />
     </div>
 
     {/* Kardex Table */}

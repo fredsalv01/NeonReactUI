@@ -6,6 +6,7 @@ import {
   Pagination,
   Select,
   SearchBar,
+  ClearFiltersButton,
   SkeletonRow,
   Tooltip,
   useToast,
@@ -35,6 +36,7 @@ export const Almacenes = () => {
   const error             = useAlmacenesStore((s) => s.error)
   const filters           = useAlmacenesStore((s) => s.filters)
   const setFilters        = useAlmacenesStore((s) => s.setFilters)
+  const resetFilters      = useAlmacenesStore((s) => s.resetFilters)
   const fetchAlmacenes    = useAlmacenesStore((s) => s.fetchAlmacenes)
   const desactivarAlmacen = useAlmacenesStore((s) => s.desactivarAlmacen)
   const reactivarAlmacen  = useAlmacenesStore((s) => s.reactivarAlmacen)
@@ -122,6 +124,7 @@ export const Almacenes = () => {
               placeholder="Estado"
             />
           </div>
+          <ClearFiltersButton active={hasFilters} onClear={resetFilters} className="w-full md:w-auto" />
         </div>
 
         {isLoading ? (

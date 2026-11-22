@@ -8,6 +8,7 @@ import {
   Pagination,
   Select,
   SearchBar,
+  ClearFiltersButton,
   SkeletonRow,
   Drawer,
   SkeletonBlock,
@@ -114,6 +115,15 @@ export const Sales = () => {
     })
   }, [ventas, searchTerm, filterCategoria, filterTipo, filterDate])
 
+  const hasFilters = !!searchTerm || !!filterCategoria || !!filterTipo || filterDate instanceof Date
+  const clearFilters = () => {
+    setSearchTerm('')
+    setFilterCategoria('')
+    setFilterTipo('')
+    setFilterDate(null)
+    setCurrentPage(1)
+  }
+
   const paginatedVentas = useMemo(() => {
     const start = (currentPage - 1) * pageSize
     return filteredVentas.slice(start, start + pageSize)
@@ -174,9 +184,7 @@ export const Sales = () => {
 
     if (filteredVentas.length === 0) {
       return (
-        <EmptyState
-          hasFilters={!!searchTerm || !!filterCategoria || !!filterTipo || filterDate instanceof Date}
-        />
+        <EmptyState hasFilters={hasFilters} />
       )
     }
 
@@ -256,6 +264,8 @@ export const Sales = () => {
             onDateChange={setFilterDate}
             categoriaOptions={categoriaOptions}
             tipoOptions={tipoOptions}
+            hasFilters={hasFilters}
+            onClear={clearFilters}
           />
         )}
 
@@ -346,6 +356,8 @@ const Filters = ({
   onDateChange,
   categoriaOptions,
   tipoOptions,
+  hasFilters,
+  onClear,
 }) => (
   <div className="space-y-4">
     <div className="flex flex-col md:flex-row gap-3 items-start md:items-end">
@@ -382,6 +394,7 @@ const Filters = ({
           clearable
         />
       </div>
+      <ClearFiltersButton active={hasFilters} onClear={onClear} className="w-full md:w-auto" />
     </div>
   </div>
 )

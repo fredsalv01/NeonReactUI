@@ -6,6 +6,7 @@ import {
   Pagination,
   Select,
   SearchBar,
+  ClearFiltersButton,
   SkeletonRow,
   Tooltip,
   useToast,
@@ -30,6 +31,7 @@ export const Clientes = () => {
   const error             = useClientesStore((s) => s.error)
   const filters           = useClientesStore((s) => s.filters)
   const setFilters        = useClientesStore((s) => s.setFilters)
+  const resetFilters      = useClientesStore((s) => s.resetFilters)
   const fetchClientes     = useClientesStore((s) => s.fetchClientes)
   const desactivarCliente = useClientesStore((s) => s.desactivarCliente)
   const reactivarCliente  = useClientesStore((s) => s.reactivarCliente)
@@ -111,6 +113,7 @@ export const Clientes = () => {
               placeholder="Estado"
             />
           </div>
+          <ClearFiltersButton active={hasFilters} onClear={resetFilters} className="w-full md:w-auto" />
         </div>
 
         {isLoading ? (

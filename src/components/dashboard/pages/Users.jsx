@@ -6,6 +6,7 @@ import {
   Pagination,
   Select,
   SearchBar,
+  ClearFiltersButton,
   SkeletonRow,
   Tooltip,
   useToast,
@@ -36,6 +37,7 @@ export const Users = () => {
   const error             = useUsuariosStore((s) => s.error)
   const filters           = useUsuariosStore((s) => s.filters)
   const setFilters        = useUsuariosStore((s) => s.setFilters)
+  const resetFilters      = useUsuariosStore((s) => s.resetFilters)
   const fetchUsuarios     = useUsuariosStore((s) => s.fetchUsuarios)
   const desactivarUsuario = useUsuariosStore((s) => s.desactivarUsuario)
   const reactivarUsuario  = useUsuariosStore((s) => s.reactivarUsuario)
@@ -55,6 +57,7 @@ export const Users = () => {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
+  const hasFilters = !!filters.search || !!filters.rolId || filters.status !== USUARIO_STATUS.ALL
 
   const handleQuickToggle = async (usuario) => {
     if (currentUser?.id === usuario.id) {
@@ -138,13 +141,15 @@ export const Users = () => {
               placeholder="Estado"
             />
           </div>
+
+          <ClearFiltersButton active={hasFilters} onClear={resetFilters} className="w-full md:w-auto" />
         </div>
 
         {/* Table */}
         {isLoading ? (
           <UsersSkeleton />
         ) : usuarios.length === 0 ? (
-          <EmptyUsers hasFilters={!!filters.search || !!filters.rolId || filters.status !== USUARIO_STATUS.ALL} />
+          <EmptyUsers hasFilters={hasFilters} />
         ) : (
           <>
             <DataTable

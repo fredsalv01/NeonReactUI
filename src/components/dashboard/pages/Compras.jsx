@@ -5,6 +5,7 @@ import {
   Icon,
   Pagination,
   Select,
+  ClearFiltersButton,
   SkeletonRow,
   Tooltip,
   useToast,
@@ -30,6 +31,7 @@ export const Compras = () => {
   const error         = useComprasStore((s) => s.error)
   const filters       = useComprasStore((s) => s.filters)
   const setFilters    = useComprasStore((s) => s.setFilters)
+  const resetFilters  = useComprasStore((s) => s.resetFilters)
   const fetchCompras  = useComprasStore((s) => s.fetchCompras)
 
   const [createOpen, setCreateOpen] = useState(false)
@@ -113,7 +115,7 @@ export const Compras = () => {
       )}
 
       <div className="bg-gs-surface border border-gs-border rounded-lg p-4 md:p-6 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
           <Select
             value={filters.proveedorId || ''}
             onChange={(v) => setFilters({ proveedorId: v || null })}
@@ -140,6 +142,7 @@ export const Compras = () => {
             placeholder="Hasta"
             className="px-3 py-2 bg-gs-bg border border-gs-border rounded-lg text-gs-text text-sm"
           />
+          <ClearFiltersButton active={hasFilters} onClear={resetFilters} />
         </div>
 
         {isLoading ? (

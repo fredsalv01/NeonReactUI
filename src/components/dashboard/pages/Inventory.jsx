@@ -9,6 +9,7 @@ import {
   Pagination,
   Select,
   SearchBar,
+  ClearFiltersButton,
   SkeletonRow,
   Drawer,
   QRCode,
@@ -127,6 +128,15 @@ export const Inventory = () => {
     })
   }, [equipos, searchTerm, filterEstado, filterTipo, onlyAlerta])
 
+  const hasFilters = !!searchTerm || !!filterEstado || !!filterTipo || onlyAlerta
+  const clearFilters = () => {
+    setSearchTerm('')
+    setFilterEstado('')
+    setFilterTipo('')
+    setOnlyAlerta(false)
+    setCurrentPage(1)
+  }
+
   const alertaCount = useMemo(() =>
     equipos.filter(e => e && Number(e.stock_total) <= STOCK_THRESHOLDS.BAJO_MAX).length,
   [equipos])
@@ -197,9 +207,7 @@ export const Inventory = () => {
 
     if (filteredEquipos.length === 0) {
       return (
-        <EmptyState
-          hasFilters={!!searchTerm || !!filterEstado || !!filterTipo}
-        />
+        <EmptyState hasFilters={hasFilters} />
       )
     }
 
@@ -298,6 +306,8 @@ export const Inventory = () => {
             filterTipo={filterTipo}
             onTipoChange={setFilterTipo}
             tipoOptions={tipoOptions}
+            hasFilters={hasFilters}
+            onClear={clearFilters}
           />
         )}
 
@@ -394,6 +404,8 @@ const Filters = ({
   filterTipo,
   onTipoChange,
   tipoOptions,
+  hasFilters,
+  onClear,
 }) => (
   <div className="space-y-4">
     <div className="flex flex-col md:flex-row gap-3 items-start md:items-end">
@@ -421,6 +433,7 @@ const Filters = ({
         label="Tipo"
         className="w-full md:w-48"
       />
+      <ClearFiltersButton active={hasFilters} onClear={onClear} className="w-full md:w-auto" />
     </div>
   </div>
 )

@@ -6,6 +6,7 @@ import {
   Pagination,
   Select,
   SearchBar,
+  ClearFiltersButton,
   SkeletonRow,
   Tooltip,
   useToast,
@@ -30,6 +31,7 @@ export const Proveedores = () => {
   const error               = useProveedoresStore((s) => s.error)
   const filters             = useProveedoresStore((s) => s.filters)
   const setFilters          = useProveedoresStore((s) => s.setFilters)
+  const resetFilters      = useProveedoresStore((s) => s.resetFilters)
   const fetchProveedores    = useProveedoresStore((s) => s.fetchProveedores)
   const desactivarProveedor = useProveedoresStore((s) => s.desactivarProveedor)
   const reactivarProveedor  = useProveedoresStore((s) => s.reactivarProveedor)
@@ -111,6 +113,7 @@ export const Proveedores = () => {
               placeholder="Estado"
             />
           </div>
+          <ClearFiltersButton active={hasFilters} onClear={resetFilters} className="w-full md:w-auto" />
         </div>
 
         {isLoading ? (

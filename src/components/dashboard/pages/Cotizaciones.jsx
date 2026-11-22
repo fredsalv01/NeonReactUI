@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Button, Pagination, Select, SkeletonBlock, useToast } from '../../ui'
+import { Button, ClearFiltersButton, Pagination, Select, SkeletonBlock, useToast } from '../../ui'
 import { FiPlus, FiEye } from 'react-icons/fi'
 import { useCotizacionStore } from '../../../stores/cotizacionStore'
 import { cotizacionService } from '../../../lib/services/cotizacionService'
@@ -96,6 +96,11 @@ export const Cotizaciones = () => {
             onChange={setFilterEstado}
             options={ESTADO_OPTIONS}
             placeholder="Filtrar por estado…"
+          />
+          <ClearFiltersButton
+            active={!!filterEstado}
+            onClear={() => setFilterEstado('')}
+            className="md:justify-self-start"
           />
         </div>
 
