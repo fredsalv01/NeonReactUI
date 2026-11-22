@@ -6,7 +6,7 @@ import { FiAlertCircle } from 'react-icons/fi'
 const fmt = (n) =>
   new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(Number(n) || 0)
 
-// ponytail: solo edita notas + snapshot legacy de cliente. Editar items toca kardex
+// ponytail: solo edita notas + copia del cliente en la venta. Editar items toca kardex
 // + stock_almacen y necesita una RPC `fn_actualizar_venta` con transacción.
 // Ceiling: si necesitan corregir cantidades, construir la RPC; mientras tanto,
 // el flujo es "anular venta + reemitir" (ya soportado por deleteVenta + addVenta).
@@ -45,16 +45,7 @@ export const EditVentaDrawer = ({ open, venta, onClose, onSuccess }) => {
 
   if (!venta) return null
 
-  const items = (venta.venta_items && venta.venta_items.length > 0)
-    ? venta.venta_items
-    : [{
-        id: 'legacy',
-        equipo_id: venta.equipo_id,
-        equipos: venta.equipos,
-        cantidad: venta.cantidad,
-        precio_unitario: venta.precio_unitario,
-        subtotal: venta.monto_total ?? venta.total,
-      }]
+  const items = venta.venta_items || []
 
   const total = items.reduce(
     (s, it) => s + Number(it.subtotal ?? (it.cantidad * it.precio_unitario) ?? 0), 0

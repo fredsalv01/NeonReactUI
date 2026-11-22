@@ -49,17 +49,7 @@ export const SalesDetailsDrawer = ({ open, venta, onClose, loading }) => {
     }
   }
 
-  // Items: nuevos vienen en venta_items[], ventas viejas solo tienen las columnas legacy
-  const items = (venta.venta_items && venta.venta_items.length > 0)
-    ? venta.venta_items
-    : [{
-        id: 'legacy',
-        equipo_id: venta.equipo_id,
-        equipos: venta.equipos,
-        cantidad: venta.cantidad,
-        precio_unitario: venta.precio_unitario,
-        subtotal: venta.monto_total ?? venta.total,
-      }]
+  const items = venta.venta_items || []
 
   return (
     <Drawer

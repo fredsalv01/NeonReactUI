@@ -74,7 +74,7 @@ export const Sales = () => {
   // ────────────────────────────────────────────────────────────────
 
   const uniqueCategories = useMemo(() => {
-    const categories = new Set(ventas.filter(Boolean).map(v => v.equipos?.tipo).filter(Boolean))
+    const categories = new Set(ventas.filter(Boolean).flatMap(tiposOf))
     return Array.from(categories).sort()
   }, [ventas])
 
@@ -84,7 +84,7 @@ export const Sales = () => {
   )
 
   const uniqueTipos = useMemo(() => {
-    const tipos = new Set(ventas.filter(Boolean).map(v => v.equipos?.tipo).filter(Boolean))
+    const tipos = new Set(ventas.filter(Boolean).flatMap(tiposOf))
     return Array.from(tipos).sort()
   }, [ventas])
 
@@ -98,8 +98,8 @@ export const Sales = () => {
       if (!venta) return false
 
       const matchesSearch = matchesSearchTerm(venta, searchTerm)
-      const matchesCategoria = !filterCategoria || venta.equipos?.tipo === filterCategoria
-      const matchesTipo = !filterTipo || venta.equipos?.tipo === filterTipo
+      const matchesCategoria = !filterCategoria || tiposOf(venta).includes(filterCategoria)
+      const matchesTipo = !filterTipo || tiposOf(venta).includes(filterTipo)
 
       let matchesDate = true
       if (filterDate instanceof Date) {
@@ -507,7 +507,7 @@ const DeleteConfirmModal = ({ open, venta, isDeleting, onConfirm, onCancel }) =>
         </div>
 
         <p className="text-sm text-gs-text">
-          ¿Estás seguro de que deseas eliminar la venta de <strong>{venta.equipos?.nombre}</strong>?
+          ¿Estás seguro de que deseas eliminar la venta <strong>#{venta.id}</strong>?
         </p>
 
         <div className="flex gap-3 justify-end pt-2">
@@ -554,18 +554,17 @@ const matchesSearchTerm = (venta, searchTerm) => {
   )
   return (
     itemMatch ||
-    venta.equipos?.nombre?.toLowerCase().includes(term) ||
     venta.perfiles?.nombre?.toLowerCase().includes(term) ||
     venta.cliente?.toLowerCase().includes(term) ||
     String(venta.id ?? '').toLowerCase().includes(term)
   )
 }
 
-// items helpers — venta_items es la fuente real; fallback a legacy cantidad
+// items helpers — los productos de una venta viven en venta_items
 const itemsOf = (row) => row.venta_items || []
-const itemsCount = (row) => itemsOf(row).length || (row.cantidad ? 1 : 0)
-const totalCantidad = (row) =>
-  itemsOf(row).reduce((s, it) => s + (it.cantidad || 0), 0) || (row.cantidad || 0)
+const tiposOf = (row) => itemsOf(row).map((it) => it.equipos?.tipo).filter(Boolean)
+const itemsCount = (row) => itemsOf(row).length
+const totalCantidad = (row) => itemsOf(row).reduce((s, it) => s + (it.cantidad || 0), 0)
 
 const getTableColumns = () => [
   {
@@ -586,7 +585,7 @@ const getTableColumns = () => [
     label: 'Productos',
     render: (_, row) => {
       const n = itemsCount(row)
-      const first = itemsOf(row)[0]?.equipos?.nombre || row.equipos?.nombre
+      const first = itemsOf(row)[0]?.equipos?.nombre
       if (n <= 1) return first || '—'
       return (
         <span>

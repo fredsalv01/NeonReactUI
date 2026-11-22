@@ -69,11 +69,11 @@ Deno.serve(async (req) => {
 async function loadInventoryRows(sb: any): Promise<Row[]> {
   const since = new Date(Date.now() - WINDOW_DAYS * 86_400_000).toISOString()
 
-  const [{ data: equipos, error: e1 }, { data: ventas, error: e2 }] = await Promise.all([
+  const [{ data: equipos, error: e1 }, { data: items, error: e2 }] = await Promise.all([
     sb.from('v_equipos_con_stock')
       .select('id, nombre, tipo, stock_total')
       .eq('active', true),
-    sb.from('ventas')
+    sb.from('venta_items')
       .select('equipo_id, cantidad, created_at')
       .gte('created_at', since),
   ])
@@ -81,9 +81,9 @@ async function loadInventoryRows(sb: any): Promise<Row[]> {
   if (e2) throw e2
 
   const soldByEquipo = new Map<string, number>()
-  for (const v of ventas ?? []) {
-    if (!v.equipo_id) continue
-    soldByEquipo.set(v.equipo_id, (soldByEquipo.get(v.equipo_id) ?? 0) + (v.cantidad ?? 0))
+  for (const it of items ?? []) {
+    if (!it.equipo_id) continue
+    soldByEquipo.set(it.equipo_id, (soldByEquipo.get(it.equipo_id) ?? 0) + (it.cantidad ?? 0))
   }
 
   return (equipos ?? []).map((eq: any): Row => {

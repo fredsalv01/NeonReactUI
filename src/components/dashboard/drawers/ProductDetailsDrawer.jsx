@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useToast, Drawer, Switch, Badge } from '../../ui'
 import { equipoService } from '../../../lib/services/equipoService'
 import { humanizeError } from '../../../lib/utils/errors'
+import { getStockEstado } from '../../../lib/constants/inventoryConstants'
 
 const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?w=400&h=400&fit=crop'
 
@@ -99,7 +100,7 @@ export const ProductDetailsDrawer = ({ open, equipo, onClose }) => {
           <div>
             <p className="text-xs text-gs-soft font-['DM_Mono'] uppercase">Estado Actual</p>
             <div className="mt-1.5">
-              <Badge estado={equipo.estado} />
+              <Badge estado={getStockEstado(equipo.stock_total)} />
             </div>
           </div>
           <DetailRow

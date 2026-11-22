@@ -39,7 +39,7 @@ export const EditEquipoDrawer = ({ open, equipo, onClose, onSuccess }) => {
         serie: equipo.serie || '',
         precio_compra: equipo.precio_compra?.toString() || '0',
         precio_venta: equipo.precio_venta?.toString() || '0',
-        stock: equipo.stock_total?.toString() || '0',
+        stock: equipo.stock_total?.toString() || '0', // solo para el schema compartido con Add; el stock se mueve por kardex
         imagen: null,
       }
       // Direct state update for edit mode
@@ -93,7 +93,6 @@ export const EditEquipoDrawer = ({ open, equipo, onClose, onSuccess }) => {
         serie: formData.serie,
         precio_compra: parseFloat(formData.precio_compra),
         precio_venta: parseFloat(formData.precio_venta),
-        stock: parseInt(formData.stock),
         imagen_url: imagenUrl,
       }
 
@@ -262,19 +261,6 @@ export const EditEquipoDrawer = ({ open, equipo, onClose, onSuccess }) => {
               error={formErrors.precio_venta}
             />
           </div>
-
-          {/* Stock */}
-          <NumberInput
-            label="Stock (unidades)"
-            value={parseInt(formData.stock) || 0}
-            onChange={(val) => {
-              handleInputChange({ target: { name: 'stock', value: val.toString() } })
-            }}
-            suffix="unidades"
-            min={0}
-            step={1}
-            error={formErrors.stock}
-          />
 
           {/* Divider */}
           <div className="h-px bg-gs-border" />

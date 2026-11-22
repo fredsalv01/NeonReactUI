@@ -6,7 +6,7 @@ import { getStockEstado } from '../constants/inventoryConstants'
 // ─────────────────────────────────────────────────────────────────────────
 // - NO existe columna `active` (la tabla no soporta soft delete actualmente)
 // - El total se llama `total`, no `monto_total`
-// - El precio unitario se llama `precio_venta`, no `precio_unitario`
+// - Los productos/cantidades viven en `venta_items`, no en `ventas`
 // - El vendedor se llama `vendido_por`, no `usuario_id`
 // - Embedded resources `equipos:equipo_id(...)` fallan con PRO FEATURE ONLY,
 //   por eso resolvemos equipos con un batch query separado.
@@ -39,7 +39,7 @@ export const reportService = {
   async getSalesByDateRange(startDate, endDate) {
     const { data, error } = await supabase
       .from('ventas')
-      .select('total, cantidad, created_at')
+      .select('total, created_at')
       .gte('created_at', startDate)
       .lte('created_at', endDate)
       .order('created_at', { ascending: true })
@@ -54,34 +54,34 @@ export const reportService = {
   // Top N productos más vendidos
   async getTopSellingProducts(limit = 5) {
     const { data, error } = await supabase
-      .from('ventas')
-      .select('equipo_id, cantidad')
-      .order('created_at', { ascending: false })
+      .from('venta_items')
+      .select('venta_id, equipo_id, cantidad')
 
     if (error) throw error
 
-    const ventas = data || []
-    const equiposMap = await fetchEquiposMap(ventas.map((v) => v.equipo_id))
+    const items = data || []
+    const equiposMap = await fetchEquiposMap(items.map((it) => it.equipo_id))
 
     const grouped = {}
-    ventas.forEach((venta) => {
-      if (!venta.equipo_id) return
-      if (!grouped[venta.equipo_id]) {
-        const eq = equiposMap.get(venta.equipo_id) || {}
-        grouped[venta.equipo_id] = {
-          equipo_id:      venta.equipo_id,
+    items.forEach((it) => {
+      if (!it.equipo_id) return
+      if (!grouped[it.equipo_id]) {
+        const eq = equiposMap.get(it.equipo_id) || {}
+        grouped[it.equipo_id] = {
+          equipo_id:      it.equipo_id,
           nombre:         eq.nombre,
           tipo:           eq.tipo,
           imagen_url:     eq.imagen_url,
           total_cantidad: 0,
-          total_ventas:   0,
+          ventas:         new Set(),
         }
       }
-      grouped[venta.equipo_id].total_cantidad += venta.cantidad || 0
-      grouped[venta.equipo_id].total_ventas += 1
+      grouped[it.equipo_id].total_cantidad += it.cantidad || 0
+      grouped[it.equipo_id].ventas.add(it.venta_id)
     })
 
     return Object.values(grouped)
+      .map(({ ventas, ...g }) => ({ ...g, total_ventas: ventas.size }))
       .sort((a, b) => b.total_cantidad - a.total_cantidad)
       .slice(0, limit)
   },
@@ -117,7 +117,7 @@ export const reportService = {
   async getSalesStatistics() {
     const { data: salesData, error: salesError } = await supabase
       .from('ventas')
-      .select('total, cantidad, created_at')
+      .select('total, created_at, venta_items(cantidad)')
 
     if (salesError) throw salesError
 
@@ -130,7 +130,10 @@ export const reportService = {
 
     const totalVentas       = salesData?.length || 0
     const totalMontoVentas  = (salesData || []).reduce((sum, v) => sum + toNumber(v.total), 0)
-    const totalCantidad     = (salesData || []).reduce((sum, v) => sum + (v.cantidad || 0), 0)
+    const totalCantidad     = (salesData || []).reduce(
+      (sum, v) => sum + (v.venta_items || []).reduce((s, it) => s + (it.cantidad || 0), 0),
+      0
+    )
     const promedioVenta     = totalVentas > 0 ? totalMontoVentas / totalVentas : 0
 
     const totalInventarioValue = (inventoryData || []).reduce(
@@ -149,23 +152,24 @@ export const reportService = {
     }
   },
 
-  // Breakdown por categoría (pie/donut)
+  // Breakdown por categoría (pie/donut) — por ítem, así una venta con
+  // productos de varios tipos reparte su monto correctamente.
   async getCategoriesBreakdown() {
     const { data, error } = await supabase
-      .from('ventas')
-      .select('total, equipo_id')
+      .from('venta_items')
+      .select('subtotal, equipo_id')
 
     if (error) throw error
 
-    const ventas = data || []
-    const equiposMap = await fetchEquiposMap(ventas.map((v) => v.equipo_id), 'id, tipo')
+    const items = data || []
+    const equiposMap = await fetchEquiposMap(items.map((it) => it.equipo_id), 'id, tipo')
 
     const grouped = {}
-    ventas.forEach((venta) => {
-      const eq = equiposMap.get(venta.equipo_id)
+    items.forEach((it) => {
+      const eq = equiposMap.get(it.equipo_id)
       const categoria = eq?.tipo || 'Sin categoría'
       if (!grouped[categoria]) grouped[categoria] = 0
-      grouped[categoria] += toNumber(venta.total)
+      grouped[categoria] += toNumber(it.subtotal)
     })
 
     return Object.entries(grouped).map(([name, value]) => ({ name, value }))
@@ -218,7 +222,7 @@ export const reportService = {
   async getMonthlySalesData(months = 12) {
     const { data, error } = await supabase
       .from('ventas')
-      .select('total, cantidad, created_at')
+      .select('total, created_at')
       .order('created_at', { ascending: true })
 
     if (error) throw error

@@ -15,19 +15,20 @@ describe('ventaService', () => {
   beforeEach(() => vi.clearAllMocks())
 
   describe('mapeo BD → UI', () => {
-    it('renombra precio_venta → precio_unitario y total → monto_total', async () => {
+    it('renombra total → monto_total, vendido_por → usuario_id, notas → descripcion', async () => {
       const row = {
         id: 1,
-        precio_venta: 100,
         total: 200,
         vendido_por: 'u1',
         notas: 'hola',
-        equipos: { nombre: 'GPS' },
+        venta_items: [{ equipo_id: 'e1', cantidad: 2, precio_unitario: 100 }],
       }
-      supabase.from.mockReturnValue(makeQuery({ data: [row], error: null }))
+      const q = makeQuery({ data: [row], error: null })
+      supabase.from.mockReturnValue(q)
 
       const [mapped] = await ventaService.getVentas()
-      expect(mapped.precio_unitario).toBe(100)
+      // sin embed de equipos por ventas.equipo_id (columna legacy eliminada)
+      expect(q.select.mock.calls[0][0]).not.toMatch(/equipos!inner/)
       expect(mapped.monto_total).toBe(200)
       expect(mapped.usuario_id).toBe('u1')
       expect(mapped.descripcion).toBe('hola')
@@ -47,12 +48,11 @@ describe('ventaService', () => {
   describe('getVentaById', () => {
     it('devuelve la venta encontrada con mapeo', async () => {
       supabase.from.mockReturnValue(makeQuery({
-        data: { id: 5, total: 99, precio_venta: 33 },
+        data: { id: 5, total: 99 },
         error: null,
       }))
       const result = await ventaService.getVentaById(5)
       expect(result.monto_total).toBe(99)
-      expect(result.precio_unitario).toBe(33)
     })
 
     it('devuelve null cuando data es null', async () => {
@@ -65,7 +65,7 @@ describe('ventaService', () => {
     it('llama al RPC con payload normalizado y re-fetchea', async () => {
       supabase.rpc.mockResolvedValue({ data: 77, error: null })
       supabase.from.mockReturnValue(makeQuery({
-        data: { id: 77, total: 500, precio_venta: 250 },
+        data: { id: 77, total: 500 },
         error: null,
       }))
 
@@ -96,27 +96,24 @@ describe('ventaService', () => {
   })
 
   describe('updateVenta', () => {
-    it('actualiza solo campos permitidos (no escribe `total` generado)', async () => {
-      const q = makeQuery({ data: { id: 5, total: 100, precio_venta: 50 }, error: null })
+    it('solo escribe cabecera: ignora ítems y `total` (lo calcula el trigger)', async () => {
+      const q = makeQuery({ data: { id: 5, total: 100 }, error: null })
       supabase.from.mockReturnValue(q)
 
       await ventaService.updateVenta(5, {
-        cantidad: 2,
+        cantidad: 2,          // ítems no se editan desde aquí
         precio_unitario: 50,
-        monto_total: 99999, // debe ser ignorado
+        monto_total: 99999,
         descripcion: 'cambiada',
+        cliente: 'ACME',
       })
 
-      const updateArg = q.update.mock.calls[0][0]
-      expect(updateArg).not.toHaveProperty('total')
-      expect(updateArg).not.toHaveProperty('monto_total')
-      expect(updateArg.precio_venta).toBe(50)
-      expect(updateArg.notas).toBe('cambiada')
+      expect(q.update.mock.calls[0][0]).toEqual({ notas: 'cambiada', cliente: 'ACME' })
     })
 
     it('lanza cuando hay error', async () => {
       supabase.from.mockReturnValue(makeQuery({ data: null, error: { message: 'fail' } }))
-      await expect(ventaService.updateVenta(1, { cantidad: 1 })).rejects.toBeTruthy()
+      await expect(ventaService.updateVenta(1, { descripcion: 'x' })).rejects.toBeTruthy()
     })
   })
 
@@ -135,35 +132,6 @@ describe('ventaService', () => {
       const result = await ventaService.updateVentaStatus(1, false)
       expect(result).toBeUndefined()
       expect(supabase.from).not.toHaveBeenCalled()
-    })
-  })
-
-  describe('getVentasFiltered', () => {
-    it('aplica filtros opcionales', async () => {
-      const q = makeQuery({ data: [], error: null })
-      supabase.from.mockReturnValue(q)
-      await ventaService.getVentasFiltered({
-        equipoId: 'e1',
-        usuarioId: 'u1',
-        startDate: '2026-01-01',
-        endDate: '2026-12-31',
-      })
-      expect(q.eq).toHaveBeenCalledWith('equipo_id', 'e1')
-      expect(q.eq).toHaveBeenCalledWith('vendido_por', 'u1')
-      expect(q.gte).toHaveBeenCalledWith('created_at', '2026-01-01')
-      expect(q.lte).toHaveBeenCalledWith('created_at', '2026-12-31')
-    })
-  })
-
-  describe('getVentasTotals', () => {
-    it('agrega monto_total alias', async () => {
-      supabase.from.mockReturnValue(makeQuery({
-        data: [{ total: 100, cantidad: 1 }, { total: 50, cantidad: 2 }],
-        error: null,
-      }))
-      const result = await ventaService.getVentasTotals()
-      expect(result[0].monto_total).toBe(100)
-      expect(result[1].monto_total).toBe(50)
     })
   })
 })

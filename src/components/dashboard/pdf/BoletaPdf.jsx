@@ -76,16 +76,7 @@ export const BoletaPdf = forwardRef(({ venta, config, documento = 'BOLETA DE VEN
   const igvPct = Math.min(Math.max(Number(cfg.igv_pct) || 0, 0), 100)
   const igvRate = igvPct / 100
 
-  const items = (venta.venta_items && venta.venta_items.length > 0)
-    ? venta.venta_items
-    : [{
-        id: 'legacy',
-        equipos: venta.equipos,
-        equipo_id: venta.equipo_id,
-        cantidad: venta.cantidad,
-        precio_unitario: venta.precio_unitario,
-        subtotal: venta.monto_total ?? venta.total,
-      }]
+  const items = venta.venta_items || []
 
   const subtotal = Number(
     venta.monto_total ?? venta.total ?? items.reduce(

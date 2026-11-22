@@ -66,36 +66,39 @@ describe('reportService', () => {
   })
 
   describe('getTopSellingProducts', () => {
-    it('agrupa por equipo_id y ordena por cantidad desc', async () => {
-      // A: 3+1=4, B: 7 → B primero
-      const ventas = [
-        { equipo_id: 'A', cantidad: 3 },
-        { equipo_id: 'A', cantidad: 1 },
-        { equipo_id: 'B', cantidad: 7 },
+    it('agrupa venta_items por equipo_id y ordena por cantidad desc', async () => {
+      // A: 3+1+2=6 en 2 ventas distintas (venta 1 trae A dos veces), B: 7
+      const items = [
+        { venta_id: 1, equipo_id: 'A', cantidad: 3 },
+        { venta_id: 1, equipo_id: 'A', cantidad: 2 },
+        { venta_id: 2, equipo_id: 'A', cantidad: 1 },
+        { venta_id: 2, equipo_id: 'B', cantidad: 7 },
       ]
       const equipos = [
         { id: 'A', nombre: 'GPS', tipo: 't1', imagen_url: null },
         { id: 'B', nombre: 'Nivel', tipo: 't2', imagen_url: null },
       ]
       supabase.from
-        .mockReturnValueOnce(makeQuery({ data: ventas, error: null }))
+        .mockReturnValueOnce(makeQuery({ data: items, error: null }))
         .mockReturnValueOnce(makeQuery({ data: equipos, error: null }))
 
       const result = await reportService.getTopSellingProducts()
+      expect(supabase.from).toHaveBeenNthCalledWith(1, 'venta_items')
       expect(result[0].equipo_id).toBe('B')
       expect(result[0].total_cantidad).toBe(7)
       expect(result[1].equipo_id).toBe('A')
-      expect(result[1].total_cantidad).toBe(4)
-      expect(result[1].total_ventas).toBe(2)
+      expect(result[1].total_cantidad).toBe(6)
+      expect(result[1].total_ventas).toBe(2) // ventas distintas, no filas
+      expect(result[1]).not.toHaveProperty('ventas')
     })
 
     it('respeta el limit', async () => {
       supabase.from
         .mockReturnValueOnce(makeQuery({
           data: [
-            { equipo_id: 'A', cantidad: 1 },
-            { equipo_id: 'B', cantidad: 2 },
-            { equipo_id: 'C', cantidad: 3 },
+            { venta_id: 1, equipo_id: 'A', cantidad: 1 },
+            { venta_id: 2, equipo_id: 'B', cantidad: 2 },
+            { venta_id: 3, equipo_id: 'C', cantidad: 3 },
           ],
           error: null,
         }))
@@ -111,8 +114,8 @@ describe('reportService', () => {
       supabase.from
         .mockReturnValueOnce(makeQuery({
           data: [
-            { total: '100', cantidad: 2, created_at: '2026-01-01' },
-            { total: '50',  cantidad: 1, created_at: '2026-01-02' },
+            { total: '100', created_at: '2026-01-01', venta_items: [{ cantidad: 1 }, { cantidad: 1 }] },
+            { total: '50',  created_at: '2026-01-02', venta_items: [{ cantidad: 1 }] },
           ],
           error: null,
         })) // ventas
@@ -143,13 +146,13 @@ describe('reportService', () => {
   })
 
   describe('getCategoriesBreakdown', () => {
-    it('agrupa montos por tipo de equipo', async () => {
+    it('agrupa subtotales de venta_items por tipo de equipo', async () => {
       supabase.from
         .mockReturnValueOnce(makeQuery({
           data: [
-            { total: '100', equipo_id: 'A' },
-            { total: '200', equipo_id: 'B' },
-            { total: '50',  equipo_id: 'A' },
+            { subtotal: '100', equipo_id: 'A' },
+            { subtotal: '200', equipo_id: 'B' },
+            { subtotal: '50',  equipo_id: 'A' },
           ],
           error: null,
         }))

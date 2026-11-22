@@ -18,6 +18,7 @@ import {
 } from '../../ui'
 import { FiArrowLeft, FiPlus } from 'react-icons/fi'
 import { ALMACEN_PRINCIPAL_ID } from '../../../lib/constants/almacenConstants'
+import { getStockEstado } from '../../../lib/constants/inventoryConstants'
 
 export const EquipmentDetails = () => {
   const { equipoId } = useParams()
@@ -272,7 +273,7 @@ const DetailsTab = ({ equipo }) => {
           <DetailField label="Tipo" value={equipo.tipo} />
           <DetailField
             label="Estado"
-            value={<Badge estado={equipo.estado} />}
+            value={<Badge estado={getStockEstado(stockTotal)} />}
             isComponent
           />
         </div>

@@ -81,7 +81,6 @@ async function fetchRows(from, to) {
       created_at, tipo, cantidad, motivo, referencia_tipo, referencia_id,
       equipos(id, nombre, tipo),
       almacenes:almacen_id(id, nombre),
-      almacen_destino:almacen_destino_id(id, nombre),
       perfiles(nombre, email)
     `)
     .gte('created_at', isoFrom)
@@ -110,7 +109,6 @@ function toSheetRow(r) {
     'Equipo':             r.equipos?.nombre ?? '—',
     'Categoría':          r.equipos?.tipo ?? '—',
     'Almacén':            r.almacenes?.nombre ?? '—',
-    'Almacén destino':    r.almacen_destino?.nombre ?? '',
     'Motivo':             r.motivo ?? '',
     'Referencia':         r.referencia_id ?? '',
     'Usuario':            r.perfiles?.nombre ?? 'Sistema',
